@@ -24,7 +24,6 @@ const dev: any = {
         url: process.env.DEV_DATABASE_URL || ''
     },
     stripe: {
-        secret: process.env.DEV_STRIPE_SECRET_KEY || '',
         webhook: process.env.DEV_STRIPE_WEBHOOK_SECRET || '',
         publishable: process.env.DEV_NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
     },
@@ -50,7 +49,6 @@ const prod: any = {
         clientSecret: process.env.GOOGLE_CLIENT_SECRET || ''
     },
     stripe: {
-        secret: process.env.STRIPE_SECRET_KEY || '',
         webhook: process.env.STRIPE_WEBHOOK_SECRET || '',
         publishable: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
     },

@@ -47,11 +47,11 @@ export const BadgeComponent: React.FC<BadgeProps> = ({ type }) => {
 
 const getRarityClass = (rarity: string): string => {
   switch (rarity) {
-    case 'common': return 'bg-gray-200 text-gray-800';
-    case 'uncommon': return 'bg-green-200 text-green-800';
-    case 'rare': return 'bg-blue-200 text-blue-800';
-    case 'epic': return 'bg-purple-200 text-purple-800';
-    case 'legendary': return 'bg-yellow-200 text-yellow-800';
+    case 'common': return 'bg-gray-200 text-gray-800 hover:bg-gray-300 hover:text-gray-600 transition-all duration-300 ease-in-out transform hover:scale-105';
+    case 'uncommon': return 'bg-green-200 text-green-800 hover:bg-green-300 hover:text-green-600 transition-all duration-300 ease-in-out transform hover:scale-105';
+    case 'rare': return 'bg-blue-200 text-blue-800 hover:bg-blue-300 hover:text-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105';
+    case 'epic': return 'bg-purple-200 text-purple-800 hover:bg-purple-300 hover:text-purple-600 transition-all duration-300 ease-in-out transform hover:scale-105';
+    case 'legendary': return 'bg-yellow-200 text-yellow-800 hover:bg-yellow-300 hover:text-yellow-600 transition-all duration-300 ease-in-out transform hover:scale-105';
     default: return '';
   }
 };

@@ -278,7 +278,7 @@ export function UnlockChannelChat({
             <Button
               onClick={() => handleSponsor(Number(amount))}
               disabled={isLoading}
-              className="bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white font-bold py-2 px-4 rounded"
+              className="bg-gradient-to-r from-green-600 to-blue-700 hover:from-green-700 hover:to-blue-800 transition-all duration-300 ease-in-out transform hover:scale-110 text-white font-bold py-2 px-4 rounded" // to animate to 1.2x size on hover, add hover:scale-120
             >
               {isLoading ? 'Processing...' : 'Activate Now!'}
             </Button>

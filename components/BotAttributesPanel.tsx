@@ -82,8 +82,13 @@ export function BotAttributesPanel({
     }
   }
 
-  if (isLoading) return <Card className="w-full p-6"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></Card>
-  if (error) return <Card className="w-full p-6 text-red-500">Error: {error}</Card>
+  if (isLoading) return (
+    <Card className="w-full p-6 mb-8 flex flex-col items-center justify-center">
+      <Loader2 className="w-6 h-6 animate-spin mb-2" />
+      <span className="text-center">Loading bot attributes...</span>
+    </Card>
+  )
+  if (error) return <Card className="w-full p-6 mb-8 text-red-500">Error: {error}</Card>
 
   return (
     <Card className="w-full mb-8">

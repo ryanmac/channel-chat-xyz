@@ -90,7 +90,7 @@ export const SuccessShareModal: React.FC<SuccessShareModalProps> = ({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: 'spring', damping: 15 }}
-            className="w-full max-w-xl bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl shadow-2xl overflow-hidden"
+            className="sm:w-10/12 md:w-8/12 lg:w-6/12 pb-8 bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl shadow-2xl overflow-hidden"
           >
             <div className="relative p-6 text-white">
               <Button
@@ -163,7 +163,7 @@ export const SuccessShareModal: React.FC<SuccessShareModalProps> = ({
                 </Button>
                 <Button
                   onClick={copyToClipboard}
-                  className="max-w-xs w-full bg-white hover:bg-gray-100 text-black font-semibold py-3 rounded-full transition-all duration-300 ease-in-out transform hover:scale-105"
+                  className="max-w-xs w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 rounded-full transition-all duration-300 ease-in-out transform hover:scale-105"
                 >
                   <Link className="mr-2 w-5 h-5" />
                   Copy Share Message
