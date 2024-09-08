@@ -1,97 +1,70 @@
+# ChannelChat.xyz
 
-# Nextjs Boilerplate &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/buildFast10x/Nextjs-Boilerplate/blob/main/LICENSE) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/buildFast10x/Nextjs-Boilerplate/blob/main/contribution.md)
+ChannelChat.xyz is a cutting-edge platform that transforms YouTube channels into interactive, AI-powered chatbots. Our application allows users to engage in dynamic conversations with their favorite YouTube content through advanced Retrieval-Augmented Generation (RAG) and Large Language Model (LLM) techniques.
 
-Welcome to the Next.js Open Source Boilerplate by [Buildfast](https://buildfast.co.in/)! This boilerplate is designed to kickstart your Next.js projects with a well-organized and extensible foundation.
+## Key Features
 
+- **AI-Powered Chat Interface**: Engage with YouTube channels via sophisticated chatbots.
+- **Multi-Channel Support**: Chat with multiple YouTube channels simultaneously.
+- **Sponsorship System**: Support creators through crypto and traditional payment methods.
+- **Community Engagement**: Share and highlight popular conversations.
+- **User Authentication**: Secure login with social and email options.
+- **Admin Dashboard**: Comprehensive tools for user management and content moderation.
+- **Responsive Design**: Seamless experience across all devices.
 
-## Features
+## Technology Stack
 
- ✅ Email Login and Signup Using Next-Auth <br>
- ✅ Stripe Subscription Payments <br>
- ✅ Resend <br>
- ✅ Social Logins <br>
- ✅ Email Verification <br>
- ✅ Forget Password <br>
- ⏩ User Roles <br>
- ⏩ 2FA <br>
- ⏩ Admin Dashboard with multiple features <br>
- ⏩ blogs <br>
+- **Frontend**: Next.js, React, TypeScript
+- **Styling**: Tailwind CSS, ShadCN UI
+- **Backend**: Next.js API Routes
+- **Database**: Prisma ORM with PostgreSQL on Supabase
+- **Authentication**: NextAuth.js
+- **Payments**: Stripe (traditional), RainbowKit (crypto)
+- **AI Integration**: Custom RAG implementation with LLM
+- **Email**: Resend for transactional emails
+- **Deployment**: Vercel
 
+## Project Structure
 
-## Tech Stack
-
-**Frontend**: Shadcdn, Tailwind css
-
-**Framework**: Nextjs, Prisma
-
-**Database**: Mysql
-
-**Payment Gateway**: Stripe
-
-
-
-## Contributing
-
-Contributions are always welcome!
-
-See `contributing.md` for ways to get started.
-
-Please adhere to this project's `code of conduct`.
-
-### Project structure
-
-```shell
+```
 .
-├── README.md                       # README file
-├── .vscode                         # VSCode configuration for Debugging in local
-├── contribution.md                 # Steps to follow to contribute to project
-├── app                             # Next JS App (App Router)
-│   └── api                         # api fuctions and routes
-├── components                      # React components
-│   └── internal                    # Internal Build Components
-│   └── ui                          # Shadcdn Components
-├── controllers                     # Handles Database Queries
-├── data                            # Class Objects of data
-├── helpers                         # Helper Classes - Repetative Functions
-├── libs                            # 3rd party libraries configuration
-├── next-auth                       # Next Auth Configration
-├── prisma                          # Prisma Configration
-├── public                          # Public assets folder
-├── redux                           # Redux Store
-├── utils                           # Utility Function Class
-├── middleware.ts                   # Middleware Functionality code
-├── tailwind.config.js              # Tailwind CSS configuration
-└── tsconfig.json                   # TypeScript configuration
+├── app/                # Next.js 13 app directory
+│   ├── api/            # API routes
+│   ├── (main)/         # Main application routes
+│   └── ...             # Other app routes
+├── components/         # React components
+├── lib/                # Utility libraries and configurations
+├── prisma/             # Prisma schema and migrations
+├── public/             # Static assets
+├── styles/             # Global styles
+├── utils/              # Utility functions
+└── ...                 # Configuration files
 ```
 
+## Core Components
+
+- **ChatInterface**: The main chat UI for interacting with channel chatbots.
+- **ChannelHeader**: Displays channel information and metrics.
+- **SponsorshipCTA**: Call-to-action for channel sponsorships.
+- **LeaderboardActivity**: Shows top sponsors and recent activities.
+- **AdminDashboard**: Interface for platform management and analytics.
 
 ## Getting Started
 
-### 1. Clone the repo.
+For detailed setup instructions, including local development setup, test deployment, and production deployment, please refer to our [SETUP.md](SETUP.md) file.
 
-```shell
-git clone https://github.com/buildFast10x/Nextjs-Boilerplate.git
-```
+## Contributing
 
-### 2. Fill the .env variables
+We welcome contributions from the community! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to submit pull requests, report issues, and suggest improvements.
 
-Here is the .env file  [example](https://github.com/buildFast10x/Nextjs-Boilerplate/blob/main/.env.example).
+## License
 
+ChannelChat.xyz is open-source software licensed under the MIT license. See the [LICENSE](LICENSE) file for more details.
 
-### 3. Setup the Database
+## Support
 
-```shell
-npx prisma generate
-```
-```shell
-npx prisma db push
-```
+If you encounter any issues or have questions, please file an issue on our GitHub repository or contact our support team at support@channelchat.xyz.
 
-### 4. Run Project
+---
 
-```shell
-npm install
-```
-```shell
-npm run dev
-```
+ChannelChat.xyz - Bringing AI-powered conversations to your favorite YouTube channels!
