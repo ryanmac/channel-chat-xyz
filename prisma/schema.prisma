@@ -1,0 +1,196 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id                String           @id @default(cuid())
+  name              String?
+  email             String?          @unique
+  emailVerified     DateTime?
+  password          String?
+  image             String?
+  role              UserRole         @default(USER)
+  credits           Int              @default(0)
+  accounts          Account[]
+  chats             Chat[]
+  sessions          Session[]
+  sponsorships      Sponsorship[]    @relation("UserSponsorships")
+  subscriptions     Subscription?
+  sponsoredChannels YouTubeChannel[] @relation("UserSponsoredChannels")
+}
+
+model VerificationToken {
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
+model PasswordResetToken {
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
+model Subscription {
+  id                     String    @id @default(cuid())
+  userId                 String    @unique
+  stripeCustomerId       String?   @unique @map("stripe_customer_id")
+  stripeSubscriptionId   String?   @unique @map("stripe_subscription_id")
+  stripePriceId          String?   @map("stripe_price_id")
+  stripeCurrentPeriodEnd DateTime? @map("stripe_current_period_end")
+  user                   User      @relation(fields: [userId], references: [id])
+}
+
+model YouTubeChannel {
+  id              String        @id @default(cuid())
+  youtubeId       String        @unique
+  name            String
+  description     String?
+  subscriberCount Int
+  imageUrl        String?
+  bannerUrl       String?
+  chats           Chat[]
+  sponsorships    Sponsorship[]
+  sponsors        User[]        @relation("UserSponsoredChannels")
+}
+
+model Chat {
+  id        String         @id @default(cuid())
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  userId    String
+  channelId String
+  channel   YouTubeChannel @relation(fields: [channelId], references: [id])
+  user      User           @relation(fields: [userId], references: [id])
+  messages  Message[]
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  isUser    Boolean
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id])
+}
+
+model Sponsorship {
+  id        String         @id @default(cuid())
+  amount    Int
+  createdAt DateTime       @default(now())
+  userId    String
+  channelId String
+  channel   YouTubeChannel @relation(fields: [channelId], references: [id])
+  user      User           @relation("UserSponsorships", fields: [userId], references: [id])
+}
+
+model Channel {
+  id                  String              @id @default(cuid())
+  name                String              @unique
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  boosts              ChannelBoost[]
+  credits             ChannelCredit?
+  usage               ChannelUsage[]
+  creditTransactions  CreditTransaction[]
+  isProcessing        Boolean             @default(false)
+  isActive            Boolean             @default(false)
+  embeddedTranscripts Int                 @default(0)
+  totalVideos         Int                 @default(0)
+  model               String              @default("gpt-3.5-turbo")
+  maxTokens           Int                 @default(200)
+  chatsCreated        Int                 @default(0)
+  isFineTuned         Boolean             @default(false)
+  botScore            Int                 @default(0)
+}
+
+model ChannelCredit {
+  id          String   @id @default(uuid())
+  channelId   String   @unique
+  balance     Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  channel     Channel  @relation(fields: [channelId], references: [id])
+  maxCredits  Int      @default(100000)
+}
+
+model ChannelBoost {
+  id        String   @id @default(uuid())
+  channelId String
+  boostType String
+  value     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  channel   Channel  @relation(fields: [channelId], references: [id])
+}
+
+model ChannelUsage {
+  id              String   @id @default(uuid())
+  channelId       String
+  embeddedVideos  Int      @default(0)
+  totalChats      Int      @default(0)
+  totalTokensUsed Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  channel         Channel  @relation(fields: [channelId], references: [id])
+}
+
+model CreditTransaction {
+  id        String   @id @default(uuid())
+  channelId String
+  amount    Int
+  type      String
+  createdAt DateTime @default(now())
+  channel   Channel  @relation(fields: [channelId], references: [id])
+}
+
+model ConfigurationSetting {
+  id          String  @id @default(uuid())
+  key         String  @unique
+  value       String
+  description String?
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
