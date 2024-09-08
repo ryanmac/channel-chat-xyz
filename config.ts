@@ -1,4 +1,4 @@
-//config.js
+//config.ts
 const env = process.env.NEXT_PUBLIC_ENV || 'prod';
 // console.log(env);
 
