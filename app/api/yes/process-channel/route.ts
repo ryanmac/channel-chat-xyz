@@ -1,4 +1,5 @@
 // app/api/yes/process-channel/route.ts
+
 const YES_API_URL = process.env.YES_API_URL || 'http://localhost:8000';
 
 async function fetchFromYES(endpoint: string, method: string, data?: any) {
@@ -24,8 +25,11 @@ async function fetchFromYES(endpoint: string, method: string, data?: any) {
   }
 }
 
-export async function processChannel(channelId: string, channelUrl: string, amountInDollars: number) {
+// The main API route handler
+export async function POST(request: Request) {
   try {
+    const { channelId, channelUrl, amountInDollars } = await request.json();
+
     console.log(`Processing channel: ${channelId}, ${channelUrl}`);
     const videoLimit = Math.floor(amountInDollars * 10); // Assuming 10 videos per dollar
 
@@ -33,8 +37,6 @@ export async function processChannel(channelId: string, channelUrl: string, amou
       channel_url: channelUrl,
       video_limit: videoLimit
     });
-
-    // console.log('YES API response:', response);
 
     // Start polling for job status
     let jobStatus = await checkJobStatus(response.job_id);
@@ -47,10 +49,19 @@ export async function processChannel(channelId: string, channelUrl: string, amou
       throw new Error(`Channel processing failed: ${jobStatus.error}`);
     }
 
-    return jobStatus;
+    return new Response(JSON.stringify(jobStatus), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
+    // Type assertion to handle the unknown type
     console.error('Error processing channel:', error);
-    throw error;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }
 

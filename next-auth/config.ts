@@ -1,4 +1,6 @@
-// import { NextAuthOptions, User } from "next-auth";
+// // next-auth/config.ts
+// import User from "next-auth";
+// import NextAuth, { type NextAuthOptions } from "next-auth";
 // import CredentialsProvider from "next-auth/providers/credentials";
 // import GoogleProvider from "next-auth/providers/google";
 // import prisma from "@/lib/prisma";
@@ -30,52 +32,29 @@
 
 //       async authorize(credentials) {
 
-//         if (!credentials?.email || !credentials?.password) { 
-//           return null;
-//         }
-
-//         const userControllerHandler = new userController();
-//         const userDB = await userControllerHandler.getUserByEmail(credentials.email);
-//         const user = new userImpl();
-//         user.initFromDataObject(userDB)
-
-//         if(!user || !user.getPassword()) {
+//         if (!credentials?.email || !credentials?.password) {
 //           return null
 //         }
 
-//         const isPasswordValid = await compare(credentials.password, user.getPassword() || '');
-//         if(!isPasswordValid) {
+//         const user = await prisma.user.findUnique({
+//           where: {
+//             email: credentials.email
+//           }
+//         })
+
+//         if (!user || !user.password) {
+//           return null
+//         }
+//         const isPasswordValid = await compare(credentials.password, user.password)
+//         if (!isPasswordValid) {
 //           return null
 //         }
 
-//         return user.toJson();
-        
-
-        
-
-//         // if (!credentials?.email || !credentials?.password) {
-//         //   return null
-//         // }
-
-//         // const user = await prisma.user.findUnique({
-//         //   where: {
-//         //     email: credentials.email
-//         //   }
-//         // })
-
-//         // if (!user || !user.password) {
-//         //   return null
-//         // }
-//         // const isPasswordValid = await compare(credentials.password, user.password)
-//         // if (!isPasswordValid) {
-//         //   return null
-//         // }
-
-//         // return {
-//         //   id: String(user.id),
-//         //   email: user.email,
-//         //   name: user.name
-//         // };
+//         return {
+//           id: String(user.id),
+//           email: user.email,
+//           name: user.name
+//         };
 //       },
 //     }),
 //     GoogleProvider({
@@ -86,26 +65,23 @@
 //   // get id in session
 
 //   callbacks: {
-//     async jwt({ token, user }) {
-//       if (user) {
-//         token.id = user.id
-//         token.name = user.name
-//         token.email = user.email
-//         token.picture = user.image
-
-//       }
-
-//       return token;
+//     async jwt({ token, user }: { token: any; user?: any }) { // Explicitly define types
+//         if (user) {
+//             token.id = user.id;
+//             token.name = user.name;
+//             token.email = user.email;
+//             token.picture = user.image;
+//         }
+//         return token;
 //     },
-//     async session({ token, session }) {
-//       if (token) {
-//         session.user.id = token.id;
-//         session.user.name = token.name;
-//         session.user.email = token.email;
-//         session.user.image = token.picture;
-//       }
-
-//       return session;
+//     async session({ token, session }: { token: any; session: any }) { // Explicitly define types
+//         if (token) {
+//             session.user.id = token.id;
+//             session.user.name = token.name;
+//             session.user.email = token.email;
+//             session.user.image = token.picture;
+//         }
+//         return session;
 //     },
 //   },
 // };

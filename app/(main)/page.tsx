@@ -1,3 +1,4 @@
+// app/(main)/page.tsx
 import { Hero } from "@/components/Hero"
 import { FeaturedChannels } from "@/components/FeaturedChannels"
 import { CommunitySupport } from "@/components/CommunitySupport"
