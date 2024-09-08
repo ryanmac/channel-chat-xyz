@@ -37,7 +37,7 @@ const prod: any = {
     nextEnv: process.env.NEXT_PUBLIC_ENV || '',
     nextAuth: {
         secret: process.env.NEXTAUTH_SECRET || '',
-        url: process.env.TEST_NEXTAUTH_URL || ''
+        url: process.env.NEXTAUTH_URL || ''
     },
     app: {
         url: process.env.NEXT_PUBLIC_PROD_API_URL || ''
@@ -66,5 +66,7 @@ const config: any = {
 
 console.log('Current environment:', env);
 console.log('Config loaded:', config[env] ? 'Successfully' : 'Failed');
+console.log('NEXTAUTH_SECRET is set:', !!process.env.NEXTAUTH_SECRET);
+console.log('NEXTAUTH_URL is set:', !!process.env.NEXTAUTH_URL);
 
 export default config[env];
