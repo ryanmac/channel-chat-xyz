@@ -1,5 +1,5 @@
 //config.js
-const env = process.env.NEXT_PUBLIC_ENV || '';
+const env = process.env.NEXT_PUBLIC_ENV || 'prod';
 // console.log(env);
 
 const dev: any = {
@@ -35,28 +35,27 @@ const dev: any = {
 
 const prod: any = {
     nextEnv: process.env.NEXT_PUBLIC_ENV || '',
-    nextAuthSecret: process.env.NEXTAUTH_SECRET || '',
+    nextAuth: {
+        secret: process.env.NEXTAUTH_SECRET || '',
+        url: process.env.TEST_NEXTAUTH_URL || ''
+    },
     app: {
         url: process.env.NEXT_PUBLIC_PROD_API_URL || ''
     },
     db: {
-        host: process.env.PROD_DB_HOST || '',
-        name: process.env.PROD_DB_NAME || '',
-        username: process.env.PROD_DB_USERNAME || '',
-        password: process.env.PROD_DB_PASSWORD || '',
-        port: process.env.PROD_DB_PORT || ''
+        url: process.env.DATABASE_URL || ''
     },
     google: {
-        clientId: process.env.PROD_GOOGLE_CLIENT_ID || '',
-        clientSecret: process.env.PROD_GOOGLE_CLIENT_SECRET || ''
+        clientId: process.env.GOOGLE_CLIENT_ID || '',
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET || ''
     },
     stripe: {
-        secret: process.env.PROD_STRIPE_SECRET_KEY || '',
-        webhook: process.env.PROD_STRIPE_WEBHOOK_SECRET || '',
-        publishable: process.env.PROD_NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
+        secret: process.env.STRIPE_SECRET_KEY || '',
+        webhook: process.env.STRIPE_WEBHOOK_SECRET || '',
+        publishable: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
     },
     resend: {
-        apiKey: process.env.PROD_RESEND_API_KEY || ''
+        apiKey: process.env.RESEND_API_KEY || ''
     }
 };
 
@@ -64,5 +63,8 @@ const config: any = {
     dev,
     prod
 };
+
+console.log('Current environment:', env);
+console.log('Config loaded:', config[env] ? 'Successfully' : 'Failed');
 
 export default config[env];

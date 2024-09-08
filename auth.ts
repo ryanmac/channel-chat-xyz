@@ -6,7 +6,12 @@ import prisma from "@/lib/prisma";
 import authConfig from "@/auth.config";
 import userImpl from "./data/user/userImpl";
 import UserRoleEnum from "./enums/UserRoleEnum";
+import configEnv from "@/config";
 
+if (!configEnv.nextAuth.secret) {
+    console.error("NEXTAUTH_SECRET is not set. This is required for secure operation");
+    throw new Error("NEXTAUTH_SECRET must be set");
+}
 
 export const {
     handlers: { GET, POST },
@@ -69,4 +74,5 @@ export const {
     adapter: PrismaAdapter(prisma),
     session: { strategy: "jwt" },
     ...authConfig,
+    secret: configEnv.nextAuth.secret,
 });

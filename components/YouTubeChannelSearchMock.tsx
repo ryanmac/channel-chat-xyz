@@ -189,7 +189,7 @@ export default function YouTubeChannelSearch() {
   }
 
   return (
-    <div className="relative w-full max-w-md" onKeyDown={handleKeyDown}>
+    <div className="relative w-full" onKeyDown={handleKeyDown}>
       <div className="relative">
         <Input
           type="text"

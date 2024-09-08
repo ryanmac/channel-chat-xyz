@@ -1,3 +1,4 @@
+// next-auth.d.ts
 import NextAuth, { type DefaultSession } from "next-auth"
 import UserRoleEnum from "./enums/UserRoleEnum"
 

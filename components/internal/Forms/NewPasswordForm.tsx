@@ -1,3 +1,4 @@
+// components/internal/Forms/NewPasswordForm.tsx
 "use client"
 import React, { startTransition, useState } from 'react'
 import { zodResolver } from "@hookform/resolvers/zod"

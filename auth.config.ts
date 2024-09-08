@@ -8,6 +8,8 @@ import bcrypt from "bcryptjs";
 import userImpl from "@/data/user/userImpl";
 import userController from "@/controllers/UserController";
 
+console.log('Google Client ID:', configEnv.google.clientId ? 'Set' : 'Not set');
+console.log('Google Client Secret:', configEnv.google.clientSecret ? 'Set' : 'Not set');
 
 export default {
     providers: [

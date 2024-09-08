@@ -1,3 +1,4 @@
+// app/auth/new-verification/page.tsx
 import NewVerificationForm from "@/components/internal/Forms/NewVerificationForm";
 import { Suspense } from "react";
 

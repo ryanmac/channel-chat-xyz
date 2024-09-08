@@ -1,5 +1,6 @@
 'use client'
 
+import YouTubeChannelSearch from '@/components/YouTubeChannelSearchMock'
 import { Button } from "@/components/ui/button"
 
 export function Hero() {
@@ -16,6 +17,7 @@ export function Hero() {
             </p>
           </div>
           <div className="space-x-4">
+            <YouTubeChannelSearch />
             {/* <Button>Start Exploring Channels</Button> */}
             {/* <Button variant="outline">See How It Works</Button> */}
           </div>

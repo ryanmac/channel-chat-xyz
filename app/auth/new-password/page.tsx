@@ -1,3 +1,4 @@
+// app/auth/new-password/page.tsx
 import NewPasswordForm from "@/components/internal/Forms/NewPasswordForm";
 import { Suspense } from "react";
 
