@@ -14,7 +14,7 @@ interface ShareChannelActivationProps {
 
 export function ShareChannelActivation({ channelName, currentFunding, goalFunding }: ShareChannelActivationProps) {
   const [isClient, setIsClient] = useState(false)
-  const remainingToActivate = (Math.max(0, goalFunding));
+  const remainingToActivate = (Math.max(0, goalFunding-currentFunding));
   const { toast } = useToast();
 
   const currentUrl = 'https://channelchat.xyz/channel/@' + channelName

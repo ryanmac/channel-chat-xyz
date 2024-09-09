@@ -52,3 +52,10 @@ export async function getFuelPercentage(channelId: string): Promise<number> {
   const creditsPerDollar = await getCreditsPerDollar();
   return Math.min((credits / (100 * creditsPerDollar)) * 100, 100);
 }
+
+export async function getTotalChannelFunding(channelId: string): Promise<number> {
+  const channelCredit = await prisma.channelCredit.findUnique({
+    where: { channelId },
+  });
+  return channelCredit ? channelCredit.balance / 100 : 0; // Assuming balance is stored in cents
+}

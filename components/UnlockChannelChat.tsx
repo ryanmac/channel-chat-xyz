@@ -6,14 +6,12 @@ import { motion, useAnimation } from 'framer-motion';
 import { Bot, Clock, Users, Award, Info, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+import ProgressBar from '@/components/ui/progress-bar';
 import { Slider } from '@/components/ui/slider';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { createCheckoutSession } from '@/utils/stripePayments';
-import { getFuelPercentage } from '@/utils/creditManagement';
 import { BadgeComponent, determineBadges, BadgeType } from '@/components/BadgeComponent';
 
 interface UnlockChannelChatProps {
@@ -44,7 +42,6 @@ export function UnlockChannelChat({
   const [earnedBadges, setEarnedBadges] = useState<BadgeType[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [fuelPercentage, setFuelPercentage] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(86400); // 24 hours in seconds
   const [contributors, setContributors] = useState<Contributor[]>([]);
   const [flashButtons, setFlashButtons] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,13 +51,45 @@ export function UnlockChannelChat({
   const botAnimation = useAnimation();
 
   const [fundingPercentage, setFundingPercentage] = useState(0);
+  const [potentialPercentage, setPotentialPercentage] = useState(0);
+  const [potentialExcessFunding, setPotentialExcessFunding] = useState(0);
   const fundingToGoal = goalFunding - currentFunding;
 
   useEffect(() => {
-    console.log('UnlockChannelChat: currentFunding:', currentFunding, 'goalFunding:', goalFunding);
+    // console.log('UnlockChannelChat: currentFunding:', currentFunding, 'goalFunding:', goalFunding);
     const percentage = (currentFunding / goalFunding) * 100;
     setFundingPercentage(percentage);
   }, [currentFunding, goalFunding]);
+
+  useEffect(() => {
+    const currentFundingPercentage = (currentFunding / goalFunding) * 100;
+    const remainingFunding = goalFunding - currentFunding;
+    const potentialContribution = Number(amount);
+    const potentialPercentage = (potentialContribution / goalFunding) * 100;
+    const totalPotentialFunding = currentFunding + potentialContribution;
+    const totalPotentialFundingPercentage = (totalPotentialFunding / goalFunding) * 100;
+    const potentialExcessFunding = Math.max(0, totalPotentialFunding - goalFunding);
+
+    setFundingPercentage(currentFundingPercentage);
+    setPotentialPercentage(potentialPercentage);
+    setPotentialExcessFunding(potentialExcessFunding);
+
+    // console.log('useEffect: UnlockChannelChat');
+    // console.log('currentFunding:', currentFunding, 'is the current amount of funding');
+    // console.log('goalFunding:', goalFunding, 'is the total amount of funding needed to reach the goal');
+    // console.log('currentFundingPercentage:', currentFundingPercentage, 'is the amount of the goal that has been reached already');
+    // console.log('remainingFunding:', remainingFunding, 'is the amount of the goal that still needs to be reached');
+    // console.log('potentialContribution:', potentialContribution, 'is the amount that the user is considering contributing');
+    // console.log('potentialPercentage:', potentialPercentage, 'is the percentage of the goal that the potentialContribution represents');
+    // console.log('totalPotentialFunding:', totalPotentialFunding, 'is the total amount of funding that would be reached if the user contributes the potentialContribution');
+    // console.log('totalPotentialFundingPercentage:', totalPotentialFundingPercentage, 'is the percentage of the goal that the totalPotentialFunding represents');
+    // console.log('amount:', amount, 'is the current amount that the user is considering contributing');
+    // console.log('fundingToGoal:', fundingToGoal, 'is the amount of funding that still needs to be reached to reach the goal');
+    // console.log('The ProgressBar component should show 2 values: currentFundingPercentage (', currentFundingPercentage, ' in white) and potentialPercentage (', potentialPercentage, ' in pink)');
+    // console.log('Excess funding is the amount of funding that exceeds the goal');
+    // console.log('Potential excess funding is the amount of funding that would exceed the goal if the user contributes the potentialContribution');
+    // console.log('Potential excess funding is', potentialExcessFunding, 'if the user contributes', potentialContribution);
+  }, [currentFunding, amount, potentialPercentage, potentialExcessFunding, goalFunding, fundingToGoal]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -147,7 +176,7 @@ export function UnlockChannelChat({
             {/* Contribute ${activationContribution.toFixed(0)} toward the ${fundingToGoal.toFixed(0)} goal to activate the
             channel for the community */}
             {/* To change these to %, use this: */}
-            Contribute {((activationContribution / goalFunding) * 100).toFixed(0)}% toward the ${fundingToGoal.toFixed(0)} goal to activate the channel for the community
+            Contribute {((activationContribution / goalFunding) * 100).toFixed(0)}% toward activating the channel for the community
           </li>
         )}
         {activationContribution > 0 && (remainingToActivate - numericAmount) <= 0 && (
@@ -157,16 +186,16 @@ export function UnlockChannelChat({
             </li>
           </>
         )}
-        {extraContribution > 0 && (
+        {extraContribution >= 0 && (
           <li>
-            Contribute ${extraContribution.toFixed(0)} to buy {chatCount.toLocaleString()} chats for the community
+            Add <strong>{((chatCount+1000)/1000).toLocaleString()}k</strong> chats for the community
           </li>
         )}
-        {activationContribution > 0 && extraContribution == 0 && (remainingToActivate - numericAmount) <= 0 && (
+        {/* {activationContribution > 0 && extraContribution == 0 && (remainingToActivate - numericAmount) <= 0 && (
           <li>
-            Add 1000 chats to the community
+            Add 1000 chats for the community to use
           </li>
-        )}
+        )} */}
         {badgeTypes.length > 0 && (
           <li>
             Earn badges: 
@@ -200,20 +229,27 @@ export function UnlockChannelChat({
       <CardContent className="p-6">
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-2">Progress to Activation</h3>
-          <Progress value={fundingPercentage} className="h-4 mb-2" />
+          <div className={`mb-2 ${potentialExcessFunding >= 0 && (fundingPercentage + potentialPercentage) >= 100 ? 'flex items-center' : ''}`}>
+            {/* Flex container if there is excess funding */}
+            <div className={`flex-shrink ${potentialExcessFunding >= 0 && (fundingPercentage + potentialPercentage) >= 100 ? 'w-10/12' : 'w-full'}`}>
+              <ProgressBar
+                items={[
+                  { value: fundingPercentage, className: 'bg-white' },
+                  { value: potentialPercentage, className: 'bg-green-300' },
+                ]}
+                height='h-6'
+              />
+            </div>
+            {potentialExcessFunding >= 0 && (fundingPercentage + potentialPercentage) >= 100 && (
+              <div className="flex-shrink w-2/12 text-sm text-gray-200 font-semibold pl-2">
+                +{potentialExcessFunding+1}k chats
+              </div>
+            )}
+          </div>
           <p className="text-sm text-gray-600">
-            ${currentFunding.toFixed(0)} raised of ${goalFunding.toFixed(0)} goal
+            ${currentFunding.toFixed(0)} raised so far toward ${goalFunding.toFixed(0)} activation goal
           </p>
         </div>
-
-        {/* <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-2">Time Left to Activate</h3>
-          <div className="flex items-center">
-            <Clock className="w-6 h-6 mr-2 text-yellow-500" />
-            <span className="text-2xl font-bold">{formatTime(timeLeft)}</span>
-          </div>
-        </div> */}
-
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-2">Join Our Sponsors</h3>
           <div className="flex items-center">
@@ -242,27 +278,6 @@ export function UnlockChannelChat({
             )}
           </div>
         </div>
-        {/* <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-2">Sponsorship Tiers</h3>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <Award className="w-8 h-8 mx-auto text-bronze-500" />
-              <p className="font-semibold">Bronze</p>
-              <p className="text-sm">$5 - 100 tokens</p>
-            </div>
-            <div className="text-center">
-              <Award className="w-8 h-8 mx-auto text-silver-500" />
-              <p className="font-semibold">Silver</p>
-              <p className="text-sm">$10 - 250 tokens</p>
-            </div>
-            <div className="text-center">
-              <Award className="w-8 h-8 mx-auto text-gold-500" />
-              <p className="font-semibold">Gold</p>
-              <p className="text-sm">$20 - 600 tokens</p>
-            </div>
-          </div>
-        </div> */}
-
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-2">Choose Your Contribution</h3>
             <Slider
@@ -272,6 +287,7 @@ export function UnlockChannelChat({
               max={100}
               step={1}
               className="mb-4"
+              filledColor='bg-green-300'
             />
           <div className="flex justify-between items-center">
             <span className="text-2xl font-bold">${amount}</span>
@@ -280,38 +296,14 @@ export function UnlockChannelChat({
               disabled={isLoading}
               className="bg-gradient-to-r from-green-600 to-blue-700 hover:from-green-700 hover:to-blue-800 transition-all duration-300 ease-in-out transform hover:scale-110 text-white font-bold py-2 px-4 rounded" // to animate to 1.2x size on hover, add hover:scale-120
             >
-              {isLoading ? 'Processing...' : 'Activate Now!'}
+              {isLoading
+                ? "Processing..."
+                : currentFunding + Number(amount) >= goalFunding
+                ? "Activate Now!"
+                : "Contribute"}
             </Button>
           </div>
         </div>
-
-        {/* <div className="flex flex-wrap gap-2 mb-4">
-          {[5, 10, 20].map((fixedAmount) => (
-            <Button
-              key={fixedAmount}
-              variant="outline"
-              onClick={() => handleSponsor(fixedAmount)}
-              className={flashButtons ? 'animate-pulse bg-primary/10' : ''}
-              disabled={isLoading}
-            >
-              ${fixedAmount}
-            </Button>
-          ))}
-          <Input
-            type="number"
-            placeholder="Custom amount"
-            value={customAmount}
-            onChange={(e) => setCustomAmount(e.target.value)}
-            min={1}
-            step={1}
-            className="w-24"
-            disabled={isLoading}
-          />
-          <Button onClick={handleCustomAmountSponsor} disabled={isLoading}>
-            {isLoading ? 'Processing...' : 'Sponsor Custom Amount'}
-          </Button>
-        </div> */}
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
             <h3 className="text-lg font-semibold mb-2">Your Impact</h3>
@@ -321,7 +313,7 @@ export function UnlockChannelChat({
             <h3 className="text-lg font-semibold mb-2">Why Sponsor?</h3>
             <ul className="list-disc list-inside text-sm">
               <li>Activate the chatbot for {channelTitle}'s channel</li>
-              <li>Extended chat limits for ALL ChannelChat chatbots</li>
+              <li><strong>5x</strong> chat response limits for <strong>ALL</strong> channels</li>
               <li>
                 Help advance AI technology and research
                 <Heart className="w-4 h-4 inline-block ml-1" />
@@ -329,9 +321,9 @@ export function UnlockChannelChat({
             </ul>
           </div>
         </div>
-
         <div className="text-sm text-gray-600">
           <Info className="w-4 h-4 inline-block mr-1" />
+          A Chat roughly corresponds to about 29 book pages or 6 blog posts.{' '}
           Funds are used for AI model training, server costs, chats, and ongoing improvements.{' '}
           <Link href="/about">
             <span className="text-blue-500 hover:underline">Learn more</span>

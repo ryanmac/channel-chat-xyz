@@ -14,8 +14,8 @@ export default function HomePage() {
       <Hero />
       <FeaturedChannels />
       <CommunitySupport />
-      <LeaderboardActivityFeed />
-      <HighlightedChats />
+      {/* <LeaderboardActivityFeed /> */}
+      {/* <HighlightedChats /> */}
       <Footer />
     </div>
   )

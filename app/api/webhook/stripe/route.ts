@@ -3,7 +3,7 @@ import stripeInstance from "@/lib/stripe";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from "stripe";
-import { updateChannelCredits } from '@/utils/creditManagement';
+import { updateChannelCredits, getTotalChannelFunding } from '@/utils/creditManagement';
 import { processChannel } from '@/utils/yesService';
 import prisma from "@/lib/prisma";
 import configEnv from "@/config"
@@ -12,13 +12,6 @@ import { processChannelAsync } from '@/utils/yesService';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
 });
-
-async function getTotalChannelFunding(channelId: string): Promise<number> {
-  const channelCredit = await prisma.channelCredit.findUnique({
-    where: { channelId },
-  });
-  return channelCredit ? channelCredit.balance / 100 : 0; // Assuming balance is stored in cents
-}
 
 export async function POST(request: NextRequest) {
   const body = await request.text();

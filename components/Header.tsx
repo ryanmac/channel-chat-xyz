@@ -35,7 +35,7 @@ export function Header({ isLoggedIn, userAvatar, username }: HeaderProps) {
           <span className="text-xl font-bold">ChannelChat</span>
         </Link>
         <div className="flex items-center space-x-4">
-          <YouTubeChannelSearch />
+          <YouTubeChannelSearch className="hidden sm:block" />
           {/* {typeof window !== 'undefined' && ( */}
             <Button
               variant="ghost"

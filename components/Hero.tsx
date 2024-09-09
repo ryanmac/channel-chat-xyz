@@ -11,17 +11,37 @@ export function Hero() {
     setMounted(true)
   }, [])
 
+  // JavaScript for generating dynamic keyframes
+  const createWaveAnimation = (index: number) => {
+    const distance = 20 * index; // Moving the waves up by 20% for each wave
+    const controlPoint1X = 360; // Reduced x-distance for the first control point
+    const controlPoint2X = 360; // Reduced x-distance for the second control point
+
+    return `
+      @keyframes wave${index} {
+        0%, 100% {
+          opacity: 1; 
+          d: path('M 0 ${200 - distance} C ${controlPoint1X} ${100 + distance}, ${controlPoint2X} ${300 - distance}, 1440 ${200 - distance}');
+        }
+        50% {
+          opacity: 1; 
+          d: path('M 0 ${200 - distance} C ${controlPoint1X} ${300 - distance}, ${controlPoint2X} ${100 + distance}, 1440 ${200 - distance}');
+        }
+      }
+    `;
+  };
+
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-purple-900 via-teal-800 to-purple-900 dark:from-purple-950 dark:via-teal-900 dark:to-purple-950 py-8 md:py-18 lg:py-24 xl:py-32">
+    <section className="relative overflow-hidden py-8 md:py-18 lg:py-24 xl:py-32 animate-spin-slow">
       {/* Animated sin waves */}
       {mounted && (
         <div className="absolute inset-0 z-0">
           <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 1440 400">
             <defs>
               <linearGradient id="wave-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="rgba(255,255,255,0.2)" />
-                <stop offset="50%" stopColor="rgba(255,255,255,0.5)" />
-                <stop offset="100%" stopColor="rgba(255,255,255,0.2)" />
+                <stop offset="0%" stopColor="rgba(255,255,255,0.1)" />
+                <stop offset="50%" stopColor="rgba(255,255,255,0.05)" />
+                <stop offset="100%" stopColor="rgba(255,255,255,0.1)" />
               </linearGradient>
               <filter id="glow">
                 <feGaussianBlur stdDeviation="8" result="coloredBlur" />
@@ -39,7 +59,7 @@ export function Hero() {
                 stroke="url(#wave-gradient)"
                 strokeWidth={i * 0.5}
                 filter="url(#glow)"
-                d="M 0 200 C 360 100, 720 300, 1440 200"
+                d={`M 0 ${180 - i * 10} C 180 ${100 + i * 50}, 360 ${300 - i * 50}, 1440 ${200 - i * 20}`}
               />
             ))}
           </svg>
@@ -74,8 +94,10 @@ export function Hero() {
       <style jsx>{`
         .sin-wave {
           animation: wave 20s ease-in-out infinite;
-          opacity: 0;
+          opacity: 1;
         }
+
+        ${[1, 2, 3, 4].map((i) => createWaveAnimation(i)).join(' ')}
 
         .sin-wave-1 {
           animation-name: wave1;
@@ -93,52 +115,21 @@ export function Hero() {
           animation-name: wave4;
         }
 
-        @keyframes wave1 {
-          0%, 100% { opacity: 0.1; d: path('M 0 200 C 360 150, 720 250, 1440 200'); }
-          50% { opacity: 0.2; d: path('M 0 200 C 360 250, 720 150, 1440 200'); }
+        .animate-spin-slow {
+          background: linear-gradient(120deg, #4c1d95, #134e4a, #4c1d95);
+          background-size: 200% 200%;
+          animation: spin 10s linear infinite;
         }
 
-        @keyframes wave2 {
-          0%, 100% { opacity: 0.1; d: path('M 0 200 C 360 100, 720 300, 1440 200'); }
-          50% { opacity: 0.2; d: path('M 0 200 C 360 300, 720 100, 1440 200'); }
+        @keyframes spin {
+          from {
+            background-position: 0 0;
+          }
+          to {
+            background-position: 100% 100%;
+          }
         }
-
-        @keyframes wave3 {
-          0%, 100% { opacity: 0.1; d: path('M 0 200 C 360 50, 720 350, 1440 200'); }
-          50% { opacity: 0.2; d: path('M 0 200 C 360 350, 720 50, 1440 200'); }
-        }
-
-        @keyframes wave4 {
-          0%, 100% { opacity: 0.1; d: path('M 0 200 C 360 0, 720 400, 1440 200'); }
-          50% { opacity: 0.2; d: path('M 0 200 C 360 400, 720 0, 1440 200'); }
-        }
-
-        @keyframes wave5 {
-          0%, 100% { opacity: 0.1; d: path('M 0 200 C 360 150, 720 250, 1440 200'); }
-          50% { opacity: 0.2; d: path('M 0 200 C 360 250, 720 150, 1440 200'); }
-        }
-
-        @keyframes wave6 {
-          0%, 100% { opacity: 0.1; d: path('M 0 200 C 360 100, 720 300, 1440 200'); }
-          50% { opacity: 0.2; d: path('M 0 200 C 360 300, 720 100, 1440 200'); }
-        }
-
-        @keyframes wave7 {
-          0%, 100% { opacity: 0.1; d: path('M 0 200 C 360 50, 720 350, 1440 200'); }
-          50% { opacity: 0.2; d: path('M 0 200 C 360 350, 720 50, 1440 200'); }
-        }
-
-        @keyframes wave8 {
-          0%, 100% { opacity: 0.1; d: path('M 0 200 C 360 0, 720 400, 1440 200'); }
-          50% { opacity: 0.2; d: path('M 0 200 C 360 400, 720 0, 1440 200'); }
-        }
-
-        @keyframes wave9 {
-          0%, 100% { opacity: 0.1; }
-          50% { opacity: 0.2; }
-        }
-
       `}</style>
     </section>
-  )
+  );
 }

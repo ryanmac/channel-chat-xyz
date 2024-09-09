@@ -14,6 +14,7 @@ export const publicRoutes = [
     "/privacy",
     "/public",
     "/terms",
+    "/api/admin/boost",
     "/api/chat",
     "/api/boost/purchase",
     "/api/bot/activate",

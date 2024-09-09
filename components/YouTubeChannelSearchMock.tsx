@@ -11,9 +11,14 @@ import { defaultChannels, Channel } from '@/utils/defaultChannels'
 interface YouTubeChannelSearchProps {
   inputWidth?: string
   inputHeight?: string
+  className?: string
 }
 
-export default function YouTubeChannelSearch({ inputWidth = "w-64", inputHeight = "h-10" }: YouTubeChannelSearchProps) {
+export default function YouTubeChannelSearch({
+  inputWidth = "w-64",
+  inputHeight = "h-10",
+  className = ""
+}: YouTubeChannelSearchProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [results, setResults] = useState<Channel[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -90,7 +95,7 @@ export default function YouTubeChannelSearch({ inputWidth = "w-64", inputHeight 
   };
 
   return (
-    <div className="relative w-full" onKeyDown={handleKeyDown}>
+    <div className={`relative w-full ${className}`} onKeyDown={handleKeyDown}>
       <div className={`relative ${inputWidth} ${inputHeight} mx-auto`}>
         <Input
           type="text"
