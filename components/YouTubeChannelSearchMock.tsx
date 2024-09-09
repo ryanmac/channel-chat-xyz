@@ -8,11 +8,16 @@ import { Button } from "@/components/ui/button"
 import { Search } from "lucide-react"
 import { defaultChannels, Channel } from '@/utils/defaultChannels'
 
-export default function YouTubeChannelSearch() {
+interface YouTubeChannelSearchProps {
+  inputWidth?: string
+  inputHeight?: string
+}
+
+export default function YouTubeChannelSearch({ inputWidth = "w-64", inputHeight = "h-10" }: YouTubeChannelSearchProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [results, setResults] = useState<Channel[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedIndex, setSelectedIndex] = useState<number>(-1) // Use -1 to represent no selection initially
+  const [selectedIndex, setSelectedIndex] = useState<number>(-1)
   const router = useRouter()
 
   const searchChannels = useDebouncedCallback((term: string) => {
@@ -36,7 +41,7 @@ export default function YouTubeChannelSearch() {
     } else {
       setResults([])
     }
-    setSelectedIndex(-1) // Reset selected index when search term changes
+    setSelectedIndex(-1)
   }, [searchTerm, searchChannels])
 
   const formatSubscribers = (count: number) => {
@@ -54,13 +59,12 @@ export default function YouTubeChannelSearch() {
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (results.length === 0 && event.key === 'Enter') {
-      // If no results and Enter is pressed, go to the URL with the input term
       router.push(`/channel/@${searchTerm}`);
       return;
     }
-  
+
     if (results.length === 0) return;
-  
+
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
@@ -87,14 +91,13 @@ export default function YouTubeChannelSearch() {
 
   return (
     <div className="relative w-full" onKeyDown={handleKeyDown}>
-      <div className="relative">
+      <div className={`relative ${inputWidth} ${inputHeight} mx-auto`}>
         <Input
           type="text"
           placeholder="Search YouTube channels"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pr-10 w-64"
-          // Removed onKeyDown here to avoid duplication
+          className={`pr-12 ${inputWidth} ${inputHeight}`} // Use dynamic width
         />
         <Button
           size="icon"

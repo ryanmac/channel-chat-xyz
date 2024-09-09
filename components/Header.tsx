@@ -25,7 +25,7 @@ export function Header({ isLoggedIn, userAvatar, username }: HeaderProps) {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-2">
           <Avatar>
-            <AvatarImage src="/logomark-play.png" alt="ChannelChat" />
+            <AvatarImage src="/logomark2.png" alt="ChannelChat" />
             <AvatarFallback>
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-xl">C</span>
