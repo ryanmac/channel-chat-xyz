@@ -3,59 +3,44 @@ import type { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import configEnv from "@/config"
-import bcrypt from "bcryptjs";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import prisma from "@/lib/prisma";
 
-import userImpl from "@/data/user/userImpl";
-import userController from "@/controllers/UserController";
+// Ensure clientId and clientSecret are defined
+const googleClientId = configEnv.google.clientId ?? "";
+const googleClientSecret = configEnv.google.clientSecret ?? "";
 
-console.log('Google Client ID:', configEnv.google.clientId ? 'Set' : 'Not set');
-console.log('Google Client Secret:', configEnv.google.clientSecret ? 'Set' : 'Not set');
-
-export default {
-    providers: [
-        Google({
-            clientId: configEnv.google.clientId,
-            clientSecret: configEnv.google.clientSecret
-        }),
-        Credentials({
-            async authorize(credentials: any) {
-                if (!credentials?.email || !credentials?.password) {
-                    return null;
-                }
-
-                const userControllerHandler = new userController();
-                const userDB = await userControllerHandler.getUserByEmail(credentials.email);
-                const user = new userImpl();
-                user.initFromDataObject(userDB)
-
-                if (!user || !user.getPassword()) {
-                    return null
-                }
-
-                const isPasswordValid = await bcrypt.compare(credentials.password, user.getPassword() || '');
-                if (!isPasswordValid) {
-                    return null
-                }
-
-                return user.toJson();
-                // const validatedFields = LoginSchema.safeParse(credentials);
-
-                // if (validatedFields.success) {
-                //     const { email, password } = validatedFields.data;
-
-                //     const user = await getUserByEmail(email);
-                //     if (!user || !user.password) return null;
-
-                //     const passwordsMatch = await bcrypt.compare(
-                //         password,
-                //         user.password,
-                //     );
-
-                //     if (passwordsMatch) return user;
-                // }
-
-                return null;
-            }
-        })
-    ],
-} satisfies NextAuthConfig
+export const authConfig: NextAuthConfig = {
+  adapter: PrismaAdapter(prisma),
+  providers: [
+    Google({
+      clientId: googleClientId,
+      clientSecret: googleClientSecret,
+    }),
+  ],
+  callbacks: {
+    async session({ session, user }) {
+      if (session.user) {
+        session.user.id = user.id;
+        session.user.username = user.username;
+        session.user.role = user.role;
+      }
+      return session;
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id || ""; // Provide default value
+        token.username = user.username || ""; // Provide default value
+        token.role = user.role || ""; // Provide default value
+      }
+      return token;
+    },
+  },
+  pages: {
+    signIn: "/",
+    error: "/auth/error",
+  },
+  // Ensure correct URLs
+  secret: process.env.DEV_NEXTAUTH_URL,
+  debug: process.env.NEXT_PUBLIC_ENV === "dev",
+};

@@ -1,44 +1,28 @@
 // middleware.ts
-import NextAuth from "next-auth";
+import { NextResponse } from "next/server";
+import { auth } from "./auth";
 
-import authConfig from "@/auth.config";
-import {
-    DEFAULT_LOGIN_REDIRECT,
-    apiAuthPrefix,
-    authRoutes,
-    publicRoutes,
-} from "@/routes";
+export default auth((req) => {
+  const isLoggedIn = !!req.auth;
+  const isApiRoute = req.nextUrl.pathname.startsWith("/api");
+  const isAuthRoute = req.nextUrl.pathname.startsWith("/auth");
+  const isPublicRoute = ["/", "/about", "/feedback"].includes(req.nextUrl.pathname);
 
-const { auth } = NextAuth(authConfig);
+  if (isApiRoute || isPublicRoute) {
+    return NextResponse.next();
+  }
 
-export default auth((req: any): any => {
-    const { nextUrl } = req;
-    const isLoggedIn = !!req.auth;
+  if (isAuthRoute && isLoggedIn) {
+    return NextResponse.redirect(new URL("/", req.nextUrl));
+  }
 
-    const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
-    const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
-    const isAuthRoute = authRoutes.includes(nextUrl.pathname);
-    const isChannelRoute = nextUrl.pathname.startsWith("/channel/");
+  if (!isLoggedIn && !isAuthRoute) {
+    return NextResponse.redirect(new URL("/", req.nextUrl));
+  }
 
-    if (isApiAuthRoute) {
-        return null;
-    }
+  return NextResponse.next();
+});
 
-    if (isAuthRoute) {
-        if (isLoggedIn) {
-            return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl))
-        }
-        return null;
-    }
-
-    if (!isLoggedIn && !isPublicRoute && !isChannelRoute) {
-        return Response.redirect(new URL("/", nextUrl));
-    }
-
-    return null;
-})
-
-// Optionally, don't invoke Middleware on some paths
 export const config = {
-    matcher: ['/((?!.+\\.[\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],
-}
+  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
+};

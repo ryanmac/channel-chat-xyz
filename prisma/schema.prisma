@@ -40,6 +40,7 @@ model User {
   name              String?
   email             String?          @unique
   emailVerified     DateTime?
+  username          String?          @unique
   password          String?
   image             String?
   role              UserRole         @default(USER)
@@ -50,6 +51,8 @@ model User {
   sponsorships      Sponsorship[]    @relation("UserSponsorships")
   subscriptions     Subscription?
   sponsoredChannels YouTubeChannel[] @relation("UserSponsoredChannels")
+  badges            Badge[]
+  sharedChats       SharedChat[]
 }
 
 model VerificationToken {
@@ -188,6 +191,22 @@ model ConfigurationSetting {
   key         String  @unique
   value       String
   description String?
+}
+
+model Badge {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  users     User[]
+}
+
+model SharedChat {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 enum UserRole {

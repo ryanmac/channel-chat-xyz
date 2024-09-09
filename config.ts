@@ -21,7 +21,7 @@ const dev: any = {
         username: process.env.DEV_DB_USERNAME || '',
         password: process.env.DEV_DB_PASSWORD || '',
         port: process.env.PROD_DB_PORT || '',
-        url: process.env.DEV_DATABASE_URL || ''
+        url: process.env.DATABASE_URL || ''
     },
     stripe: {
         webhook: process.env.DEV_STRIPE_WEBHOOK_SECRET || '',
@@ -61,10 +61,5 @@ const config: any = {
     dev,
     prod
 };
-
-console.log('Current environment:', env);
-console.log('Config loaded:', config[env] ? 'Successfully' : 'Failed');
-console.log('NEXTAUTH_SECRET is set:', !!process.env.NEXTAUTH_SECRET);
-console.log('NEXTAUTH_URL is set:', !!process.env.NEXTAUTH_URL);
 
 export default config[env];

@@ -1,24 +1,27 @@
+// components/Header.tsx
 'use client'
 
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useTheme } from 'next-themes'
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import dynamic from 'next/dynamic'
 import { Moon, Sun } from 'lucide-react'
 import YouTubeChannelSearch from '@/components/YouTubeChannelSearchMock'
+import { signIn, signOut, useSession } from 'next-auth/react'
+import { UserMenu } from './UserMenu'
 
-const MoonIcon = dynamic(() => import('lucide-react').then((mod) => mod.Moon), { ssr: false })
-const SunIcon = dynamic(() => import('lucide-react').then((mod) => mod.Sun), { ssr: false })
-
-interface HeaderProps {
-  isLoggedIn: boolean
-  userAvatar?: string
-  username?: string
-}
-
-export function Header({ isLoggedIn, userAvatar, username }: HeaderProps) {
+export function Header() {
   const { theme, setTheme } = useTheme()
+  const { data: session, status } = useSession()
+  
+  // State to track when the component has mounted
+  const [mounted, setMounted] = useState(false)
+
+  // Ensure the component only renders dynamic content on the client
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   return (
     <header className="border-b">
@@ -36,25 +39,25 @@ export function Header({ isLoggedIn, userAvatar, username }: HeaderProps) {
         </Link>
         <div className="flex items-center space-x-4">
           <YouTubeChannelSearch className="hidden sm:block" />
-          {/* {typeof window !== 'undefined' && ( */}
+          {mounted && ( // Only render after client-side hydration
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               aria-label="Toggle theme"
             >
-              {theme === 'dark' ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
+              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
-          {/* )} */}
-          {isLoggedIn ? (
-            <Avatar>
-              <AvatarImage src={userAvatar} alt={username} />
-              <AvatarFallback>{username?.charAt(0).toUpperCase()}</AvatarFallback>
-            </Avatar>
+          )}
+          {status === "authenticated" ? (
+            <UserMenu user={session.user} />
           ) : (
-            <Link href="/signin">
-              <Button variant="outline">Sign In</Button>
-            </Link>
+            <button
+              onClick={() => signIn("google")}
+              className="text-gray-500 dark:text-white border-gray-500 hover:scale-110 font-bold py-2 px-4 rounded w-full"
+            >
+              Sign In
+            </button>
           )}
         </div>
       </div>
