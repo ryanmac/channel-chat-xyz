@@ -17,7 +17,7 @@ async function fetchFromYES(endpoint: string, method: 'GET' | 'POST', params?: a
     const response = await fetch(url.toString(), {
       method,
       headers: {
-        // 'Authorization': `Bearer ${YES_API_KEY}`,
+        'Authorization': `Bearer ${YES_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: method === 'POST' && body ? JSON.stringify(body) : undefined,  // Ensure body is only sent with POST and is not undefined
