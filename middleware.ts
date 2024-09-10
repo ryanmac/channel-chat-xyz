@@ -1,3 +1,4 @@
+// middleware.ts
 import { NextResponse } from "next/server";
 import { auth } from "./auth";
 
@@ -6,7 +7,9 @@ export default auth((req) => {
   const isLoggedIn = !!req.auth;
   const isApiRoute = nextUrl.pathname.startsWith("/api");
   const isAuthRoute = nextUrl.pathname.startsWith("/auth");
-  const isPublicRoute = ["/", "/about", "/feedback"].includes(nextUrl.pathname);
+  const isPublicRoute = ["/", "/about", "/feedback"].includes(nextUrl.pathname) ||
+    nextUrl.pathname.startsWith("/user") ||
+    nextUrl.pathname.startsWith("/channel");
 
   if (isApiRoute || isPublicRoute) {
     return NextResponse.next();

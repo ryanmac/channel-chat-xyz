@@ -1,3 +1,4 @@
+// components/YouTubeChannelSearchMock.tsx
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
@@ -59,17 +60,25 @@ export default function YouTubeChannelSearch({
   }
 
   const handleSelectChannel = useCallback((channel: Channel) => {
-    router.push(`/channel/${channel.name}`)
+    console.log('Attempting to navigate to:', `/channel/${channel.name}`);
+    try {
+      router.push(`/channel/${channel.name}`)
+      console.log('Navigation call completed');
+    } catch (error) {
+      console.error('Navigation failed:', error);
+    }
   }, [router])
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
+    console.log('Key pressed:', event.key);
     if (results.length === 0 && event.key === 'Enter') {
+      console.log('Search for:', searchTerm);
       router.push(`/channel/@${searchTerm}`);
       return;
     }
-
+  
     if (results.length === 0) return;
-
+  
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
@@ -84,8 +93,11 @@ export default function YouTubeChannelSearch({
         );
         break;
       case 'Enter':
+        event.preventDefault(); // Prevent default to avoid form submission or other side effects
         if (selectedIndex >= 0) {
           handleSelectChannel(results[selectedIndex]);
+        } else {
+          router.push(`/channel/@${searchTerm}`);
         }
         break;
       case 'Escape':
@@ -95,7 +107,7 @@ export default function YouTubeChannelSearch({
   };
 
   return (
-    <div className={`relative w-full ${className}`} onKeyDown={handleKeyDown}>
+    <div className={`relative w-full ${className}`}>
       <div className={`relative ${inputWidth} ${inputHeight} mx-auto`}>
         <Input
           type="text"
@@ -103,6 +115,7 @@ export default function YouTubeChannelSearch({
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className={`pr-12 ${inputWidth} ${inputHeight}`} // Use dynamic width
+          onKeyDown={handleKeyDown} // Attach keydown to the input itself
         />
         <Button
           size="icon"
