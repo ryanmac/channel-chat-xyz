@@ -6,7 +6,7 @@ const dev: any = {
     nextEnv: process.env.NEXT_PUBLIC_ENV || '',
     nextAuth: {
         secret: process.env.NEXTAUTH_SECRET || '',
-        url: process.env.DEV_NEXTAUTH_URL || ''
+        url: process.env.NEXTAUTH_URL || ''
     },
     app: {
         url: process.env.NEXT_PUBLIC_DEV_API_URL || ''

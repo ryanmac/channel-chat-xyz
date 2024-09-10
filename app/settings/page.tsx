@@ -6,14 +6,18 @@ import { redirect } from "next/navigation"
 
 export default async function SettingsPage() {
   const session = await auth()
+  console.log('Session in SettingsPage:', session);
   
-  if (!session?.user) {
+  if (!session?.user?.id) {
+    console.log("No user ID in session")
     redirect("/")
   }
 
-  const user = await getUserById(session.user.id)
+  const user = await getUserById(session.user.id);
+  console.log('User fetched in SettingsPage:', user); 
 
   if (!user) {
+    console.log(`User not found for ID: ${session.user.id}`)
     redirect("/")
   }
 

@@ -64,7 +64,7 @@ If you have any questions about these Terms, please contact us at [contact email
 export default function TermsPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-gray-100">
-      <Header isLoggedIn={false} />
+      <Header />
       <main className="flex-grow container mx-auto px-4 py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

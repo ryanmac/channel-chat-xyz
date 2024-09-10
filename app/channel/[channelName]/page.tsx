@@ -250,7 +250,7 @@ export default function ChannelPage({ params }: ChannelPageProps) {
 
   return (
     <div className="min-h-screen">
-      <Header isLoggedIn={false} />
+      <Header />
       <ChannelHeader
         channelName={channelName}
         channelTitle={channelInfo.metadata.snippet.title}

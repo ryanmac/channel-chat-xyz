@@ -16,10 +16,14 @@ declare module "next-auth" {
       id: string;
       username?: string;
       role?: UserRole;
+      name?: string;
+      image?: string | undefined;
     };
   }
   interface User {
     username?: string;
     role?: UserRole;
+    name?: string;
+    image?: string | undefined;
   }
 }

@@ -9,19 +9,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Moon, Sun } from 'lucide-react'
 import YouTubeChannelSearch from '@/components/YouTubeChannelSearchMock'
 import { signIn, signOut, useSession } from 'next-auth/react'
-import { UserMenu } from './UserMenu'
+import { UserMenu } from '@/components/UserMenu'
 
 export function Header() {
   const { theme, setTheme } = useTheme()
   const { data: session, status } = useSession()
-  
-  // State to track when the component has mounted
   const [mounted, setMounted] = useState(false)
 
-  // Ensure the component only renders dynamic content on the client
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  if (!mounted) return null
 
   return (
     <header className="border-b">
@@ -50,14 +49,14 @@ export function Header() {
             </Button>
           )}
           {status === "authenticated" ? (
-            <UserMenu user={session.user} />
+            <UserMenu user={session.user} session={session} />
           ) : (
-            <button
+            <Button
               onClick={() => signIn("google")}
-              className="text-gray-500 dark:text-white border-gray-500 hover:scale-110 font-bold py-2 px-4 rounded w-full"
+              className="text-gray-500 dark:text-gray-200 border border-input bg-background hover:bg-accent hover:text-accent-foreground hover:scale-110 font-bold py-2 px-4 rounded w-full"
             >
               Sign In
-            </button>
+            </Button>
           )}
         </div>
       </div>

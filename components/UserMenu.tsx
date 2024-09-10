@@ -9,15 +9,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { User } from "next-auth"
+import { User, Session } from "next-auth"
 import { signOut } from "next-auth/react"
 import Link from "next/link"
 
 interface UserMenuProps {
   user: User
+  session: Session
 }
 
-export function UserMenu({ user }: UserMenuProps) {
+export function UserMenu({ user, session }: UserMenuProps) {
+  // console.log('User:', user);
+  // console.log('Session:', session);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -39,7 +43,7 @@ export function UserMenu({ user }: UserMenuProps) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href={`/user/@${user.name}`}>
+          <Link href={user.username ? `/user/${user.username}` : '#'}>
             View Profile
           </Link>
         </DropdownMenuItem>

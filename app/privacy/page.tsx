@@ -83,7 +83,7 @@ ChannelChat
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen flex flex-col">
-      <Header isLoggedIn={false} />
+      <Header />
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="space-y-4">
           <ReactMarkdown className="prose max-w-none">{privacyContent}</ReactMarkdown>

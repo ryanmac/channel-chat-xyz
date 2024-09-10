@@ -17,7 +17,7 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header isLoggedIn={false} />
+      <Header />
       <main className="flex-grow">
         <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-24">
           <motion.div className="container mx-auto px-4 text-center" {...fadeIn}>

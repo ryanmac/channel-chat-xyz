@@ -2,7 +2,8 @@
 "use server"
 
 import { auth } from "@/auth"
-import { updateUser, isUsernameTaken, generateUniqueUsername } from "@/lib/user"
+import { updateUser, isUsernameTaken } from "@/lib/user"
+import { generateUniqueUsername } from "@/utils/userUtils"
 import { revalidatePath } from "next/cache"
 
 interface UpdateProfileData {
@@ -20,10 +21,9 @@ export async function updateProfile(data: UpdateProfileData) {
 
   // Check if the username is changed and if it's taken
   if (data.username !== session.user.name) {
-    const isTaken = await isUsernameTaken(data.username, session.user.id)
+    const isTaken = await isUsernameTaken(data.username, session.user.id);
     if (isTaken) {
-      // Generate a unique username if the requested one is taken
-      data.username = await generateUniqueUsername(data.username)
+      data.username = await generateUniqueUsername(data.username || '');
     }
   }
 

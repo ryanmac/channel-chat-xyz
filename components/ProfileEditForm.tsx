@@ -1,4 +1,3 @@
-// components/ProfileEditForm.tsx
 "use client"
 
 import { useState } from "react"
@@ -6,11 +5,18 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { updateProfile } from "@/lib/actions"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
+import { AlertCircle, User, UserCircle, Loader2 } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface ProfileEditFormProps {
-  user: any // Replace 'any' with a proper user type
+  user: {
+    id: string
+    username?: string
+    name?: string
+    image?: string
+  }
 }
 
 export function ProfileEditForm({ user }: ProfileEditFormProps) {
@@ -27,56 +33,98 @@ export function ProfileEditForm({ user }: ProfileEditFormProps) {
     setError("")
 
     try {
-      await updateProfile({ username, name, image })
-      router.push(`/user/@${username}`)
-      router.refresh()
+      const response = await fetch('/api/user/update', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, name, image }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update profile');
+      }
+
+      const updatedUser = await response.json();
+      router.push(`/user/${updatedUser.username}`);
+      router.refresh();
     } catch (error: any) {
-      setError(error.message || "An error occurred while updating your profile.")
+      setError(error.message || "An error occurred while updating your profile.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="username">Username</Label>
-        <Input
-          id="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          disabled={isLoading}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="name">Display Name</Label>
-        <Input
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          disabled={isLoading}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="image">Profile Picture URL</Label>
-        <Input
-          id="image"
-          value={image}
-          onChange={(e) => setImage(e.target.value)}
-          disabled={isLoading}
-        />
-      </div>
-      <div className="flex items-center space-x-4">
-        <Avatar className="h-20 w-20">
-          <AvatarImage src={image} alt={name} />
-          <AvatarFallback>{name ? name[0] : 'U'}</AvatarFallback>
-        </Avatar>
-        <p className="text-sm text-gray-500">Current profile picture</p>
-      </div>
-      {error && <p className="text-red-500">{error}</p>}
-      <Button type="submit" disabled={isLoading}>
-        {isLoading ? "Updating..." : "Update Profile"}
-      </Button>
-    </form>
+    <Card className="w-full max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle>Edit Your Profile</CardTitle>
+        <CardDescription>Update your personal information and profile picture</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-6">
+            <div className="flex-shrink-0">
+              <Avatar className="h-32 w-32 border-2 border-primary">
+                <AvatarImage src={image} alt={name} />
+                <AvatarFallback>{name ? name[0] : 'U'}</AvatarFallback>
+              </Avatar>
+            </div>
+            <div className="flex-grow space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <div className="relative max-w-xs">
+                  <User className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    disabled={isLoading}
+                    className="pl-8"
+                    placeholder="your-username"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="name">Display Name</Label>
+                <div className="relative max-w-xs">
+                  <UserCircle className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    disabled={isLoading}
+                    className="pl-8"
+                    placeholder="Your Name"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+        </form>
+      </CardContent>
+      <CardFooter className="flex justify-between">
+        <Button variant="outline" onClick={() => router.back()} disabled={isLoading}>
+          Cancel
+        </Button>
+        <Button onClick={handleSubmit} disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Updating...
+            </>
+          ) : (
+            'Update Profile'
+          )}
+        </Button>
+      </CardFooter>
+    </Card>
   )
 }

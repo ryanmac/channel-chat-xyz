@@ -1,4 +1,4 @@
-import userController from "@/controllers/UserController";
+// app/api/auth/user/route.ts
 import mailImpl from "@/data/mail/mailImpl";
 import userImpl from "@/data/user/userImpl";
 import userInterface from "@/data/user/userInterface";
@@ -12,6 +12,8 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest) {
     try {
 
+        const { default: userController } = await import('@/controllers/UserController');
+
         const userData: userInterface = await req.json();
 
         const hashedPassword = await bcrypt.hash(userData.password || '', 12);
@@ -21,7 +23,7 @@ export async function POST(req: NextRequest) {
 
         // checking wheather user exist
         const userControllerHandler = new userController();
-        const isEmailExists = await userControllerHandler.isEmailexists(userForm.email);
+        const isEmailExists = await userControllerHandler.isEmailExists(userForm.email);
 
         if (!isEmailExists) {
             // TODO: add functionality for lastname

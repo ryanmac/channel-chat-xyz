@@ -3,18 +3,11 @@ import { PrismaClient } from '@prisma/client';
 import configEnv from "@/config"
 
 declare global {
-    var prisma: PrismaClient | undefined;
+  var prisma: PrismaClient | undefined;
 }
 
-let prisma: PrismaClient;
+const prisma = global.prisma || new PrismaClient();
 
-if (configEnv.env === 'production') {
-    prisma = new PrismaClient();
-} else {
-    if (!global.prisma) {
-        global.prisma = new PrismaClient();
-    }
-    prisma = global.prisma;
-}
+if (configEnv.env !== 'production') global.prisma = prisma;
 
 export default prisma;
