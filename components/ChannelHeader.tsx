@@ -48,7 +48,6 @@ export function ChannelHeader({
   const collapsedDescriptionLength = 60;
   const truncatedDescription = truncateDescription(description, collapsedDescriptionLength);
   const showMoreLink = description.length > collapsedDescriptionLength;
-
   return (
     <div className="w-full">
       <div className="w-full h-48 bg-cover bg-center" style={{ backgroundImage: `url(${bannerUrl})` }} />

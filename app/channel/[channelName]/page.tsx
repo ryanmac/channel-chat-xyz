@@ -308,7 +308,7 @@ export default function ChannelPage({ params }: ChannelPageProps) {
                 channelId={channelInfo.channel_id}
               />
             )}
-            {isChannelActive && (
+            {isChannelActive && false && (
               <BotAttributesPanel
                 channelId={channelInfo.channel_id}
                 botTier={botData.tier}
