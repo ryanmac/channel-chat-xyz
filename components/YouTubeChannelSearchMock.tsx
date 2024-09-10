@@ -60,19 +60,11 @@ export default function YouTubeChannelSearch({
   }
 
   const handleSelectChannel = useCallback((channel: Channel) => {
-    console.log('Attempting to navigate to:', `/channel/${channel.name}`);
-    try {
-      router.push(`/channel/${channel.name}`)
-      console.log('Navigation call completed');
-    } catch (error) {
-      console.error('Navigation failed:', error);
-    }
+    router.push(`/channel/${channel.name}`)
   }, [router])
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    console.log('Key pressed:', event.key);
     if (results.length === 0 && event.key === 'Enter') {
-      console.log('Search for:', searchTerm);
       router.push(`/channel/@${searchTerm}`);
       return;
     }
