@@ -326,10 +326,12 @@ export default function ChannelPage({ params }: ChannelPageProps) {
                 onActivate={fetchChannelData}
               />
             )}
-            <LeaderboardActivity
-              leaderboard={leaderboardData}
-              recentActivity={recentActivityData}
-            />
+            {false && (
+              <LeaderboardActivity
+                leaderboard={leaderboardData}
+                recentActivity={recentActivityData}
+              />
+            )}
             {!botData.isActive && !isProcessing && (
               <>
                 <h2 className="text-2xl font-bold mt-8">Explore other channels...</h2>
