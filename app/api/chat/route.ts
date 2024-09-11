@@ -1,10 +1,9 @@
 // app/api/chat/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { getRelevantChunks } from '@/utils/yesService';
 import config from '@/config';
 
-const YES_URL = config.yes.url;
-const YES_API_KEY = config.yes.apiKey;
 const openai = new OpenAI();
 
 export async function POST(request: NextRequest) {
@@ -15,18 +14,15 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Fetch relevant chunks from YES
-    const chunksResponse = await fetch(`${YES_URL}/relevant_chunks?query=${encodeURIComponent(query)}&channel_id=${channelId}&chunk_limit=5&context_window=1`, {
-      headers: {
-        'Authorization': `Bearer ${YES_API_KEY}`,
-      },
-    });
+    // Fetch relevant chunks using the utility function from yesService
+    const chunksResponse = await getRelevantChunks(query, channelId);
 
-    if (!chunksResponse.ok) {
+    // If chunksResponse is empty or not as expected, handle it accordingly
+    if (!chunksResponse || !chunksResponse.chunks) {
       throw new Error('Failed to fetch relevant chunks');
     }
 
-    const { chunks } = await chunksResponse.json();
+    const { chunks } = chunksResponse;
 
     // Prepare the prompt for OpenAI
     const prompt = `You are an AI assistant representing the YouTube channel. Use the following context to answer the user's question in the style and tone of the channel's content creator:\n\n${chunks.map((chunk: any) => chunk.main_chunk).join('\n\n')}\n\nUser: ${query}\n\nAI:`;
