@@ -1,9 +1,10 @@
 // app/api/chat/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import config from '@/config';
 
-const YES_URL = process.env.YOUTUBE_EXTRACTION_SERVICE_URL;
-const YES_API_KEY = process.env.YOUTUBE_EXTRACTION_SERVICE_API_KEY;
+const YES_URL = config.yes.url;
+const YES_API_KEY = config.yes.apiKey;
 const openai = new OpenAI();
 
 export async function POST(request: NextRequest) {

@@ -40,6 +40,11 @@ interface ChannelData {
         high: { url: string };
       };
       customUrl: string;
+      localized: {
+        title: string;
+        description: string;
+      };
+      country: string;
     };
     statistics: {
       subscriberCount: string;
@@ -85,7 +90,12 @@ const defaultChannelData: ChannelData = {
         default: { url: '/placeholder.svg?height=100&width=100&text=Profile' },
         high: { url: '/placeholder.svg?height=100&width=100&text=Profile' },
       },
-      customUrl: '@404TestingChannel'
+      customUrl: '@404TestingChannel',
+      localized: {
+        title: '404 Title',
+        description: '404 Description',
+      },
+      country: 'USA',
     },
     statistics: {
       subscriberCount: '0',
@@ -253,11 +263,11 @@ export default function ChannelPage({ params }: ChannelPageProps) {
       <Header />
       <ChannelHeader
         channelName={channelName}
-        channelTitle={channelInfo.metadata.snippet.title}
+        channelTitle={channelInfo.metadata.snippet.localized.title}
         subscriberCount={parseInt(channelInfo.metadata.statistics.subscriberCount)}
         totalViews={parseInt(channelInfo.metadata.statistics.viewCount)}
         videoCount={parseInt(channelInfo.metadata.statistics.videoCount)}
-        description={channelInfo.metadata.snippet.description}
+        description={channelInfo.metadata.snippet.localized.description}
         bannerUrl={channelInfo.metadata.brandingSettings.image.bannerExternalUrl}
         profilePictureUrl={channelInfo.metadata.snippet.thumbnails.default.url}
         botTier={botData.tier}

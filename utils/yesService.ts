@@ -1,7 +1,9 @@
 // utils/yesService.ts
 import prisma from "@/lib/prisma";
-const YES_URL = process.env.YOUTUBE_EXTRACTION_SERVICE_URL;
-const YES_API_KEY = process.env.YOUTUBE_EXTRACTION_SERVICE_API_KEY;
+import config from "@/config";
+
+const YES_URL = config.yes.url;
+const YES_API_KEY = config.yes.apiKey;
 
 async function fetchFromYES(endpoint: string, method: 'GET' | 'POST', params?: any, body?: any) {
   const url = new URL(endpoint, YES_URL);
@@ -40,6 +42,8 @@ async function fetchFromYES(endpoint: string, method: 'GET' | 'POST', params?: a
 
 export async function getChannelInfo(channelUrl: string) {
   try {
+    console.log(`Fetching channel info for ${channelUrl}`);
+    console.log(new URL('/channel_info', YES_URL).searchParams.append('channel_url', channelUrl));
     return await fetchFromYES('/channel_info', 'GET', { channel_url: channelUrl });
   } catch (error) {
     console.error('Error fetching channel info:', error);

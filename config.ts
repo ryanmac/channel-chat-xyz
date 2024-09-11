@@ -29,6 +29,10 @@ const dev: any = {
     },
     resend: {
         apiKey: process.env.DEV_RESEND_API_KEY || ''
+    },
+    yes: {
+        url: process.env.DEV_YOUTUBE_EXTRACTION_SERVICE_URL || '',
+        apiKey: process.env.YOUTUBE_EXTRACTION_SERVICE_API_KEY || '',
     }
 };
 
@@ -54,6 +58,10 @@ const prod: any = {
     },
     resend: {
         apiKey: process.env.RESEND_API_KEY || ''
+    },
+    yes: {
+        url: process.env.YOUTUBE_EXTRACTION_SERVICE_URL || '',
+        apiKey: process.env.YOUTUBE_EXTRACTION_SERVICE_API_KEY || '',
     }
 };
 

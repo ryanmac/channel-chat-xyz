@@ -2,8 +2,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getChannelInfo } from '@/utils/yesService';
 
+console.log('Channel info route loaded');
+
 export async function GET(request: NextRequest) {
   const channelUrl = request.nextUrl.searchParams.get('channel_url');
+  console.log('Channel URL:', channelUrl);
 
   if (!channelUrl) {
     return NextResponse.json({ error: 'Missing channel_url parameter' }, { status: 400 });
