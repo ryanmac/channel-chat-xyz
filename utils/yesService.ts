@@ -5,25 +5,46 @@ import config from "@/config";
 const YES_URL = config.yes.url;
 const YES_API_KEY = config.yes.apiKey;
 
-async function fetchFromYES(endpoint: string, method: 'GET' | 'POST', params?: any, body?: any) {
+async function fetchFromYES(
+  endpoint: string, 
+  method: 'GET' | 'POST', 
+  params?: Record<string, any>, 
+  body?: any
+) {
   const url = new URL(endpoint, YES_URL);
+
+  // Append parameters to the URL if provided
   if (params) {
     Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
   }
+
+  // Define headers as a Record type to allow dynamic access
+  const headers: Record<string, string> = {
+    'Authorization': `Bearer ${YES_API_KEY}`,
+    'Content-Type': 'application/json'
+  };
 
   console.log(`Sending request to YES API: ${method} ${url.toString()}`);
   console.log('Request params:', params);
   console.log('Request body:', body);
 
   try {
-    const response = await fetch(url.toString(), {
-      method,
-      headers: {
-        'Authorization': `Bearer ${YES_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: method === 'POST' && body ? JSON.stringify(body) : undefined,  // Ensure body is only sent with POST and is not undefined
-    });
+    const fetchOptions = {
+      method: method,
+      headers: headers,
+      body: method === 'POST' && body ? JSON.stringify(body) : undefined,  // Ensure body is only sent with POST
+    };
+
+    // Construct the curl command for debugging
+    const curlCommand = `curl -X ${method} "${url.toString()}" \\\n` +
+      Object.entries(headers)
+        .map(([key, value]) => `-H "${key}: ${value}"`)
+        .join(" \\\n") +
+      (body ? ` -d '${JSON.stringify(body)}'` : '');
+
+    console.log(curlCommand); // Log the curl command
+
+    const response = await fetch(url.toString(), fetchOptions);
 
     const responseData = await response.json();
 
@@ -32,7 +53,6 @@ async function fetchFromYES(endpoint: string, method: 'GET' | 'POST', params?: a
       throw new Error(`YES API error: ${response.status} ${response.statusText}. Details: ${JSON.stringify(responseData)}`);
     }
 
-    // console.log('YES API response:', responseData);
     return responseData;
   } catch (error) {
     console.error('Error in fetchFromYES:', error);
