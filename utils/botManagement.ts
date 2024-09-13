@@ -1,140 +1,151 @@
-// utils/botManagement.ts
-import prisma from '@/lib/prisma'
+import prisma from '@/lib/prisma';
 
 export interface BotAttributes {
-  tier: string
-  isActive: boolean
-  boosts: string[]
-  embeddedTranscripts: number
-  totalVideos: number
-  model: string
-  maxTokens: number
-  chatsCreated: number
-  creditsRemaining: number
-  maxCredits: number
-  isFineTuned: boolean
-  botScore: number
+  tier: string;
+  isActive: boolean;
+  boosts: string[];
+  totalEmbeddings: number;
+  totalChannelVideos: number;
+  totalEmbeddedVideos: number;
+  model: string;
+  maxTokens: number;
+  chatsCreated: number;
+  creditBalance: number;
+  maxCredits: number;
+  isFineTuned: boolean;
+  botScore: number;
 }
 
 interface BotScoreFactors {
-  tier: string
-  embeddedTranscripts: number
-  totalVideos: number
-  chatsCreated: number
-  creditsRemaining: number
-  maxCredits: number
-  isFineTuned: boolean
+  tier: string;
+  totalEmbeddings: number;
+  totalChannelVideos: number;
+  totalEmbeddedVideos: number;
+  chatsCreated: number;
+  creditBalance: number;
+  maxCredits: number;
+  isFineTuned: boolean;
+}
+
+export async function getActivationFunding(channelId: string): Promise<number> {
+  const result = await prisma.transaction.aggregate({
+    where: {
+      channelId,
+      type: 'ACTIVATION',
+    },
+    _sum: {
+      amount: true,
+    },
+  });
+  return result._sum.amount || 0;
+}
+
+export async function getCreditBalance(channelId: string): Promise<number> {
+  // Get total credits purchased
+  const creditPurchaseResult = await prisma.transaction.aggregate({
+    where: {
+      channelId,
+      type: 'CREDIT_PURCHASE',
+    },
+    _sum: {
+      amount: true,
+    },
+  });
+
+  const totalCreditsPurchased = creditPurchaseResult._sum.amount || 0;
+
+  // Get total chats created (used credits)
+  const totalChatsCreated = await prisma.chatSession.count({
+    where: {
+      channelId,
+    },
+  });
+
+  // Calculate remaining credits
+  const remainingCredits = totalCreditsPurchased - totalChatsCreated;
+
+  // Return the balance, ensuring it is not negative
+  return Math.max(remainingCredits, 0);
 }
 
 export async function getBotTier(channelId: string): Promise<string> {
   const channel = await prisma.channel.findUnique({
     where: { id: channelId },
-    include: { credits: true }
-  })
+  });
 
-  if (!channel || !channel.credits) {
-    return 'Inactive'
+  if (!channel) {
+    return 'Inactive';
   }
 
-  // Define tier thresholds
-  const basicThreshold = 1000 // 1000 credits for Basic tier
-  const enhancedThreshold = 10000 // 10000 credits for Enhanced tier
-
-  if (channel.credits.balance >= enhancedThreshold) {
-    return 'Enhanced'
-  } else if (channel.credits.balance >= basicThreshold) {
-    return 'New'
+  if (channel.activationFunding >= 10000) {
+    return 'Enhanced';
+  } else if (channel.activationFunding >= 1000 || channel.status === 'ACTIVE') {
+    return 'New';
   } else {
-    return 'Inactive'
+    return 'Inactive';
   }
 }
 
 export async function getChannelBoosts(channelId: string): Promise<string[]> {
   const boosts = await prisma.channelBoost.findMany({
-    where: { channelId }
-  })
+    where: { channelId },
+  });
 
-  return boosts.map(boost => boost.boostType)
+  return boosts.map((boost) => boost.boostType);
 }
 
 export async function activateBot(channelId: string): Promise<boolean> {
   const channel = await prisma.channel.findUnique({
     where: { id: channelId },
-    include: { credits: true }
-  })
+  });
 
-  if (!channel || !channel.credits || channel.credits.balance < 1000) {
-    return false
+  if (!channel) {
+    return false;
   }
 
-  await prisma.channelCredit.update({
-    where: { channelId },
-    data: { balance: { decrement: 1000 } }
-  })
-
-  return true
-}
-
-export async function fetchBotAttributes(channelId: string): Promise<BotAttributes> {
-  try {
-    const response = await fetch(`/api/bot/info?channelId=${channelId}`)
-    if (!response.ok) {
-      throw new Error('Failed to fetch bot attributes')
-    }
-    const data: BotAttributes = await response.json()
-    return data
-  } catch (error) {
-    console.error('Error fetching bot attributes:', error)
-    throw new Error('Failed to fetch bot attributes')
+  if (channel.status !== 'PENDING') {
+    return false;
   }
-}
 
-// Add these new functions to match the API expectations
+  const activationFunding = await getActivationFunding(channelId);
 
-export async function getEmbeddedTranscripts(channelId: string): Promise<number> {
-  const channel = await prisma.channel.findUnique({
-    where: { id: channelId }
-  })
-  return channel?.embeddedTranscripts ?? 0
-}
+  if (activationFunding < channel.activationGoal) {
+    return false;
+  }
 
-export async function getTotalVideos(channelId: string): Promise<number> {
-  const channel = await prisma.channel.findUnique({
-    where: { id: channelId }
-  })
-  return channel?.totalVideos ?? 0
+  await prisma.channel.update({
+    where: { id: channelId },
+    data: { status: 'ACTIVE' },
+  });
+
+  return true;
 }
 
 export async function getChatsCreated(channelId: string): Promise<number> {
   const channel = await prisma.channel.findUnique({
-    where: { id: channelId }
-  })
-  return channel?.chatsCreated ?? 0
+    where: { id: channelId },
+  });
+  return channel?.chatsCreated ?? 0;
 }
 
 export async function getCreditsRemaining(channelId: string): Promise<number> {
   const channel = await prisma.channel.findUnique({
     where: { id: channelId },
-    include: { credits: true }
-  })
-
-  return channel?.credits?.balance ?? 0
+  });
+  return channel?.creditBalance ?? 0;
 }
 
 export async function getMaxCredits(channelId: string): Promise<number> {
-  const channel = await prisma.channel.findUnique({
-    where: { id: channelId },
-    include: { credits: true }
-  })
-
-  return channel?.credits?.maxCredits ?? 1000
+  return 1000 * 100; // 1000 credits per $1, Max $100
+  // const channel = await prisma.channel.findUnique({
+  //   where: { id: channelId },
+  // });
+  // return channel?.activationGoal ?? 1000;
 }
 
 export async function isFineTuned(channelId: string): Promise<boolean> {
-  const channel = await prisma.channel.findUnique({
-    where: { id: channelId }
-  })
-  return channel?.isFineTuned ?? false
+  const boosts = await getChannelBoosts(channelId);
+  return boosts.includes('FINE_TUNING');
 }
 
 export function calculateBotScore(factors: BotScoreFactors): number {
@@ -156,15 +167,17 @@ export function calculateBotScore(factors: BotScoreFactors): number {
   }
 
   // Score based on embedded transcripts (percentage of total videos)
-  const transcriptPercentage = factors.totalVideos > 0 ? 
-    (factors.embeddedTranscripts / factors.totalVideos) * 100 : 0;
+  const transcriptPercentage =
+    factors.totalChannelVideos > 0
+      ? (factors.totalEmbeddedVideos / factors.totalChannelVideos) * 100
+      : 0;
   score += Math.min(transcriptPercentage, 100); // Max 100 points
 
   // Score based on chats created (engagement)
   score += Math.min(factors.chatsCreated, 200); // Max 200 points
 
   // Score based on credits remaining (health)
-  const creditPercentage = (factors.creditsRemaining / factors.maxCredits) * 100;
+  const creditPercentage = (factors.creditBalance / factors.maxCredits) * 100;
   score += Math.min(creditPercentage, 100); // Max 100 points
 
   // Bonus for fine-tuning

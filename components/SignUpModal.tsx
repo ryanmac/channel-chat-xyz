@@ -1,61 +1,66 @@
 // components/SignUpModal.tsx
 'use client'
 
-import React, { useState } from 'react';
-import { X, Mail, Lock, Award, MessageSquare, UserCheck } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, Award, MessageSquare, UserCheck, LogIn } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { signIn } from 'next-auth/react';
+import { BadgeComponent } from '@/components/BadgeComponent';
+import { BadgeType } from '@/utils/badgeManagement';
+import { signIn, useSession } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface SignUpModalProps {
   isOpen: boolean;
   onClose: () => void;
+  badges: BadgeType[];
 }
 
-export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, badges }) => {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get('session_id');
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
+  useEffect(() => {
+    if (status === 'authenticated' && sessionId) {
+      transferBadges();
+    }
+  }, [status, sessionId]);
 
+  const transferBadges = async () => {
+    console.log(`Attempting to transfer badges for session ${sessionId} and user ${session?.user?.id}`);
     try {
-      // Call your custom API endpoint to create the user
-      const res = await fetch('/api/auth/user', {
+      const response = await fetch('/api/badges/transfer', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId,
+          userId: session?.user?.id,
+        }),
       });
-
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        // Sign in the user with the new credentials
-        const result = await signIn('credentials', {
-          email,
-          password,
-          redirect: false,
-        });
-
-        if (!result?.error) {
-          onClose(); // Close modal on successful sign up
-        } else {
-          setError(result.error);
-        }
-      } else {
-        setError(data.message || 'Sign up failed');
+  
+      if (!response.ok) {
+        throw new Error('Failed to transfer badges');
       }
-    } catch (err) {
-      setError('An unexpected error occurred.');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
+  
+      const result = await response.json();
+      console.log('Badge transfer result:', result);
+  
+      // Optionally refresh the user data or UI here
+    } catch (error) {
+      console.error('Error transferring badges:', error);
+      // Implement retry logic here if needed
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await signIn('google');
+    } catch (error) {
+      console.error('Google sign-in failed', error);
     }
   };
 
@@ -87,68 +92,31 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose }) => 
               <h2 className="text-3xl font-extrabold text-center mb-6">
                 Create your account
               </h2>
-              <form onSubmit={handleSignUp} className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-white">
-                    Email
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="pl-10 bg-white/10 border-white/20 text-white placeholder-white/50"
-                    />
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/50" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-white">
-                    Password
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Create a password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className="pl-10 bg-white/10 border-white/20 text-white placeholder-white/50"
-                    />
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/50" />
-                  </div>
-                </div>
+              <div className="space-y-6">
                 <Button
-                  type="submit"
-                  className="w-full bg-white text-purple-600 hover:bg-purple-100 transition-colors duration-300"
-                  disabled={isLoading}
+                  onClick={handleGoogleSignIn}
+                  className="w-6/12 mx-auto bg-white text-purple-600 hover:bg-purple-100 transition-colors duration-300 flex items-center justify-center"
                 >
-                  {isLoading ? 'Signing Up...' : 'Sign Up'}
+                  <LogIn className="h-5 w-5 mr-2" />
+                  Google Sign In
                 </Button>
-              </form>
-              {error && (
-                <p className="text-red-500 text-center mt-4">{error}</p>
-              )}
+              </div>
               <div className="mt-8">
-                <p className="text-lg font-semibold text-center mb-4">
-                  By signing up, you'll be able to:
-                </p>
                 <ul className="space-y-3">
                   <li className="flex items-center">
-                    <Award className="h-5 w-5 mr-3 text-yellow-300" />
-                    <span>Save your earned badges</span>
-                  </li>
-                  <li className="flex items-center">
                     <MessageSquare className="h-5 w-5 mr-3 text-green-300" />
-                    <span>Get longer responses on ALL ChannelChat channels</span>
+                    <span>Get longer responses on <strong>all</strong> ChannelChat channels</span>
                   </li>
-                  <li className="flex items-center">
-                    <UserCheck className="h-5 w-5 mr-3 text-blue-300" />
-                    <span>Easily manage your contributions and privileges</span>
+                  <li className="flex flex-col items-start">
+                    <div className="flex items-center">
+                      <Award className="h-5 w-5 mr-3 text-yellow-300" />
+                      <span>Save your badges!</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2 mt-2 pl-8">
+                      {badges.map((badge) => (
+                        <BadgeComponent key={badge} type={badge} />
+                      ))}
+                    </div>
                   </li>
                 </ul>
               </div>

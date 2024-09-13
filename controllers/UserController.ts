@@ -3,11 +3,13 @@ import errorHandler from "@/helpers/errorHandler";
 import prisma from "@/lib/prisma";
 import jsonUtilsImpl from "@/utils/jsonUtils";
 import { generateUsername, generateUniqueUsername } from "@/utils/userUtils";
-import type { User } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
+import { BadgeType } from "@/utils/badgeManagement";
+import type { User, UserBadge, Badge, Transaction, Prisma } from "@prisma/client";
+
+type UserWithBadges = User & { badges: (UserBadge & { badge: Badge })[] };
 
 export default class UserController {
-  async create(name: string, email: string, password?: string, image?: string): Promise<User | null> {
+  async create(name: string, email: string, password?: string, image?: string): Promise<UserWithBadges | null> {
     try {
       let username = generateUsername();
       username = await generateUniqueUsername(username);
@@ -21,7 +23,14 @@ export default class UserController {
       };
 
       const result = await prisma.user.create({
-        data: userJson
+        data: userJson,
+        include: {
+          badges: {
+            include: {
+              badge: true
+            }
+          }
+        }
       });
 
       return result;
@@ -31,7 +40,88 @@ export default class UserController {
     }
   }
 
-  async findOrCreateUser(email: string, name: string, image?: string): Promise<User | null> {
+  async assignBadgesToUser(userId: string, badgeNames: string[]): Promise<void> {
+    try {
+      // Fetch the user
+      const user = await this.getUserById(userId);
+  
+      if (!user) {
+        throw new Error('User not found');
+      }
+  
+      // Fetch the existing badges for the user
+      const existingBadges = await prisma.userBadge.findMany({
+        where: { userId: user.id },
+        include: { badge: true },
+      });
+  
+      // Create a set of existing badge names to easily filter out duplicates
+      const existingBadgeNames = new Set(existingBadges.map(ub => ub.badge.name));
+      
+      // Filter out the new badge names that need to be assigned
+      const newBadgeNames = badgeNames.filter(name => !existingBadgeNames.has(name));
+  
+      if (newBadgeNames.length > 0) {
+        // Fetch the badge IDs for the new badge names
+        const newBadges = await prisma.badge.findMany({
+          where: {
+            name: { in: newBadgeNames }
+          }
+        });
+  
+        // Get the badge IDs from the fetched badges
+        const newBadgeIds = newBadges.map(badge => badge.id);
+  
+        // Create the user-badge associations
+        await prisma.userBadge.createMany({
+          data: newBadgeIds.map(badgeId => ({
+            userId: user.id,
+            badgeId,
+          })),
+          skipDuplicates: true,
+        });
+      }
+    } catch (e) {
+      console.error('Error assigning badges to user:', e);
+      console.error('User ID:', userId);
+      console.error('Badge Names:', badgeNames);
+      throw e;
+    }
+  }
+
+  async assignTransactionsToUser(userId: string, sessionId: string): Promise<void> {
+    // Assign transactions to the authenticated user based on the sessionId
+    // Records to update userId are those with null for userId and the same sessionId
+    // If they exist, update the userId to the authenticated user
+    // first, fetch the transactions with the sessionId
+    const transactions = await prisma.transaction.findMany({
+      where: {
+        sessionId,
+        userId: null,
+      },
+    });
+    if (!transactions) {
+      return;
+    }
+    try {
+      await prisma.transaction.updateMany({
+        where: {
+          sessionId,
+          userId: null,
+        },
+        data: {
+          userId,
+        },
+      });
+    } catch (e) {
+      console.error('Error assigning transactions to user:', e);
+      console.error('User ID:', userId);
+      console.error('Session ID:', sessionId);
+      throw e;
+    }
+  }
+
+  async findOrCreateUser(email: string, name: string, image?: string, sessionId?: string): Promise<UserWithBadges | null> {
     try {
       let user = await this.getUserByEmail(email);
       if (!user) {
@@ -40,6 +130,34 @@ export default class UserController {
           throw new Error("User creation failed");
         }
       }
+
+      if (sessionId) {
+        // Assign transactions to the authenticated user
+        const transactions = await prisma.transaction.findMany({
+          where: { sessionId },
+        });
+
+
+        // Assign session badges to the authenticated user
+        const sessionBadge = await prisma.sessionBadge.findUnique({
+          where: { sessionId },
+        });
+
+        if (sessionBadge) {
+          const badges = sessionBadge.badges.split(',') as BadgeType[];
+          if (badges.length > 0) {
+            await this.assignBadgesToUser(user.id, badges);
+            // Refresh user data to include new badges
+            user = await this.getUserById(user.id);
+          }
+
+          // Delete the SessionBadge after transfer
+          await prisma.sessionBadge.delete({
+            where: { id: sessionBadge.id },
+          });
+        }
+      }
+
       return user;
     } catch (e) {
       console.error("Error finding or creating user:", e);
@@ -52,13 +170,12 @@ export default class UserController {
     return !jsonUtilsImpl.isEmpty(result);
   }
 
-  async getUserByEmail(email: string): Promise<User | null> {
+  async getUserByEmail(email: string): Promise<UserWithBadges | null> {
     try {
       const result = await prisma.user.findUnique({
         where: { email },
         include: {
-          sponsorships: { include: { channel: true } },
-          badges: true,
+          badges: { include: { badge: true } },
           chats: true,
         }
       });
@@ -71,37 +188,35 @@ export default class UserController {
     }
   }
 
-  async getUserById(id: string) {
+  async getUserById(id: string): Promise<UserWithBadges | null> {
     try {
       const result = await prisma.user.findUnique({
         where: { id },
         include: {
-          sponsorships: { include: { channel: true } },
-          badges: true,
+          badges: { include: { badge: true } },
           chats: true,
         }
       });
       return result;
     } catch (e) {
       console.error("Error getting user by ID:", e);
-      return e;
+      return null;
     }
   }
 
-  async getUserByUsername(username: string) {
+  async getUserByUsername(username: string): Promise<UserWithBadges | null> {
     try {
       const result = await prisma.user.findUnique({
         where: { username },
         include: {
-          sponsorships: { include: { channel: true } },
-          badges: true,
+          badges: { include: { badge: true } },
           chats: true,
         }
       });
       return result;
     } catch (e) {
       console.error("Error getting user by username:", e);
-      return e;
+      return null;
     }
   }
 

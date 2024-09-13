@@ -1,7 +1,11 @@
 // app/api/admin/boost/route.ts
+/**
+ * This is an API route that allows an admin to add activation funding or credits to a channel
+ * The route is exclusive to admins.
+ */
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from "@/lib/prisma";
-import { updateChannelCredits, getTotalChannelFunding } from '@/utils/creditManagement';
+import { createTransaction, getTotalChannelFunding } from '@/utils/transactionManagement';
 import { processChannelAsync } from '@/utils/yesService';
 
 /**
@@ -24,63 +28,59 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
 
-    // Check if the channel exists, if not create it
     let channel = await prisma.channel.findUnique({ where: { id: channelId } });
     if (!channel) {
-      console.log(`Channel ${channelId} not found. Creating new channel record.`);
       channel = await prisma.channel.create({
         data: {
           id: channelId,
           name: channelName,
-          isActive: false,
+          title: channelName,
+          subscriberCount: 0,
+          videoCount: 0,
         },
       });
     }
 
-    // Update channel credits
-    await updateChannelCredits(channelId, amountInDollars);
-    console.log(`Credits updated for channel ${channelId}: ${amountInDollars}`);
+    const { activation: currentActivationFunding } = await getTotalChannelFunding(channelId);
+    const remainingToActivate = Math.max(channel.activationGoal - currentActivationFunding, 0);
+    
+    const activationAmount = Math.min(amountInDollars, remainingToActivate);
+    const creditAmount = amountInDollars - activationAmount;
 
-    // Check if the channel has reached the funding goal
-    const totalFunding = await getTotalChannelFunding(channelId);
-    const fundingGoal = 10; // Set this to your desired funding goal
+    if (activationAmount > 0) {
+      await createTransaction(channelId, null, 'ADMIN_BOOST', activationAmount, 'ACTIVATION');
+    }
 
-    console.log(`Channel ${channelName} (${channelId}) has received $${totalFunding} in funding`);
+    if (creditAmount > 0) {
+      await createTransaction(channelId, null, 'ADMIN_BOOST', creditAmount, 'CREDIT_PURCHASE');
+    }
 
-    if (totalFunding >= fundingGoal) {
-      // Start processing asynchronously
-      processChannelAsync(channelId, channelName, totalFunding).catch((error) => {
+    const { activation: totalActivationFunding } = await getTotalChannelFunding(channelId);
+
+    if (totalActivationFunding >= channel.activationGoal) {
+      processChannelAsync(channelId, channelName, totalActivationFunding).catch((error) => {
         console.error('Error in async channel processing:', error);
       });
 
-      // Update channel status to processing
       await prisma.channel.update({
         where: { id: channelId },
-        data: { isActive: false },
+        data: { status: 'ACTIVE' },
       });
-      console.log(`Channel ${channelName} (${channelId}) set to processing`);
-    } else {
-      console.log(`Channel ${channelName} (${channelId}) not yet fully funded. Current: $${totalFunding}, Goal: $${fundingGoal}`);
     }
 
-    // Fetch the updated channel data
     const updatedChannel = await prisma.channel.findUnique({
       where: { id: channelId },
-      include: { credits: true },
     });
 
     return NextResponse.json({
       message: 'Channel updated successfully',
       channel: updatedChannel,
-      totalFunding,
-      isFunded: totalFunding >= fundingGoal,
+      totalActivationFunding,
+      isFunded: totalActivationFunding >= channel.activationGoal,
     });
 
   } catch (error) {
     console.error('Error processing channel activation:', error);
-    if (error instanceof Error) {
-      console.error('Error details:', error.message, error.stack);
-    }
     return NextResponse.json({ error: 'Channel activation failed' }, { status: 500 });
   }
 }

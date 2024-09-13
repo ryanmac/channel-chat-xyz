@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Channel" ALTER COLUMN "subscriberCount" SET DEFAULT 0,
+ALTER COLUMN "title" DROP NOT NULL,
+ALTER COLUMN "videoCount" SET DEFAULT 0;

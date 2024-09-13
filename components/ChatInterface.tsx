@@ -1,4 +1,4 @@
-// app/components/ChatInterface.tsx
+// components/ChatInterface.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,6 +8,7 @@ import { Bot, ArrowDown } from 'lucide-react'
 import { default as ClientMarkdown } from '@/components/ClientMarkdown'
 import QuickPrompts from '@/components/QuickPrompts'
 import TypingIndicator from '@/components/TypingIndicator'
+import { useToast } from "@/hooks/use-toast"
 
 interface Message {
   id: number
@@ -26,16 +27,8 @@ interface ChatInterfaceProps {
   uniqueVideoCount: number
 }
 
-const ScrollToBottomButton: React.FC<{ onClick: () => void; className?: string }> = ({ onClick, className }) => (
-  <Button
-    variant="outline"
-    size="icon"
-    className={`rounded-full bg-background/80 border-gray-400 backdrop-blur-sm ${className}`}
-    onClick={onClick}
-  >
-    <ArrowDown className="h-4 w-4" />
-  </Button>
-)
+const MAX_TOKENS = 50000;
+const WARNING_TOKENS = 40000;
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   channelName,
@@ -57,6 +50,10 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [showScrollButton, setShowScrollButton] = useState(false)
+  const [chatSessionId, setChatSessionId] = useState<string | null>(null)
+  const [tokenCount, setTokenCount] = useState(0)
+
+  const { toast } = useToast()
 
   const chatContainerRef = useRef<HTMLDivElement>(null)
   const lastMessageRef = useRef<HTMLDivElement>(null)
@@ -99,6 +96,15 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   const handleSend = async () => {
     if (input.trim() && !isLoading) {
+      if (tokenCount >= MAX_TOKENS) {
+        toast({
+          title: "Token limit reached",
+          description: "You've reached the maximum token limit for this chat. Please start a new chat.",
+          variant: "destructive",
+        })
+        return
+      }
+
       setIsLoading(true)
       const userMessage: Message = { id: messages.length + 1, sender: 'You', content: input, timestamp: new Date().toLocaleTimeString() }
       setMessages(prevMessages => [...prevMessages, userMessage])
@@ -110,16 +116,37 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ channelId, query: input }),
+          body: JSON.stringify({ channelId, query: input, chatSessionId }),
         })
 
         if (!response.ok) {
-          throw new Error('Failed to get AI response')
+          const errorData = await response.json();
+          if (errorData.errorCode === 'NO_CREDITS') {
+            toast({
+              title: "Out of Credits",
+              description: "This channel has run out of credits. Please purchase more to continue chatting.",
+              variant: "destructive",
+            });
+            // You might want to trigger a function to refresh the channel info here
+            // onCreditsExhausted();
+            return;
+          }
+          throw new Error('Failed to get AI response');
         }
 
         const data = await response.json()
         const aiMessage: Message = { id: messages.length + 2, sender: 'AI', content: data.response, timestamp: new Date().toLocaleTimeString() }
         setMessages(prevMessages => [...prevMessages, aiMessage])
+        setChatSessionId(data.chatSessionId)
+        setTokenCount(data.tokenCount)
+
+        if (data.tokenCount >= WARNING_TOKENS) {
+          toast({
+            title: "Token Warning",
+            description: `Warning: You've used ${data.tokenCount} tokens. Approaching limit.`,
+            variant: "destructive",
+          })
+        }
       } catch (error) {
         console.error('Error in chat:', error)
         const errorMessage: Message = { id: messages.length + 2, sender: 'AI', content: 'An error occurred. Please try again.', timestamp: new Date().toLocaleTimeString() }
@@ -133,9 +160,14 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   return (
     <Card className="w-full mt-8">
       <CardHeader>
-        <CardTitle className="flex items-center">
-          Chat with {channelName}
-          <Bot className="w-6 h-6 text-gray-500 dark:text-white ml-1" />
+        <CardTitle className="flex items-center justify-between">
+          <span className="flex">
+            Chat with {channelName}
+            <Bot className="w-6 h-6 text-gray-500 dark:text-white ml-1" />
+          </span>
+          {tokenCount >= WARNING_TOKENS && (
+            <span className="text-sm font-normal">Tokens used: {tokenCount}/{MAX_TOKENS}</span>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="relative">
@@ -172,7 +204,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 <div className="break-words prose prose-sm dark:prose-invert">
                   <ClientMarkdown content={message.content} />
                 </div>
-                {/* <p className="text-xs mt-1 opacity-70">{message.timestamp}</p> */}
               </div>
               {message.sender === 'You' && <div className="w-8 h-8 ml-2" />}
             </div>
@@ -190,10 +221,14 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           )}
         </div>
         {showScrollButton && (
-          <ScrollToBottomButton
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-full bg-background/80 border-gray-400 backdrop-blur-sm absolute bottom-1 left-1/2 transform -translate-x-1/2 z-10"
             onClick={scrollToBottom}
-            className="absolute bottom-1 left-1/2 transform -translate-x-1/2 z-10"
-          />
+          >
+            <ArrowDown className="h-4 w-4" />
+          </Button>
         )}
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">

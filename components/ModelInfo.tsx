@@ -24,13 +24,13 @@ export function ModelInfo({ model, maxTokens, onBoost }: ModelInfoProps) {
         <div className="space-y-2">
           <div className="flex justify-between">
             <span>Current Model:</span>
-            <span>{model}</span>
+            <code>{model}</code>
           </div>
           <div className="flex justify-between">
             <span>Max Tokens:</span>
             <span>{maxTokens}</span>
           </div>
-          <TooltipProvider>
+          {/* <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button onClick={onBoost} className="w-full mt-2">Add New Model</Button>
@@ -39,7 +39,7 @@ export function ModelInfo({ model, maxTokens, onBoost }: ModelInfoProps) {
                 <p>Upgrade to a more powerful language model</p>
               </TooltipContent>
             </Tooltip>
-          </TooltipProvider>
+          </TooltipProvider> */}
         </div>
       </CardContent>
     </Card>

@@ -2,7 +2,8 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BadgeComponent, BadgeType } from "@/components/BadgeComponent"; // Import BadgeComponent
+import { BadgeComponent } from "@/components/BadgeComponent";
+import { BadgeType } from "@/utils/badgeManagement";
 import Link from "next/link";
 import { Edit, MessageCircle, Award, Users, Share2, UserX, RotateCcw } from "lucide-react";
 
@@ -14,7 +15,8 @@ interface UserProfileProps {
     sponsoredChatsCount: number;
     participatedChatsCount: number;
     sponsorships: Array<{ id: string; channel: { name: string } }>;
-    badges: Array<{ id: string; name: string }>; // Only name is needed now
+    badges: Array<{ id: string; badge: { name: string } }>;
+    totalSponsoredAmount: number;
   } | null;
   isOwnProfile: boolean;
 }
@@ -90,15 +92,20 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
           </CardHeader>
           <CardContent>
             {user.sponsorships && user.sponsorships.length > 0 ? (
-              <ul className="space-y-2">
-                {user.sponsorships.map((sponsorship) => (
-                  <li key={sponsorship.id}>
-                    <Link href={`/channel/${sponsorship.channel.name}`} className="text-sm hover:text-primary transition-colors">
-                      #{sponsorship.channel.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              <>
+                <ul className="space-y-2">
+                  {user.sponsorships.map((sponsorship) => (
+                    <li key={sponsorship.id}>
+                      <Link href={`/channel/${sponsorship.channel.name}`} className="text-sm hover:text-primary transition-colors">
+                        #{sponsorship.channel.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-sm mt-4">
+                  Total Sponsorship: <span className="font-semibold">${user.totalSponsoredAmount.toFixed(2)}</span>
+                </p>
+              </>
             ) : (
               <p className="text-sm text-muted-foreground">No sponsored channels yet</p>
             )}
@@ -113,8 +120,8 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {user.badges && user.badges.length > 0 ? (
-                user.badges.map((badge) => (
-                  <BadgeComponent key={badge.id} type={badge.name as BadgeType} />
+                user.badges.map((userBadge) => (
+                  <BadgeComponent key={userBadge.id} type={userBadge.badge.name as BadgeType} />
                 ))
               ) : (
                 <p className="text-sm text-muted-foreground">No badges earned yet</p>

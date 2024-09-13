@@ -1,6 +1,8 @@
 // utils/yesService.ts
 import prisma from "@/lib/prisma";
 import config from "@/config";
+import { setCache, getCache, deleteCache } from '@/utils/cache';
+import { getOrCreateChannel, updateChannelMetrics, ChannelData } from '@/utils/channelManagement';
 
 const YES_URL = config.yes.url;
 const YES_API_KEY = config.yes.apiKey;
@@ -61,14 +63,36 @@ async function fetchFromYES(
 }
 
 export async function getChannelInfo(channelUrl: string) {
+  console.log('yesService: getChannelInfo');
+  const cacheKey = `channel_info_${channelUrl}`; // Unique cache key for channel info
+  const cachedData = getCache(cacheKey); // Check cache for existing data
+
+  if (cachedData) {
+    return cachedData; // Return cached data if available
+  }
+  
   try {
     console.log(`Fetching channel info for ${channelUrl}`);
-    console.log(new URL('/channel_info', YES_URL).searchParams.append('channel_url', channelUrl));
-    return await fetchFromYES('/channel_info', 'GET', { channel_url: channelUrl });
+    const channelInfo: ChannelData = await fetchFromYES('/channel_info', 'GET', { channel_url: channelUrl });
+
+    // Create or update the channel record
+    const channel = await getOrCreateChannel(channelInfo);
+
+    // Update the channel metrics
+    await updateChannelMetrics(channel.id, channelInfo.total_embeddings, channelInfo.unique_video_count);
+    
+    setCache(cacheKey, channelInfo, 600000); // Cache the result for 10 minutes
+    return channelInfo; // Return the fetched data
   } catch (error) {
     console.error('Error fetching channel info:', error);
     throw error;
   }
+}
+
+export async function refreshChannelInfo(channelUrl: string) {
+  const cacheKey = `channel_info_${channelUrl}`; // Same cache key format
+  deleteCache(cacheKey); // Delete the cache entry to force a refresh
+  return await getChannelInfo(channelUrl); // Fetch the data again
 }
 
 export async function refreshChannelMetadata(channelUrl: string) {
@@ -123,25 +147,54 @@ export async function processChannel(channelId?: string, channelUrl?: string, vi
 }
 
 export async function processChannelAsync(channelId: string, channelName: string, totalFunding: number) {
+  console.log(`Starting async processing for channel ${channelName} (${channelId}) with total funding: $${totalFunding}`);
+  
   try {
     const channelUrl = `https://www.youtube.com/@${channelName}`;
     const videoLimit = Math.floor(totalFunding * 10); // Assuming 10 videos per dollar
-    await processChannel(channelId, channelUrl, videoLimit);
-    console.log(`YES processing completed for channel ${channelId}`);
+    console.log(`Processing channel with video limit: ${videoLimit}`);
 
-    // Update channel status to active
+    // Update channel status to processing
     await prisma.channel.update({
       where: { id: channelId },
-      data: { isActive: true, isProcessing: false },
+      data: { isProcessing: true },
     });
-    console.log(`Channel ${channelName} (${channelId}) activated`);
+    console.log(`Channel ${channelName} (${channelId}) set to processing`);
+
+    // Process the channel
+    const jobStatus = await processChannel(channelId, channelUrl, videoLimit);
+    console.log(`YES processing completed for channel ${channelId}. Job status:`, jobStatus);
+
+    // Fetch updated channel info
+    const updatedChannelInfo = await getChannelInfo(channelUrl);
+    console.log(`Updated channel info:`, updatedChannelInfo);
+
+    // Update channel status to active and update metrics
+    await prisma.channel.update({
+      where: { id: channelId },
+      data: {
+        status: 'ACTIVE',
+        isProcessing: false,
+        totalEmbeddings: updatedChannelInfo.total_embeddings,
+        totalVideos: updatedChannelInfo.unique_video_count,
+      },
+    });
+    console.log(`Channel ${channelName} (${channelId}) activated and metrics updated`);
+
+    // Invalidate cache for this channel
+    const cacheKey = `channel_info_${channelUrl}`;
+    deleteCache(cacheKey);
+    console.log(`Cache invalidated for channel ${channelName}`);
+
   } catch (error) {
-    console.error('Error processing channel with YES:', error);
+    console.error(`Error processing channel ${channelName} (${channelId}):`, error);
+    
     // Update channel status to reflect the error
     await prisma.channel.update({
       where: { id: channelId },
       data: { isProcessing: false },
     });
+    console.log(`Channel ${channelName} (${channelId}) processing failed, isProcessing set to false`);
   }
 }
 

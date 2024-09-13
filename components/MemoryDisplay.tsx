@@ -7,13 +7,14 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Brain } from 'lucide-react'
 
 interface MemoryDisplayProps {
-  embeddedTranscripts: number
-  totalVideos: number
+  totalEmbeddings: number
+  totalEmbeddedVideos: number
+  totalChannelVideos: number
   onBoost: () => void
 }
 
-export function MemoryDisplay({ embeddedTranscripts, totalVideos, onBoost }: MemoryDisplayProps) {
-  const memoryPercentage = (embeddedTranscripts / totalVideos) * 100
+export function MemoryDisplay({ totalEmbeddings, totalEmbeddedVideos, totalChannelVideos, onBoost }: MemoryDisplayProps) {
+  const memoryPercentage = (totalEmbeddedVideos / totalChannelVideos) * 100
 
   return (
     <Card>
@@ -26,12 +27,15 @@ export function MemoryDisplay({ embeddedTranscripts, totalVideos, onBoost }: Mem
       <CardContent>
         <div className="space-y-2">
           <div className="flex justify-between">
-            <span>Embedded Transcripts:</span>
-            <span>{embeddedTranscripts}</span>
+            <span>Total Embeddings:</span>
+            <span>{totalEmbeddings}</span>
           </div>
           <div className="flex justify-between">
-            <span>Total Videos:</span>
-            <span>{totalVideos}</span>
+            <span>Total Embedded Videos:</span>
+            <span>{totalEmbeddedVideos}</span>
+          </div>          <div className="flex justify-between">
+            <span>Total Channel Videos:</span>
+            <span>{totalChannelVideos}</span>
           </div>
           <Progress value={memoryPercentage} className="mt-2" />
           <TooltipProvider>

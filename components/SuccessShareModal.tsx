@@ -6,7 +6,8 @@ import { X, Facebook, Linkedin, Link } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { BadgeComponent, BadgeType } from '@/components/BadgeComponent'
+import { BadgeComponent } from '@/components/BadgeComponent'
+import { BadgeType } from '@/utils/badgeManagement'
 import Confetti from 'react-confetti'
 import { useToast } from "@/hooks/use-toast"
 
@@ -16,6 +17,9 @@ interface SuccessShareModalProps {
   channelName: string
   channelTitle: string
   badges: BadgeType[]
+  totalFunding?: number
+  newChatCreditsAdded?: number
+  wasActivated?: boolean
 }
 
 export const SuccessShareModal: React.FC<SuccessShareModalProps> = ({
@@ -24,7 +28,20 @@ export const SuccessShareModal: React.FC<SuccessShareModalProps> = ({
   channelName,
   channelTitle,
   badges,
+  totalFunding,
+  newChatCreditsAdded,
+  wasActivated,
 }) => {
+  console.log('SuccessShareModalProps:')
+  console.log(`isOpen: ${isOpen}`)
+  console.log(`onClose: ${onClose}`)
+  console.log(`channelName: ${channelName}`)
+  console.log(`channelTitle: ${channelTitle}`)
+  console.log(`badges: ${badges}`)
+  console.log(`totalFunding: ${totalFunding}`)
+  console.log(`newChatCreditsAdded: ${newChatCreditsAdded}`)
+  console.log(`wasActivated: ${wasActivated}`)
+
   const [isClient, setIsClient] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const { toast } = useToast();
@@ -118,8 +135,8 @@ export const SuccessShareModal: React.FC<SuccessShareModalProps> = ({
                 activated for
               </div>
               <h3 className="text-2xl font-bold text-center mb-2">{channelTitle}</h3>
-              <h4 className="text-xl font-bold text-center mb-4">@{channelName}</h4>
-              <div className="flex flex-wrap justify-center gap-2 mb-6">
+              <h4 className="text-xl font-bold text-center mb-8">@{channelName}</h4>
+              <div className="flex flex-wrap justify-center gap-2">
                 {badges.map((badge) => (
                   <BadgeComponent key={badge} type={badge} />
                 ))}

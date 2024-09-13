@@ -16,15 +16,15 @@ export default async function SettingsPage() {
   const user = await getUserById(session.user.id);
   console.log('User fetched in SettingsPage:', user); 
 
-  if (!user) {
-    console.log(`User not found for ID: ${session.user.id}`)
-    redirect("/")
-  }
+  // if (!user) {
+  //   console.log(`User not found for ID: ${session.user.id}`)
+  //   redirect("/")
+  // }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Edit Profile</h1>
-      <ProfileEditForm user={user} />
+      {/* <ProfileEditForm user={user} /> */}
     </div>
   )
 }

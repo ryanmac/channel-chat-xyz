@@ -393,9 +393,9 @@ export const generateAnswer = async (question, relevantChunks) => {
 
   try {
     const response = await axios.post(OPENAI_API_URL, {
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4o-mini',
       messages: messages,
-      max_tokens: 150
+      max_tokens: 200
     }, {
       headers: {
         'Authorization': `Bearer ${OPENAI_API_KEY}`,

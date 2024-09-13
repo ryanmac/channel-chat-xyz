@@ -7,22 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { createCheckoutSession } from "@/utils/stripePayments";
 import { Search, X } from "lucide-react"
-
-// Mock data for demonstration purposes
-const mockChannels = [
-  { id: '1', name: '@drwaku', title: 'Dr Waku', subscribers: 1000000 },
-  { id: '2', name: '@veritasium', title: 'Veritasium', subscribers: 12000000 },
-  { id: '3', name: '@mkbhd', title: 'Marques Brownlee', subscribers: 15000000 },
-  { id: '4', name: '@kurzgesagt', title: 'Kurzgesagt - In a Nutshell', subscribers: 18000000 },
-  { id: '5', name: '@vsauce', title: 'Vsauce', subscribers: 17000000 },
-]
-
-type Channel = {
-  id: string
-  name: string
-  title: string
-  subscribers: number
-}
+import { defaultChannels, Channel } from '@/utils/defaultChannels'
 
 export default function Component() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -35,7 +20,7 @@ export default function Component() {
     setIsLoading(true)
     // Simulating API call with mock data
     setTimeout(() => {
-      const filteredResults = mockChannels
+      const filteredResults = defaultChannels
         .filter(channel => 
           channel.name.toLowerCase().includes(term.toLowerCase()) ||
           channel.title.toLowerCase().includes(term.toLowerCase())

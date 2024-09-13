@@ -36,168 +36,185 @@ model Session {
 }
 
 model User {
-  id                String           @id @default(cuid())
-  name              String?
-  email             String?          @unique
-  emailVerified     DateTime?
-  username          String?          @unique
-  password          String?
-  image             String?
-  role              UserRole         @default(USER)
-  credits           Int              @default(0)
-  accounts          Account[]
-  chats             Chat[]
-  sessions          Session[]
-  sponsorships      Sponsorship[]    @relation("UserSponsorships")
-  subscriptions     Subscription?
-  sponsoredChannels YouTubeChannel[] @relation("UserSponsoredChannels")
-  badges            Badge[]
-  sharedChats       SharedChat[]
+  id            String        @id @default(cuid())
+  name          String?
+  email         String?       @unique
+  emailVerified DateTime?
+  username      String?       @unique
+  password      String?
+  image         String?
+  role          UserRole      @default(USER)
+  accounts      Account[]
+  chats         Chat[]
+  sessions      Session[]
+  badges        UserBadge[]   @relation("UserBadges")
+  sharedChats   SharedChat[]
+  transactions  Transaction[]
+  ChatSession   ChatSession[]
 }
 
-model VerificationToken {
-  id      String   @id @default(cuid())
-  email   String
-  token   String   @unique
-  expires DateTime
-
-  @@unique([email, token])
-}
-
-model PasswordResetToken {
-  id      String   @id @default(cuid())
-  email   String
-  token   String   @unique
-  expires DateTime
-
-  @@unique([email, token])
-}
-
-model Subscription {
-  id                     String    @id @default(cuid())
-  userId                 String    @unique
-  stripeCustomerId       String?   @unique @map("stripe_customer_id")
-  stripeSubscriptionId   String?   @unique @map("stripe_subscription_id")
-  stripePriceId          String?   @map("stripe_price_id")
-  stripeCurrentPeriodEnd DateTime? @map("stripe_current_period_end")
-  user                   User      @relation(fields: [userId], references: [id])
-}
-
-model YouTubeChannel {
-  id              String        @id @default(cuid())
-  youtubeId       String        @unique
-  name            String
-  description     String?
-  subscriberCount Int
-  imageUrl        String?
-  bannerUrl       String?
-  chats           Chat[]
-  sponsorships    Sponsorship[]
-  sponsors        User[]        @relation("UserSponsoredChannels")
+enum UserRole {
+  ADMIN
+  USER
 }
 
 model Chat {
-  id        String         @id @default(cuid())
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   userId    String
   channelId String
-  channel   YouTubeChannel @relation(fields: [channelId], references: [id])
-  user      User           @relation(fields: [userId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+  channel   Channel   @relation(fields: [channelId], references: [id])
   messages  Message[]
+
+  @@index([userId, channelId])
+}
+
+model ChatSession {
+  id           String    @id @default(cuid())
+  channelId    String
+  userId       String?
+  sessionId    String // For anonymous users
+  tokenCount   Int       @default(0)
+  messageCount Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  channel      Channel   @relation(fields: [channelId], references: [id])
+  user         User?     @relation(fields: [userId], references: [id])
+  messages     Message[]
+
+  @@index([channelId])
+  @@index([userId])
+  @@index([sessionId])
 }
 
 model Message {
-  id        String   @id @default(cuid())
-  content   String
-  createdAt DateTime @default(now())
-  isUser    Boolean
-  chatId    String
-  chat      Chat     @relation(fields: [chatId], references: [id])
+  id            String      @id @default(cuid())
+  content       String
+  tokenCount    Int
+  createdAt     DateTime    @default(now())
+  type          MessageType
+  chatSessionId String
+  chatSession   ChatSession @relation(fields: [chatSessionId], references: [id])
+  Chat          Chat?       @relation(fields: [chatId], references: [id])
+  chatId        String?
 }
 
-model Sponsorship {
-  id        String         @id @default(cuid())
-  amount    Int
-  createdAt DateTime       @default(now())
-  userId    String
-  channelId String
-  channel   YouTubeChannel @relation(fields: [channelId], references: [id])
-  user      User           @relation("UserSponsorships", fields: [userId], references: [id])
+enum MessageType {
+  USER
+  AI
 }
 
 model Channel {
-  id                  String              @id @default(cuid())
-  name                String              @unique
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
-  boosts              ChannelBoost[]
-  credits             ChannelCredit?
-  usage               ChannelUsage[]
-  creditTransactions  CreditTransaction[]
-  isProcessing        Boolean             @default(false)
-  isActive            Boolean             @default(false)
-  embeddedTranscripts Int                 @default(0)
-  totalVideos         Int                 @default(0)
-  model               String              @default("gpt-3.5-turbo")
-  maxTokens           Int                 @default(200)
-  chatsCreated        Int                 @default(0)
-  isFineTuned         Boolean             @default(false)
-  botScore            Int                 @default(0)
+  id                String           @id @default(cuid()) // YouTube Channel ID
+  name              String           @unique // YouTube Channel Name (@[channelName])
+  title             String? // YouTube Channel Title
+  description       String? // YouTube Channel Description
+  subscriberCount   Int?             @default(0) // Total number of subscribers on YouTube channel
+  videoCount        Int?             @default(0) // Total number of videos on YouTube channel
+  viewCount         Int?             @default(0) // Total number of views on YouTube channel
+  imageUrl          String? // YouTube Channel Image URL
+  bannerUrl         String? // YouTube Channel Banner URL
+  status            ChannelStatus    @default(PENDING)
+  activationFunding Int              @default(0)
+  activationGoal    Int              @default(10)
+  creditBalance     Int              @default(0)
+  isProcessing      Boolean          @default(false)
+  totalEmbeddings   Int              @default(0)
+  totalVideos       Int              @default(0)
+  model             String           @default("gpt-4o-mini")
+  maxTokens         Int              @default(200)
+  chatsCreated      Int              @default(0)
+  isFineTuned       Boolean          @default(false)
+  botScore          Int              @default(0)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  chats             Chat[]
+  boosts            ChannelBoost[]
+  transactions      Transaction[]
+  metrics           ChannelMetrics[]
+  ChatSessions      ChatSession[]
+
+  @@index([name])
 }
 
-model ChannelCredit {
-  id          String   @id @default(uuid())
-  channelId   String   @unique
-  balance     Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  channel     Channel  @relation(fields: [channelId], references: [id])
-  maxCredits  Int      @default(100000)
+enum ChannelStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+}
+
+model ChannelMetrics {
+  id        String   @id @default(cuid())
+  channelId String
+  date      DateTime
+  views     Int
+  chats     Int
+  channel   Channel  @relation(fields: [channelId], references: [id])
+
+  @@unique([channelId, date])
 }
 
 model ChannelBoost {
-  id        String   @id @default(uuid())
+  id        String           @id @default(uuid())
   channelId String
-  boostType String
+  boostType ChannelBoostType
   value     Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  channel   Channel  @relation(fields: [channelId], references: [id])
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  channel   Channel          @relation(fields: [channelId], references: [id])
 }
 
-model ChannelUsage {
-  id              String   @id @default(uuid())
-  channelId       String
-  embeddedVideos  Int      @default(0)
-  totalChats      Int      @default(0)
-  totalTokensUsed Int      @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  channel         Channel  @relation(fields: [channelId], references: [id])
+enum ChannelBoostType {
+  MEMORY
+  TOKENS
+  FINE_TUNING
 }
 
-model CreditTransaction {
-  id        String   @id @default(uuid())
-  channelId String
-  amount    Int
-  type      String
-  createdAt DateTime @default(now())
-  channel   Channel  @relation(fields: [channelId], references: [id])
-}
-
-model ConfigurationSetting {
-  id          String  @id @default(uuid())
-  key         String  @unique
-  value       String
+model Transaction {
+  id          String          @id @default(cuid())
+  channelId   String
+  userId      String?
+  sessionId   String
+  amount      Float
+  type        TransactionType
   description String?
+  createdAt   DateTime        @default(now())
+  channel     Channel         @relation(fields: [channelId], references: [id])
+  user        User?           @relation(fields: [userId], references: [id])
+
+  @@index([channelId])
+  @@index([userId])
+  @@index([sessionId])
+}
+
+enum TransactionType {
+  ACTIVATION
+  CREDIT_PURCHASE
 }
 
 model Badge {
+  id        String      @id @default(cuid())
+  name      String      @unique
+  createdAt DateTime    @default(now())
+  users     UserBadge[] @relation("BadgeUserBadges")
+}
+
+model SessionBadge {
   id        String   @id @default(cuid())
-  name      String
+  sessionId String   @unique
+  badges    String // Comma-separated list of badges
   createdAt DateTime @default(now())
-  users     User[]
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  badgeId   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], name: "UserBadges")
+  badge     Badge    @relation(fields: [badgeId], references: [id], name: "BadgeUserBadges")
 }
 
 model SharedChat {
@@ -209,7 +226,15 @@ model SharedChat {
   user      User     @relation(fields: [userId], references: [id])
 }
 
-enum UserRole {
-  ADMIN
-  USER
+model ConfigurationSetting {
+  key         String  @id @unique
+  value       String
+  description String?
+}
+
+enum SettingType {
+  STRING
+  INTEGER
+  BOOLEAN
+  FLOAT
 }

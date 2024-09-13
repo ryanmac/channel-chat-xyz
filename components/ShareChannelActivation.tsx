@@ -1,29 +1,55 @@
 // components/ShareChannelActivation.tsx
 import React, { useState, useEffect } from 'react'
-import { Share2, Facebook, Linkedin, Link, X } from 'lucide-react'
+import { Share2, Facebook, Linkedin, Link } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useToast } from "@/hooks/use-toast"
 
 interface ShareChannelActivationProps {
   channelName: string
-  currentFunding: number
+  channelId: string
+  initialFunding: number
   goalFunding: number
 }
 
-export function ShareChannelActivation({ channelName, currentFunding, goalFunding }: ShareChannelActivationProps) {
+export function ShareChannelActivation({ channelName, channelId, initialFunding, goalFunding }: ShareChannelActivationProps) {
   const [isClient, setIsClient] = useState(false)
-  const remainingToActivate = (Math.max(0, goalFunding-currentFunding));
-  const { toast } = useToast();
+  const [currentFunding, setCurrentFunding] = useState(initialFunding)
+  const [isLoading, setIsLoading] = useState(false)
+  const { toast } = useToast()
 
-  const currentUrl = 'https://channelchat.xyz/channel/@' + channelName
+  const currentUrl = `https://channelchat.xyz/channel/@${channelName}`
 
   useEffect(() => {
     setIsClient(true)
+    fetchLatestFunding()
   }, [])
 
-  const shareMessage = `Help me unlock AI-powered conversations with @${channelName} on @ChannelChat! 🚀\n\nWe’re only $${remainingToActivate} away from activating and training the chatbot on YouTube transcripts to respond just like the channel's host.\n\nLet’s make it happen together!\n\n#ChannelChat #AI #Chatbot\n\n`
+  const fetchLatestFunding = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch(`/api/channel/funding?channelId=${channelId}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch latest funding')
+      }
+      const data = await response.json()
+      setCurrentFunding(data.currentFunding)
+    } catch (error) {
+      console.error('Error fetching latest funding:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch latest funding information.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const remainingToActivate = Math.max(0, goalFunding - currentFunding)
+  const percentageComplete = (currentFunding / goalFunding) * 100
+
+  const shareMessage = `Help unlock AI-powered conversations with @${channelName} on @ChannelChat! 🚀\n\nWe're ${percentageComplete.toFixed(0)}% there - only $${remainingToActivate.toFixed(2)} away from activating and training the chatbot on YouTube transcripts.\n\nLet's make it happen together!\n\n#ChannelChat #AI #Chatbot\n\n`
 
   const shareUrls = {
     x: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}&url=${encodeURIComponent(currentUrl)}`,
@@ -73,7 +99,7 @@ export function ShareChannelActivation({ channelName, currentFunding, goalFundin
           We're so close - just <span className="font-semibold text-yellow-300">${remainingToActivate.toFixed(0)}</span> away from bringing this amazing AI experience to life.
         </p>
         <AnimatePresence>
-          {isClient && (
+          {isClient && !isLoading && (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
