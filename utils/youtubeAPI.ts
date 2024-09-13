@@ -4,8 +4,8 @@ import config from "@/config";
 import { setCache, getCache, deleteCache } from '@/utils/cache';
 // import { LRUCache } from 'lru-cache';
 
-const YOUTUBE_API_KEY = config.yes.YOUTUBE_API_KEY;
-const YOUTUBE_API_URL = 'https://www.googleapis.com/youtube/v3/search';
+const YOUTUBE_API_KEY = config.youtube.apiKey;
+const YOUTUBE_API_URL = config.youtube.url;
 
 export async function getYouTubeChannels(query: string) {
   const cacheKey = query.slice(0, 6).toLowerCase();
@@ -34,7 +34,7 @@ export async function getYouTubeChannels(query: string) {
     }));
 
     // Cache the result using the first 6 characters of the query as the key
-    cache.set(cacheKey, channels);
+    setCache(cacheKey, channels);
 
     return channels;
   } catch (error) {

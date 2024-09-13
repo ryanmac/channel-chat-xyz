@@ -33,6 +33,10 @@ const dev: any = {
     yes: {
         url: process.env.DEV_YOUTUBE_EXTRACTION_SERVICE_URL || '',
         apiKey: process.env.YOUTUBE_EXTRACTION_SERVICE_API_KEY || '',
+    },
+    youtube: {
+        url: 'https://www.googleapis.com/youtube/v3/search',
+        apiKey: process.env.YOUTUBE_DATA_API_KEY || ''
     }
 };
 
@@ -62,6 +66,10 @@ const prod: any = {
     yes: {
         url: process.env.YOUTUBE_EXTRACTION_SERVICE_URL || '',
         apiKey: process.env.YOUTUBE_EXTRACTION_SERVICE_API_KEY || '',
+    },
+    youtube: {
+        url: 'https://www.googleapis.com/youtube/v3/search',
+        apiKey: process.env.YOUTUBE_DATA_API_KEY || ''
     }
 };
 
