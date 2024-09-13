@@ -18,6 +18,7 @@ export async function POST(req: NextRequest) {
             currency: 'usd',
             product_data: {
               name: 'Channel Sponsorship',
+              images: ['https://channelchat.xyz/logomark2.png'],
             },
             unit_amount: Math.round(amount * 100), // Convert to cents and ensure it's an integer
           },
