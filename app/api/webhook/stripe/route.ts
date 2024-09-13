@@ -1,3 +1,4 @@
+// app/api/webhook/stripe/route.ts
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from "stripe";
@@ -114,7 +115,8 @@ export async function POST(request: NextRequest) {
         // Trigger async processing if channel was activated
         if (wasActivated) {
           console.log(`Activating channel ${channelName} (${channelId})`);
-          processChannelAsync(channelId, channelName, updatedChannel.activationFunding).catch((error) => {
+          const totalFundingInDollars = currentActivationFunding + activationAmount + creditAmount;
+          processChannelAsync(channelId, channelName, totalFundingInDollars).catch((error) => {
             console.error('Error in async channel processing:', error);
           });
         }

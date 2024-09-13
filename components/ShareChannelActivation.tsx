@@ -49,7 +49,7 @@ export function ShareChannelActivation({ channelName, channelId, initialFunding,
   const remainingToActivate = Math.max(0, goalFunding - currentFunding)
   const percentageComplete = (currentFunding / goalFunding) * 100
 
-  const shareMessage = `Help unlock AI-powered conversations with @${channelName} on @ChannelChat! 🚀\n\nWe're ${percentageComplete.toFixed(0)}% there - only $${remainingToActivate.toFixed(0)} away from activating and training the chatbot on YouTube transcripts.\n\nLet's make it happen together!\n\n#ChannelChat #AI #Chatbot\n\n`
+  const shareMessage = `Help unlock AI-powered conversations with @${channelName} on @ChannelChat! 🚀\n\nWe're ${percentageComplete.toFixed(0)}% there - only $${remainingToActivate.toFixed(0)} away from activating and training the chatbot on YouTube transcripts.\n\nLet's make it happen together!\n\n`
 
   const shareUrls = {
     x: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}&url=${encodeURIComponent(currentUrl)}`,
