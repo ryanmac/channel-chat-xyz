@@ -182,9 +182,7 @@ export default function ChannelPage({ params }: ChannelPageProps) {
       }
       console.log('Session badges:',
         badgesArray.length > 0 ? badgesArray.join(', ') : 'No badges earned');
-      if (badgesArray.length > 0) {
-        setShowSuccessModal(true);
-      }
+      setShowSuccessModal(true);
     } catch (error) {
       console.error('Error fetching session badges:', error);
       toast({
