@@ -25,7 +25,7 @@ export function FuelGauge({ creditBalance, maxCredits }: FuelGaugeProps) {
         <div className="space-y-2">
           <div className="flex justify-between">
             <span>Chats Remaining:</span>
-            <span>{creditBalance}</span>
+            <span>{creditBalance.toLocaleString()}</span>
           </div>
           <Progress value={fuelPercentage} className="mt-2" />
         </div>
