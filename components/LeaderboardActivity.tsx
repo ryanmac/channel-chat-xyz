@@ -76,13 +76,13 @@ export function LeaderboardActivity({ channelId }: LeaderboardActivityProps) {
       {/* Top Sponsors Section */}
       <div>
         <Card className="h-full border-0 shadow-md hover:shadow-xl transition-shadow duration-300">
-          <CardHeader className="bg-gradient-to-r from-blue-400 to-indigo-500 text-white rounded-t-xl">
-            <CardTitle className="flex items-center text-2xl font-bold">
+          <CardHeader className="text-gray-700 dark:text-white rounded-t-xl">
+            <CardTitle className="flex items-center text-xl font-bold">
               <Trophy className="w-6 h-6 mr-2" />
               Top Sponsors
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="px-6">
             {leaderboard.length > 0 ? (
               <LeaderboardList leaderboard={leaderboard.map(entry => ({
                 ...entry,
@@ -98,13 +98,13 @@ export function LeaderboardActivity({ channelId }: LeaderboardActivityProps) {
       {/* Recent Activity Section */}
       <div>
         <Card className="h-full border-0 shadow-md hover:shadow-xl transition-shadow duration-300">
-          <CardHeader className="bg-gradient-to-r from-blue-400 to-indigo-500 text-white rounded-t-xl">
-            <CardTitle className="flex items-center text-2xl font-bold">
+          <CardHeader className="text-gray-700 dark:text-white rounded-t-xl">
+            <CardTitle className="flex items-center text-xl font-bold">
               <Activity className="w-6 h-6 mr-2" />
               Recent Activity
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="px-6">
             {recentActivity.length > 0 ? (
               <ActivityList recentActivity={recentActivity} />
             ) : (
