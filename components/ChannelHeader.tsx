@@ -48,6 +48,16 @@ export function ChannelHeader({
   const collapsedDescriptionLength = 60;
   const truncatedDescription = truncateDescription(description, collapsedDescriptionLength);
   const showMoreLink = description.length > collapsedDescriptionLength;
+
+  const abbreviateNumber = (count: number) => {
+    if (count >= 1000000) {
+      return `${(count / 1000000).toFixed(1)}M`;
+    } else if (count >= 1000) {
+      return `${(count / 1000).toFixed(1)}K`;
+    }
+    return count.toString();
+  }
+
   return (
     <div className="w-full">
       <div className="w-full h-48 bg-cover bg-center" style={{ backgroundImage: `url(${bannerUrl})` }} />
@@ -84,7 +94,7 @@ export function ChannelHeader({
                 @{channelName}
               </Link>
               {' • '}
-              {subscriberCount.toLocaleString()} subscribers • {totalViews.toLocaleString()} views • {videoCount.toLocaleString()} videos
+              {abbreviateNumber(subscriberCount)} subscribers • {abbreviateNumber(totalViews)} views • {videoCount.toLocaleString()} videos
             </p>
             <div className="mt-2 text-center md:text-left">
               <p className="inline">

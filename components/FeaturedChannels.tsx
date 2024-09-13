@@ -54,6 +54,15 @@ export function FeaturedChannels() {
     return <div>{error}</div>;
   }
 
+  const abbreviateNumber = (count: number) => {
+    if (count >= 1000000) {
+      return `${(count / 1000000).toFixed(1)}M`;
+    } else if (count >= 1000) {
+      return `${(count / 1000).toFixed(1)}K`;
+    }
+    return count.toLocaleString();
+  }
+
   return (
     <section className="py-16 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       <div className="container px-4 md:px-6">
@@ -84,7 +93,7 @@ export function FeaturedChannels() {
                       <CardTitle className="text-xl font-bold">{channel.title}</CardTitle>
                       <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center mt-1">
                         <Youtube className="w-4 h-4 mr-1" />
-                        {channel.subscribers} subscribers
+                        {abbreviateNumber(parseInt(channel.subscribers))} subscribers
                       </p>
                     </div>
                   </div>

@@ -7,9 +7,10 @@ import prisma from "@/lib/prisma";
 import configEnv from "@/config";
 import { determineBadges } from '@/utils/badgeManagement';
 import { create } from "domain";
+import config from "@/config";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
+const stripe = new Stripe(config.stripe.secret!, {
+  apiVersion: config.stripe.apiVersion,
 });
 
 export async function POST(request: NextRequest) {
