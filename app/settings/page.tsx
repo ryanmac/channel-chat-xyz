@@ -23,12 +23,19 @@ export default async function SettingsPage() {
     redirect("/")
   }
 
+  const formattedUser = {
+    id: user.id,
+    username: user.username ?? undefined, // Convert null to undefined
+    name: user.name ?? undefined,         // Convert null to undefined
+    image: user.image ?? undefined,       // Convert null to undefined
+  };
+
   return (
     <>
       <Header />
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-6">Edit Profile</h1>
-        <ProfileEditForm user={user} />
+        <ProfileEditForm user={formattedUser} />
       </div>
       <Footer />
     </>

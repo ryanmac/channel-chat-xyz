@@ -20,9 +20,9 @@ interface ProfileEditFormProps {
 }
 
 export function ProfileEditForm({ user }: ProfileEditFormProps) {
-  const [username, setUsername] = useState(user.username || "")
-  const [name, setName] = useState(user.name || "")
-  const [image, setImage] = useState(user.image || "")
+  const [username, setUsername] = useState(user.username ?? ""); // Use nullish coalescing for consistency
+  const [name, setName] = useState(user.name || "");
+  const [image, setImage] = useState(user.image || "");
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
