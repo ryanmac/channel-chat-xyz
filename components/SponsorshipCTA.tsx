@@ -57,10 +57,11 @@ export function SponsorshipCTA({ channelName, channelTitle, channelId, creditBal
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="mb-4">Support this channel by sponsoring AI-powered chats!</p>
+        <p className="mb-4">Every dollar sponsors 1000 AI-powered chats!</p>
         <Slider
           value={sliderValue}
           onValueChange={handleSliderChange}
+          min={1}
           max={100}
           step={1}
           className="mb-6"

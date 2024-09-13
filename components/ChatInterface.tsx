@@ -191,7 +191,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 </div>
               )}
               <div className={`inline-block p-2 rounded-lg max-w-[80%] ${message.sender === 'You' ? 'bg-blue-500 text-white dark:bg-blue-800 dark:text-white' : 'bg-gray-200 text-black dark:bg-gray-800 dark:text-white'}`}>
-                <p className="font-semibold flex items-center">
+                <p className="font-semibold flex items-center dark:prose-invert">
                   {message.sender === 'AI' ? (
                     <>
                       {channelName}
@@ -201,7 +201,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     'You'
                   )}
                 </p>
-                <div className="break-words prose prose-sm dark:prose-invert">
+                <div className="break-words prose prose-sm dark:prose-invert custom-prose">
                   <ClientMarkdown content={message.content} />
                 </div>
               </div>
