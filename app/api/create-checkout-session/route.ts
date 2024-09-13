@@ -17,8 +17,9 @@ export async function POST(req: NextRequest) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: 'Channel Sponsorship',
+              name: `ChannelChat: @${channelName}`,
               images: ['https://channelchat.xyz/logomark2.png'],
+              description: `Sponsors ${(amount*1000).toLocaleString()} AI-powered @${channelName} chats`,
             },
             unit_amount: Math.round(amount * 100), // Convert to cents and ensure it's an integer
           },
