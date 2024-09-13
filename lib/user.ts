@@ -17,7 +17,7 @@ import prisma from '@/lib/prisma'
 import { authConfig } from "@/auth.config"
 import getServerSession from "next-auth"
 import { Session } from "next-auth"
-import { User, UserBadge, Badge, Chat, Channel, Transaction, TransactionType, SharedChat } from "@prisma/client"
+import { User, UserBadge, Badge, Chat, ChatSession, Channel, Transaction, TransactionType, SharedChat } from "@prisma/client"
 
 function isSession(obj: any): obj is Session {
   return (
@@ -30,7 +30,7 @@ function isSession(obj: any): obj is Session {
 
 type UserWithRelations = User & {
   badges: (UserBadge & { badge: Badge })[];
-  chats: Chat[];
+  ChatSession: ChatSession[];
   sharedChats: SharedChat[];
   transactions: (Transaction & { channel: Channel })[];
 };
@@ -48,6 +48,7 @@ export async function getUserByUsername(username: string): Promise<UserWithRelat
         include: { badge: true }
       },
       chats: true,
+      ChatSession: true,
       sharedChats: true,
       transactions: {
         include: { channel: true }
@@ -76,6 +77,7 @@ export async function getUserById(id: string): Promise<UserWithRelations | null>
         include: { badge: true }
       },
       chats: true,
+      ChatSession: true,
       sharedChats: true,
       transactions: {
         include: { channel: true }

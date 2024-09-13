@@ -2,6 +2,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { BadgeComponent } from "@/components/BadgeComponent";
 import { BadgeType } from "@/utils/badgeManagement";
 import Link from "next/link";
@@ -14,7 +15,7 @@ interface UserProfileProps {
     image?: string;
     sponsoredChatsCount: number;
     participatedChatsCount: number;
-    sponsorships: Array<{ id: string; channel: { name: string } }>;
+    sponsorships: Array<{ id: string; channel: { name: string, title: string, imageUrl: string } }>;
     badges: Array<{ id: string; badge: { name: string } }>;
     totalSponsoredAmount: number;
   } | null;
@@ -97,14 +98,20 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
                   {user.sponsorships.map((sponsorship) => (
                     <li key={sponsorship.id}>
                       <Link href={`/channel/${sponsorship.channel.name}`} className="text-sm hover:text-primary transition-colors">
-                        #{sponsorship.channel.name}
+                        <Badge variant="secondary" className={`mr-2 mb-2 bg-purple-200 text-purple-800 hover:bg-purple-300 hover:text-purple-600 transition-all duration-300 ease-in-out transform hover:scale-105`}>
+                          <Avatar className="h-12 w-12 border-4 border-primary/20 mr-1">
+                            <AvatarImage src={sponsorship.channel.imageUrl || ""} alt={sponsorship.channel.title || ""} />
+                            <AvatarFallback className="text-4xl">{sponsorship.channel.title ? sponsorship.channel.title[0] : "U"}</AvatarFallback>
+                          </Avatar>
+                          {sponsorship.channel.title}
+                        </Badge>
                       </Link>
                     </li>
                   ))}
                 </ul>
-                <p className="text-sm mt-4">
-                  Total Sponsorship: <span className="font-semibold">${user.totalSponsoredAmount.toFixed(2)}</span>
-                </p>
+                {/* <p className="text-sm mt-4">
+                  Total Sponsorship: <span className="font-semibold">${user.totalSponsoredAmount.toFixed(0)}</span>
+                </p> */}
               </>
             ) : (
               <p className="text-sm text-muted-foreground">No sponsored channels yet</p>

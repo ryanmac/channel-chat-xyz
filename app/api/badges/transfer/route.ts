@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    // Find the session badge
     const sessionBadge = await prisma.sessionBadge.findUnique({
       where: { sessionId },
     });
@@ -22,17 +23,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'No badges found for this session' });
     }
 
+    // Extract and log the badge names
     const badgeNames = sessionBadge.badges.split(',');
     console.log(`Found badges to transfer: ${badgeNames.join(', ')}`);
 
+    // Assign badges and transactions to the user
     await userController.assignBadgesToUser(userId, badgeNames);
     await userController.assignTransactionsToUser(userId, sessionId);
 
     // Delete the SessionBadge after transfer
-    if (sessionBadge) {
+    try {
       await prisma.sessionBadge.delete({
         where: { id: sessionBadge.id },
       });
+      console.log(`Successfully deleted SessionBadge for session ${sessionId}`);
+    } catch (deleteError) {
+      console.error(`Failed to delete SessionBadge for session ${sessionId}:`, deleteError);
     }
 
     console.log(`Successfully transferred all badges for session ${sessionId}`);
