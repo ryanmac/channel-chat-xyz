@@ -102,7 +102,7 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
                           variant="secondary"
                           className="bg-purple-200 text-purple-800 hover:bg-purple-300 hover:text-purple-600 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center space-x-2 p-2"
                         >
-                          <Avatar className="h-12 w-12 border-4 border-primary/20 mr-2">
+                          <Avatar className="h-12 w-12 border-2 border-secondary/20 -mr-1">
                             <AvatarImage src={sponsorship.channel.imageUrl || ""} alt={sponsorship.channel.title || ""} />
                             <AvatarFallback className="text-4xl">
                               {sponsorship.channel.title ? sponsorship.channel.title[0] : "U"}

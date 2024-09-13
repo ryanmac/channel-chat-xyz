@@ -1,8 +1,6 @@
-// components/ChatInterface.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Bot, ArrowDown } from 'lucide-react'
 import { default as ClientMarkdown } from '@/components/ClientMarkdown'
@@ -57,6 +55,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   const chatContainerRef = useRef<HTMLDivElement>(null)
   const lastMessageRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const scrollToBottom = useCallback(() => {
     if (chatContainerRef.current) {
@@ -86,11 +85,28 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   }, [messages, showScrollButton, scrollToBottom])
 
+  // Auto-expand textarea
+  const adjustTextareaHeight = () => {
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto' // Reset height to allow shrinking
+      inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 120)}px` // Limit to 5 lines (120px)
+    }
+  }
+
+  useEffect(() => {
+    adjustTextareaHeight()
+  }, [input])
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value)
+    adjustTextareaHeight()
+  }
+
   const handleQuickPrompt = (prompt: string) => {
     setInput(prompt)
-    const inputElement = document.querySelector('input[type="text"]') as HTMLInputElement
-    if (inputElement) {
-      inputElement.focus()
+    adjustTextareaHeight()
+    if (inputRef.current) {
+      inputRef.current.focus()
     }
   }
 
@@ -127,8 +143,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               description: "This channel has run out of credits. Please purchase more to continue chatting.",
               variant: "destructive",
             });
-            // You might want to trigger a function to refresh the channel info here
-            // onCreditsExhausted();
             return;
           }
           throw new Error('Failed to get AI response');
@@ -234,12 +248,16 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       <CardFooter className="flex flex-col space-y-4">
         <QuickPrompts onPromptSelect={handleQuickPrompt} />
         <div className="flex w-full space-x-2">
-          <Input
+          <textarea
+            ref={inputRef}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={handleInputChange}
             placeholder="Type your message..."
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             disabled={isLoading}
+            rows={1}
+            className="resize-none w-full rounded-md p-2 border border-gray-300 focus:outline-none focus:ring focus:border-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600"
+            style={{ maxHeight: '120px' }} // 5 lines
           />
           <Button onClick={handleSend} disabled={isLoading}>
             {isLoading ? 'Sending...' : 'Send'}
