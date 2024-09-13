@@ -60,7 +60,7 @@ export async function getOrCreateChannel(channelData: ChannelData) {
     channel = await prisma.channel.update({
       where: { id: channel_id },
       data: {
-        name: metadata.snippet.customUrl,
+        name: metadata.snippet.customUrl.replace('@', ''),
         title: metadata.snippet.title,
         description: metadata.snippet.description,
         subscriberCount: parseInt(metadata.statistics.subscriberCount) || 0,
