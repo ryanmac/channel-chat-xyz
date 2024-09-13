@@ -56,6 +56,13 @@ export function ProfileEditForm({ user }: ProfileEditFormProps) {
     }
   }
 
+  const formattedUser = {
+    id: user.id,
+    username: user.username ?? undefined, // Convert null to undefined
+    name: user.name ?? undefined,         // Convert null to undefined
+    image: user.image ?? undefined,       // Convert null to undefined
+  };
+
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>

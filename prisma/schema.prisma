@@ -111,9 +111,9 @@ model Channel {
   name              String           @unique // YouTube Channel Name (@[channelName])
   title             String? // YouTube Channel Title
   description       String? // YouTube Channel Description
-  subscriberCount   Int?             @default(0) // Total number of subscribers on YouTube channel
-  videoCount        Int?             @default(0) // Total number of videos on YouTube channel
-  viewCount         Int?             @default(0) // Total number of views on YouTube channel
+  subscriberCount   BigInt?          @default(0) // Total number of subscribers on YouTube channel
+  videoCount        BigInt?          @default(0) // Total number of videos on YouTube channel
+  viewCount         BigInt?          @default(0) // Total number of views on YouTube channel
   imageUrl          String? // YouTube Channel Image URL
   bannerUrl         String? // YouTube Channel Banner URL
   status            ChannelStatus    @default(PENDING)
@@ -130,6 +130,7 @@ model Channel {
   botScore          Int              @default(0)
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
+  featured          Boolean          @default(false)
   chats             Chat[]
   boosts            ChannelBoost[]
   transactions      Transaction[]

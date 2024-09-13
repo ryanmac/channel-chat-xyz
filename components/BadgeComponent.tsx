@@ -41,6 +41,11 @@ export const BadgeComponent: React.FC<BadgeProps> = ({ type }) => {
 };
 
 const getRarityClass = (rarity: string): string => {
+  if (rarity === 'random') {
+    const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+    const randomRarity = rarities[Math.floor(Math.random() * rarities.length)];
+    return getRarityClass(randomRarity);
+  }
   switch (rarity) {
     case 'common': return 'bg-gray-200 text-gray-800 hover:bg-gray-300 hover:text-gray-600 transition-all duration-300 ease-in-out transform hover:scale-105';
     case 'uncommon': return 'bg-green-200 text-green-800 hover:bg-green-300 hover:text-green-600 transition-all duration-300 ease-in-out transform hover:scale-105';

@@ -313,19 +313,6 @@ export default function ChannelPage({ params }: ChannelPageProps) {
 
   const channelInfo = channelData || defaultChannelData;
 
-  // Mock data - in a real app, this would come from your backend
-  const leaderboardData = [
-    { username: "User1", amount: 100, badge: "Top Sponsor" },
-    { username: "User2", amount: 75 },
-    { username: "User3", amount: 50 },
-  ];
-
-  const recentActivityData = [
-    { username: "User4", action: "started a new chat", timestamp: "5 minutes ago" },
-    { username: "User5", action: "sponsored the channel", timestamp: "10 minutes ago" },
-    { username: "User6", action: "shared a conversation", timestamp: "15 minutes ago" },
-  ];
-
   const curatedChannels = [
     { name: "@TechTalks", description: "Latest in technology", isSponsored: true },
     { name: "@AIDiscussion", description: "AI and machine learning topics", isSponsored: false },
@@ -410,10 +397,9 @@ export default function ChannelPage({ params }: ChannelPageProps) {
                 onActivate={fetchChannelData}
               />
             )}
-            {false && (
+            {isChannelActive && (
               <LeaderboardActivity
-                leaderboard={leaderboardData}
-                recentActivity={recentActivityData}
+                channelId={channelInfo.channel_id}
               />
             )}
             {!botData.isActive && !isProcessing && (

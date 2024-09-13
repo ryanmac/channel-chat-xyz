@@ -1,9 +1,55 @@
+// components/CommunitySupport.tsx
 'use client'
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
+import Link from 'next/link'
+
+interface Channel {
+  id: string;
+  name: string;
+  title: string;
+  imageUrl: string;
+  activationFunding: number;
+  activationGoal: number;
+}
 
 export function CommunitySupport() {
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchChannels() {
+      try {
+        const response = await fetch('/api/community-support');
+        if (!response.ok) {
+          throw new Error('Failed to fetch channels');
+        }
+        const data = await response.json();
+        setChannels(data);
+      } catch (err) {
+        setError('Failed to load channels. Please try again later.');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchChannels();
+  }, []);
+
+  if (isLoading) {
+    // return <div>Loading...</div>;
+    return <div></div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
   return (
     <section className="py-12 bg-white dark:bg-gray-800">
       <div className="container px-4 md:px-6">
@@ -15,26 +61,40 @@ export function CommunitySupport() {
           <div className="bg-gray-100 dark:bg-gray-700 p-6 rounded-lg">
             <h3 className="text-xl font-semibold mb-4">Channel Funding Progress</h3>
             <div className="space-y-4">
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium">TechTalks</span>
-                  <span className="text-sm font-medium">70%</span>
-                </div>
-                <Progress value={70} className="w-full" />
-              </div>
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium">GamingGurus</span>
-                  <span className="text-sm font-medium">45%</span>
-                </div>
-                <Progress value={45} className="w-full" />
-              </div>
+              {channels.map((channel) => (
+                <Link key={channel.id} href={`/channel/@${channel.name}`} className="block transform transition-transform duration-200 hover:scale-105">
+                  <div className="flex items-start space-x-4">
+                    {/* Avatar on the left */}
+                    <Avatar className="h-12 w-12 border-4 border-primary/20">
+                      <AvatarImage src={channel.imageUrl || ""} alt={channel.name || ""} />
+                      <AvatarFallback className="text-4xl">
+                        {channel.name ? channel.name[0] : "U"}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    {/* Channel info and progress bar */}
+                    <div className="flex-1">
+                      <div className="flex justify-between items-center mb-1">
+                        {/* Channel Name */}
+                        <span className="text-sm font-medium">{channel.name}</span>
+
+                        {/* Percentage on the right */}
+                        <span className="text-sm font-medium">
+                          {Math.round((channel.activationFunding / channel.activationGoal) * 100)}%
+                        </span>
+                      </div>
+
+                      {/* Progress Bar Below */}
+                      <Progress
+                        value={(channel.activationFunding / channel.activationGoal) * 100}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
-          {/* <div className="text-center">
-            <p className="mb-4 text-sm text-gray-500">Recent Activity: User123 sponsored @TechTalks</p>
-            <Button size="lg">Sponsor a Channel</Button>
-          </div> */}
         </div>
       </div>
     </section>

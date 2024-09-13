@@ -1,43 +1,59 @@
-'use client'
+// components/FeaturedChannels.tsx
+'use client';
 
-import Link from 'next/link'
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { motion } from "framer-motion"
-import { Youtube, MessageCircle, Zap } from "lucide-react"
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { motion } from "framer-motion";
+import { Youtube, MessageCircle, Zap } from "lucide-react";
 
-const channels = [
-  { 
-    name: "DrWaku", 
-    title: "Dr. Waku's Science Lab",
-    subscribers: "1.2M", 
-    chats: 5000, 
-    tokensUsed: 50000, 
-    tokensRemaining: 10000,
-    avatarUrl: "https://i.pravatar.cc/150?u=drwaku"
-  },
-  { 
-    name: "GamingGurus", 
-    title: "Gaming Gurus",
-    subscribers: "800K", 
-    chats: 3000, 
-    tokensUsed: 30000, 
-    tokensRemaining: 20000,
-    avatarUrl: "https://i.pravatar.cc/150?u=gaminggurus"
-  },
-  { 
-    name: "CookingCorner", 
-    title: "Cooking Corner",
-    subscribers: "500K", 
-    chats: 2000, 
-    tokensUsed: 20000, 
-    tokensRemaining: 30000,
-    avatarUrl: "https://i.pravatar.cc/150?u=cookingcorner"
-  },
-]
+interface Channel {
+  id: string;
+  name: string;
+  title: string;
+  avatarUrl: string;
+  subscribers: string;
+  chats: number;
+  tokensUsed: number;
+  tokensRemaining: number;
+}
 
 export function FeaturedChannels() {
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchFeaturedChannels() {
+      try {
+        const response = await fetch('/api/featured-channels');
+        if (!response.ok) {
+          throw new Error('Failed to fetch featured channels');
+        }
+        const data = await response.json();
+        setChannels(data);
+      } catch (err) {
+        setError('Failed to load featured channels. Please try again later.');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchFeaturedChannels();
+  }, []);
+
+  if (isLoading) {
+    // return <div>Loading...</div>;
+    return <div></div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
   return (
     <section className="py-16 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       <div className="container px-4 md:px-6">
@@ -52,7 +68,7 @@ export function FeaturedChannels() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {channels.map((channel, index) => (
             <motion.div
-              key={channel.name}
+              key={channel.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -80,14 +96,14 @@ export function FeaturedChannels() {
                       <span className="font-medium">Chats:</span>
                       <span className="ml-auto">{channel.chats.toLocaleString()}</span>
                     </div>
-                    <div className="flex items-center text-sm">
+                    {/* <div className="flex items-center text-sm">
                       <Zap className="w-4 h-4 mr-2 text-yellow-500" />
                       <span className="font-medium">Tokens Used:</span>
                       <span className="ml-auto">{channel.tokensUsed.toLocaleString()}</span>
-                    </div>
+                    </div> */}
                     <div className="flex items-center text-sm">
                       <Zap className="w-4 h-4 mr-2 text-green-500" />
-                      <span className="font-medium">Tokens Remaining:</span>
+                      <span className="font-medium">Chats Remaining:</span>
                       <span className="ml-auto">{channel.tokensRemaining.toLocaleString()}</span>
                     </div>
                   </div>
@@ -105,5 +121,5 @@ export function FeaturedChannels() {
         </div>
       </div>
     </section>
-  )
+  );
 }
