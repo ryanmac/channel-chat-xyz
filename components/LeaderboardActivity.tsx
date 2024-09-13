@@ -76,7 +76,7 @@ export function LeaderboardActivity({ channelId }: LeaderboardActivityProps) {
       {/* Top Sponsors Section */}
       <div>
         <Card className="h-full border-0 shadow-md hover:shadow-xl transition-shadow duration-300">
-          <CardHeader className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-t-xl">
+          <CardHeader className="bg-gradient-to-r from-blue-400 to-indigo-500 text-white rounded-t-xl">
             <CardTitle className="flex items-center text-2xl font-bold">
               <Trophy className="w-6 h-6 mr-2" />
               Top Sponsors
