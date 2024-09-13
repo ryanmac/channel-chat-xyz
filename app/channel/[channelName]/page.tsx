@@ -10,6 +10,7 @@ import { LeaderboardActivity } from '@/components/LeaderboardActivity';
 import { ChatInterface } from '@/components/ChatInterface';
 import { UnlockChannelChat } from '@/components/UnlockChannelChat';
 import { CuratedChannels } from '@/components/CuratedChannels';
+import { FeaturedChannels } from '@/components/FeaturedChannels';
 import { DisclaimerSection } from '@/components/DisclaimerSection';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -404,8 +405,9 @@ export default function ChannelPage({ params }: ChannelPageProps) {
             )}
             {!botData.isActive && !isProcessing && (
               <>
-                {/* <h2 className="text-2xl font-bold mt-8">Explore other channels...</h2> */}
-                <CuratedChannels channels={curatedChannels} />
+                <h2 className="text-2xl font-bold mt-8 mb-4">Explore other chatbots...</h2>
+                {/* <CuratedChannels channels={curatedChannels} /> */}
+                <FeaturedChannels showStats={false} />
               </>
             )}
           </div>
