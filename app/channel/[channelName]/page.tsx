@@ -19,7 +19,7 @@ import { BotAttributesPanel } from '@/components/BotAttributesPanel';
 import { FuelGauge } from '@/components/FuelGauge';
 import { ShareChannelActivation } from '@/components/ShareChannelActivation';
 import { ChannelProcessing } from '@/components/ChannelProcessing';
-import { SuccessShareModal } from '@/components/SuccessShareModal2';
+import { SuccessShareModal } from '@/components/SuccessShareModal';
 import { SignUpModal } from '@/components/SignUpModal';
 import { BadgeType } from '@/utils/badgeManagement';
 import { ChannelData } from '@/utils/channelManagement';
@@ -201,7 +201,7 @@ export default function ChannelPage({ params }: ChannelPageProps) {
     console.log('Fetching channel data for:', channelName);
     try {
       // Fetch the initial channel data
-      const response = await fetch(`/api/yes/channel-info?channel_url=https://www.youtube.com/@${channelName}`);
+      const response = await fetch(`/api/yes/channel-info?channel_name=${channelName}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch channel data: ${response.status} ${response.statusText}`);
       }
@@ -419,13 +419,10 @@ export default function ChannelPage({ params }: ChannelPageProps) {
             setShowSignUpModal(true);
           }
         }}
+        sessionId={sessionId || ''}
         channelName={channelName}
         channelTitle={channelInfo.metadata.snippet.title}
         badges={earnedBadges}
-        sponsorshipAmount={sponsorshipAmount} // The amount of the most recent sponsorship
-        totalFunding={totalFunding} // The total funding amount for the channel
-        newChatCreditsAdded={newChatCreditsAdded} // The number of new chat credits added from the recent sponsorship
-        wasActivated={wasActivated} // A boolean indicating whether the channel was activated by this sponsorship
       />
       <SignUpModal
         isOpen={showSignUpModal}

@@ -67,16 +67,45 @@ export async function getFuelPercentage(channelId: string): Promise<number> {
   return Math.min((channel.activationFunding / channel.activationGoal) * 100, 100);
 }
 
-export async function getTotalChannelFunding(channelId: string): Promise<{ activation: number }> {
-  const result = await prisma.transaction.aggregate({
+export async function getTotalChannelFunding(channelId: string): Promise<{ activation: number; credits: number; total: number }> {
+  // Fetch the conversion rate from ConfigurationSetting table
+  const creditConversion = await prisma.configurationSetting.findUnique({
+    where: { key: 'CREDITS_PER_DOLLAR' },
+    select: { value: true },
+  });
+
+  const creditsPerDollar = creditConversion ? parseFloat(creditConversion.value) : 1000; // Default to 1000 if not found or invalid
+
+  // Fetch the sum of activation and credit purchase amounts separately
+  const result = await prisma.transaction.groupBy({
+    by: ['type'],
     where: {
       channelId,
+      type: {
+        in: ['ACTIVATION', 'CREDIT_PURCHASE'], // Include both transaction types
+      },
     },
     _sum: {
       amount: true,
     },
   });
-  return { activation: result._sum.amount || 0 }; // Return as an object with activation property
+
+  // Calculate activation sum in dollars and credit purchases in credits
+  const activationSum = result.find(r => r.type === 'ACTIVATION')?._sum.amount || 0;
+  const creditsSum = result.find(r => r.type === 'CREDIT_PURCHASE')?._sum.amount || 0;
+
+  // Convert credits to dollars using the conversion rate
+  const creditsInDollars = creditsSum / creditsPerDollar;
+
+  // Calculate the total amount in dollars
+  const total = activationSum + creditsInDollars;
+
+  // Return the result object
+  return {
+    activation: activationSum, // in dollars
+    credits: creditsSum,       // in credits
+    total,                     // total in dollars
+  };
 }
 
 export async function associateTransactionsWithUser(sessionId: string, userId: string): Promise<void> {

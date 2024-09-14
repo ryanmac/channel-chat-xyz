@@ -1,5 +1,6 @@
 // utils/stripePayments.ts
 import { loadStripe } from '@stripe/stripe-js';
+import config from '@/config';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 

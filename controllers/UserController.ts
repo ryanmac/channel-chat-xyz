@@ -4,9 +4,30 @@ import prisma from "@/lib/prisma";
 import jsonUtilsImpl from "@/utils/jsonUtils";
 import { generateUsername, generateUniqueUsername } from "@/utils/userUtils";
 import { BadgeType } from "@/utils/badgeManagement";
-import type { User, UserBadge, Badge, Transaction, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import type { User, UserBadge, Badge, Transaction } from "@prisma/client";
 
 type UserWithBadges = User & { badges: (UserBadge & { badge: Badge })[] };
+
+interface GetAllUsersOptions {
+  search?: string;
+  sort?: string;
+  direction?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
+}
+
+interface SerializedUser {
+  id: string;
+  name: string;
+  username: string;
+  email: string;
+  badges: string[]; // List of badge names
+  createdAt: string; // ISO date string
+  emailVerified: string | null;
+  chatsCount: number;
+  // Add any other fields as needed
+}
 
 export default class UserController {
   async create(name: string, email: string, password?: string, image?: string): Promise<UserWithBadges | null> {
@@ -263,5 +284,89 @@ export default class UserController {
       console.error("Error updating password:", e);
       return e;
     }
+  }
+
+  async getAllUsers(
+    options: GetAllUsersOptions = {}
+  ): Promise<{ users: SerializedUser[]; totalPages: number }> {
+    const { search, sort, direction, page = 1, pageSize = 10 } = options;
+
+    // Build the 'where' clause for filtering
+    const whereClause: Prisma.UserWhereInput = search
+      ? {
+          OR: [
+            { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
+            { username: { contains: search, mode: Prisma.QueryMode.insensitive } },
+            { email: { contains: search, mode: Prisma.QueryMode.insensitive } },
+          ],
+        }
+      : {};
+
+    // Validate sort field
+    const allowedSortFields: (keyof Prisma.UserOrderByWithRelationInput)[] = [
+      'name',
+      'username',
+      'email',
+      'createdAt',
+      'emailVerified',
+      // Add other allowed fields here
+    ];
+
+    // Build the 'orderBy' clause for sorting
+    let orderByClause: Prisma.UserOrderByWithRelationInput | undefined;
+    if (sort && allowedSortFields.includes(sort as keyof Prisma.UserOrderByWithRelationInput)) {
+      orderByClause = {
+        [sort]: direction === 'desc' ? 'desc' : 'asc',
+      };
+    }
+
+    // Calculate pagination
+    const skip = (page - 1) * pageSize;
+    const take = pageSize;
+
+    // Fetch total count for pagination
+    const totalUsers = await prisma.user.count({
+      where: whereClause,
+    });
+    const totalPages = Math.ceil(totalUsers / pageSize);
+
+    // Fetch users with filtering, sorting, and pagination
+    const users = await prisma.user.findMany({
+      where: whereClause,
+      orderBy: orderByClause,
+      skip,
+      take,
+      include: {
+        badges: {
+          include: {
+            badge: true,
+          },
+        },
+        _count: {
+          select: {
+            chats: true,
+          },
+        },
+      },
+    });
+
+    return {
+      users: users.map(this.serializeUser),
+      totalPages,
+    };
+  }
+
+  private serializeUser(user: any): SerializedUser {
+    return {
+      id: user.id,
+      name: user.name,
+      username: user.username,
+      email: user.email,
+      badges: user.badges.map((ub: any) => ub.badge.name),
+      createdAt: user.createdAt.toISOString(),
+      emailVerified: user.emailVerified ? user.emailVerified.toISOString() : null,
+      chatsCount: user._count.chats || 0,
+      // Add any other fields as needed
+    };
   }
 }

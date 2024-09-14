@@ -1,4 +1,5 @@
 // routes.tsx
+
 /**
  * An array of routes that are accessible to the public
  * These routes do not require authentication
@@ -6,16 +7,51 @@
  */
 export const publicRoutes = [
     "/",
+    "/admin", // This route is only accessible to admins, but debugging purposes left here.
+    "/api/admin/boost", // This route is only accessible to admins, but debugging purposes left here.
     "/signup",
     "/auth/new-verification",
-    "/channel",
     "/about",
     "/feedback",
     "/privacy",
     "/public",
     "/terms",
     "/user/[username]",
+    "/channel/[channelName]",
+];
+
+/**
+ * An array of routes that are used for authentication
+ * These routes will redirect logged in users to /settings
+ * @type {string[]}
+ */
+export const authRoutes = [
+    "/auth/login",
+    "/auth/reset",
+    "/auth/new-password"
+];
+
+/**
+ * An array of routes that require admin access
+ * These routes will redirect non-admin users to the home page
+ * @type {string[]}
+ */
+// export const adminRoutes = [
+//     "/admin",
+//     "/api/admin/boost",
+// ];
+
+/**
+ * An array of API routes that do not require authentication
+ * @type {string[]}
+ */
+export const publicApiRoutes = [
+    "/admin",
     "/api/admin/boost",
+    "/api/admin/channels",
+    "/api/admin/users",
+
+
     "/api/auth/callback/google",
     "/api/auth/user",
     "/api/chat",
@@ -29,21 +65,10 @@ export const publicRoutes = [
     "/api/fuel/info",
     "/api/badges/session",
     "/api/badges/transfer",
+    "/api/transactions",
     "/api/webhook/stripe",
     "/api/yes/channel-info",
-    "/api/yes/process-channel/",
-];
-
-/**
- * An array of routes that are used for authentication
- * These routes will redirect logged in users to /settings
- * @type {string[]}
- */
-export const authRoutes = [
-    "/auth/login",
-    "/api/user",
-    "/auth/reset",
-    "/auth/new-password"
+    "/api/yes/process-channel",
 ];
 
 /**

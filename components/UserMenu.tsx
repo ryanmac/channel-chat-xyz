@@ -12,6 +12,8 @@ import {
 import { User, Session } from "next-auth"
 import { signOut } from "next-auth/react"
 import Link from "next/link"
+import { useEffect, useState } from "react"
+import { PrismaClient } from '@prisma/client';
 
 interface UserMenuProps {
   user: User
@@ -21,6 +23,7 @@ interface UserMenuProps {
 export function UserMenu({ user, session }: UserMenuProps) {
   // console.log('User:', user);
   // console.log('Session:', session);
+
 
   return (
     <DropdownMenu>
@@ -52,6 +55,14 @@ export function UserMenu({ user, session }: UserMenuProps) {
             Edit Profile
           </Link>
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        {(user.role === 'ADMIN' || user.role === 'MODERATOR') && (
+          <DropdownMenuItem asChild>
+            <Link href='/admin'>
+              {user.role === 'ADMIN' ? 'Admin Dashboard' : 'User Dashboard'}
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="cursor-pointer"

@@ -8,9 +8,9 @@ const YES_URL = config.yes.url;
 const YES_API_KEY = config.yes.apiKey;
 
 async function fetchFromYES(
-  endpoint: string, 
-  method: 'GET' | 'POST', 
-  params?: Record<string, any>, 
+  endpoint: string,
+  method: 'GET' | 'POST',
+  params?: Record<string, any>,
   body?: any
 ) {
   const url = new URL(endpoint, YES_URL);
@@ -34,7 +34,7 @@ async function fetchFromYES(
     const fetchOptions = {
       method: method,
       headers: headers,
-      body: method === 'POST' && body ? JSON.stringify(body) : undefined,  // Ensure body is only sent with POST
+      body: method === 'POST' && body ? JSON.stringify(body) : undefined, // Ensure body is only sent with POST
     };
 
     // Construct the curl command for debugging
@@ -62,25 +62,41 @@ async function fetchFromYES(
   }
 }
 
-export async function getChannelInfo(channelUrl: string) {
+export async function getChannelInfo(options: { channelId?: string; channelName?: string; channelUrl?: string; }) {
+  const { channelId, channelName, channelUrl } = options;
+
   console.log('yesService: getChannelInfo');
-  const cacheKey = `channel_info_${channelUrl}`; // Unique cache key for channel info
+  const cacheKey = `channel_info_${channelId || channelName || channelUrl}`; // Unique cache key for channel info
   const cachedData = getCache(cacheKey); // Check cache for existing data
 
   if (cachedData) {
     return cachedData; // Return cached data if available
   }
-  
+
   try {
-    console.log(`Fetching channel info for ${channelUrl}`);
-    const channelInfo: ChannelData = await fetchFromYES('/channel_info', 'GET', { channel_url: channelUrl });
+    console.log(`Fetching channel info for ${channelId || channelName || channelUrl}`);
+
+    if (!channelId && !channelName && !channelUrl) {
+      throw new Error('At least one of channelId, channelName, or channelUrl must be provided.');
+    }
+
+    const params: Record<string, string> = {};
+    if (channelId) {
+      params['channel_id'] = channelId;
+    } else if (channelName) {
+      params['channel_name'] = channelName;
+    } else if (channelUrl) {
+      params['channel_url'] = channelUrl;
+    }
+
+    const channelInfo: ChannelData = await fetchFromYES('/channel_info', 'GET', params);
 
     // Create or update the channel record
     const channel = await getOrCreateChannel(channelInfo);
 
     // Update the channel metrics
     await updateChannelMetrics(channel.id, channelInfo.total_embeddings, channelInfo.unique_video_count);
-    
+
     setCache(cacheKey, channelInfo, 600000); // Cache the result for 10 minutes
     return channelInfo; // Return the fetched data
   } catch (error) {
@@ -89,42 +105,45 @@ export async function getChannelInfo(channelUrl: string) {
   }
 }
 
-export async function refreshChannelInfo(channelUrl: string) {
-  const cacheKey = `channel_info_${channelUrl}`; // Same cache key format
+export async function refreshChannelInfo(options: { channelId?: string; channelName?: string; channelUrl?: string; }) {
+  const { channelId, channelName, channelUrl } = options;
+  const cacheKey = `channel_info_${channelId || channelName || channelUrl}`; // Unique cache key
   deleteCache(cacheKey); // Delete the cache entry to force a refresh
-  return await getChannelInfo(channelUrl); // Fetch the data again
+  return await getChannelInfo(options); // Fetch the data again
 }
 
-export async function refreshChannelMetadata(channelUrl: string) {
+export async function refreshChannelMetadata(options: { channelId?: string; channelName?: string; channelUrl?: string; }) {
+  const { channelId, channelName, channelUrl } = options;
+
   try {
-    return await fetchFromYES('/refresh_channel_metadata', 'POST', { channel_url: channelUrl });
+    if (!channelId && !channelName && !channelUrl) {
+      throw new Error('At least one of channelId, channelName, or channelUrl must be provided.');
+    }
+
+    const params: Record<string, string> = {};
+    if (channelId) {
+      params['channel_id'] = channelId;
+    } else if (channelName) {
+      params['channel_name'] = channelName;
+    } else if (channelUrl) {
+      params['channel_url'] = channelUrl;
+    }
+
+    return await fetchFromYES('/refresh_channel_metadata', 'POST', params);
   } catch (error) {
     console.error('Error refreshing channel metadata:', error);
     throw error;
   }
 }
 
-export async function processChannel(channelId?: string, channelUrl?: string, videoLimit: number = 20) {
+export async function processChannel(channelId: string, videoLimit: number = 20) {
   try {
-    console.log(`Processing channel: ${channelId}, ${channelUrl}, videoLimit: ${videoLimit}`);
+    console.log(`Processing channel: ${channelId}, videoLimit: ${videoLimit}`);
 
-    // Validate at least one of channelId or channelUrl is provided
-    if (!channelId && !channelUrl) {
-      throw new Error("Either channelId or channelUrl must be provided.");
-    }
-
-    // Ensure the request body is formatted correctly based on the provided parameters
     const requestBody: any = {
+      channel_id: channelId,
       video_limit: videoLimit
     };
-
-    // Conditionally add optional parameters if they are provided
-    if (channelId) {
-      requestBody.channel_id = channelId;
-    }
-    if (channelUrl) {
-      requestBody.channel_url = channelUrl;
-    }
 
     const response = await fetchFromYES('/process_channel', 'POST', undefined, requestBody);
 
@@ -148,11 +167,10 @@ export async function processChannel(channelId?: string, channelUrl?: string, vi
 
 export async function processChannelAsync(channelId: string, channelName: string, totalFunding: number) {
   console.log(`Starting async processing for channel ${channelName} (${channelId}) with total funding: $${totalFunding}`);
-  
+
   try {
-    const channelUrl = `https://www.youtube.com/@${channelName}`;
     const videoLimit = Math.floor(totalFunding * 10); // Assuming 10 videos per dollar
-    console.log(`Processing channel with video limit: ${videoLimit}`);
+    console.log(`Processing @${channelName} with video limit: ${videoLimit}`);
 
     // Update channel status to processing
     await prisma.channel.update({
@@ -162,11 +180,11 @@ export async function processChannelAsync(channelId: string, channelName: string
     console.log(`Channel ${channelName} (${channelId}) set to processing`);
 
     // Process the channel
-    const jobStatus = await processChannel(channelId, channelUrl, videoLimit);
+    const jobStatus = await processChannel(channelId, videoLimit);
     console.log(`YES processing completed for channel ${channelId}. Job status:`, jobStatus);
 
     // Fetch updated channel info
-    const updatedChannelInfo = await getChannelInfo(channelUrl);
+    const updatedChannelInfo = await getChannelInfo({ channelId });
     console.log(`Updated channel info:`, updatedChannelInfo);
 
     // Update channel status to active and update metrics
@@ -182,13 +200,13 @@ export async function processChannelAsync(channelId: string, channelName: string
     console.log(`Channel ${channelName} (${channelId}) activated and metrics updated`);
 
     // Invalidate cache for this channel
-    const cacheKey = `channel_info_${channelUrl}`;
+    const cacheKey = `channel_info_${channelId}`;
     deleteCache(cacheKey);
     console.log(`Cache invalidated for channel ${channelName}`);
 
   } catch (error) {
     console.error(`Error processing channel ${channelName} (${channelId}):`, error);
-    
+
     // Update channel status to reflect the error
     await prisma.channel.update({
       where: { id: channelId },

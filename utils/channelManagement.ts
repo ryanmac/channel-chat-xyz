@@ -1,3 +1,4 @@
+// utils/channelManagement.ts
 import prisma from '@/lib/prisma'
 
 export interface ChannelData {
@@ -45,9 +46,9 @@ export async function getOrCreateChannel(channelData: ChannelData) {
         name: metadata.snippet.customUrl.replace('@', ''),
         title: metadata.snippet.title,
         description: metadata.snippet.description,
-        subscriberCount: parseInt(metadata.statistics.subscriberCount) || 0,
-        videoCount: parseInt(metadata.statistics.videoCount) || 0,
-        viewCount: parseInt(metadata.statistics.viewCount) || 0,
+        subscriberCount: (parseInt(metadata.statistics.subscriberCount) || 0).toString(), // Convert to string
+        videoCount: (parseInt(metadata.statistics.videoCount) || 0).toString(), // Convert to string
+        viewCount: (parseInt(metadata.statistics.viewCount) || 0).toString(), // Convert to string
         imageUrl: metadata.snippet.thumbnails.high.url,
         bannerUrl: metadata.brandingSettings.image.bannerExternalUrl,
         status: 'PENDING',
@@ -63,9 +64,9 @@ export async function getOrCreateChannel(channelData: ChannelData) {
         name: metadata.snippet.customUrl.replace('@', ''),
         title: metadata.snippet.title,
         description: metadata.snippet.description,
-        subscriberCount: parseInt(metadata.statistics.subscriberCount) || 0,
-        videoCount: parseInt(metadata.statistics.videoCount) || 0,
-        viewCount: parseInt(metadata.statistics.viewCount) || 0,
+        subscriberCount: (parseInt(metadata.statistics.subscriberCount) || 0).toString(), // Convert to string
+        videoCount: (parseInt(metadata.statistics.videoCount) || 0).toString(), // Convert to string
+        viewCount: (parseInt(metadata.statistics.viewCount) || 0).toString(), // Convert to string
         imageUrl: metadata.snippet.thumbnails.high.url,
         bannerUrl: metadata.brandingSettings.image.bannerExternalUrl,
         totalEmbeddings: channelData.total_embeddings,

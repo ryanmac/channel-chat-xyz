@@ -113,13 +113,13 @@ export async function POST(request: NextRequest) {
         console.log(`Earned badges stored for session ${session.id}: ${badgeTypes.join(',')}`);
 
         // Trigger async processing if channel was activated
-        if (wasActivated) {
-          console.log(`Activating channel ${channelName} (${channelId})`);
-          const totalFundingInDollars = currentActivationFunding + activationAmount + creditAmount;
-          processChannelAsync(channelId, channelName, totalFundingInDollars).catch((error) => {
-            console.error('Error in async channel processing:', error);
-          });
-        }
+        // if (wasActivated) {
+        console.log(`Activating channel ${channelName} (${channelId})`);
+        const totalFundingInDollars = currentActivationFunding + activationAmount + creditAmount;
+        processChannelAsync(channelId, channelName, totalFundingInDollars).catch((error) => {
+          console.error('Error in async channel processing:', error);
+        });
+        // }
 
         console.log(`Channel ${channelName} (${channelId}) updated. Current activation funding: $${updatedChannel.activationFunding}, Credit balance: ${updatedChannel.creditBalance}`);
       } else {

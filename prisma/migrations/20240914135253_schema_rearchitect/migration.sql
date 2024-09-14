@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE "Channel" ALTER COLUMN "subscriberCount" SET DEFAULT '0',
+ALTER COLUMN "subscriberCount" SET DATA TYPE TEXT,
+ALTER COLUMN "videoCount" SET DEFAULT '0',
+ALTER COLUMN "videoCount" SET DATA TYPE TEXT,
+ALTER COLUMN "viewCount" SET DEFAULT '0',
+ALTER COLUMN "viewCount" SET DATA TYPE TEXT;

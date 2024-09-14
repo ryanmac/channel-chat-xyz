@@ -1,96 +1,175 @@
 // components/SuccessShareModal.tsx
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import { X, Facebook, Linkedin, Link } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
-import { BadgeComponent } from '@/components/BadgeComponent'
-import { BadgeType } from '@/utils/badgeManagement'
-import Confetti from 'react-confetti'
-import { useToast } from "@/hooks/use-toast"
+import React, { useEffect, useState } from 'react';
+import { X, Facebook, Linkedin, Link } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { BadgeComponent } from '@/components/BadgeComponent';
+import { BadgeType } from '@/utils/badgeManagement';
+import Confetti from 'react-confetti';
+import { useToast } from '@/hooks/use-toast';
 
 interface SuccessShareModalProps {
-  isOpen: boolean
-  onClose: () => void
-  channelName: string
-  channelTitle: string
-  badges: BadgeType[]
-  totalFunding?: number
-  newChatCreditsAdded?: number
-  wasActivated?: boolean
+  isOpen: boolean;
+  onClose: () => void;
+  sessionId: string;
+  channelName: string;
+  channelTitle: string;
+  badges: BadgeType[];
+}
+
+interface TransactionData {
+  activationAmount: number;
+  creditPurchaseAmount: number;
+  totalAmountInDollars: number;
+  remainingToActivate: number;
 }
 
 export const SuccessShareModal: React.FC<SuccessShareModalProps> = ({
   isOpen,
   onClose,
+  sessionId,
   channelName,
   channelTitle,
   badges,
-  totalFunding,
-  newChatCreditsAdded,
-  wasActivated,
 }) => {
-  console.log('SuccessShareModalProps:')
-  console.log(`isOpen: ${isOpen}`)
-  console.log(`onClose: ${onClose}`)
-  console.log(`channelName: ${channelName}`)
-  console.log(`channelTitle: ${channelTitle}`)
-  console.log(`badges: ${badges}`)
-  console.log(`totalFunding: ${totalFunding}`)
-  console.log(`newChatCreditsAdded: ${newChatCreditsAdded}`)
-  console.log(`wasActivated: ${wasActivated}`)
-
   const [isClient, setIsClient] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  const [transactionData, setTransactionData] = useState<TransactionData | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     const handleResize = () => {
-      setWindowSize({ width: window.innerWidth, height: window.innerHeight })
-    }
-    handleResize()
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    if (sessionId) {
+      fetchTransactionData();
+    }
+  }, [sessionId]);
 
-  if (!isOpen) return null
+  const fetchTransactionData = async () => {
+    try {
+      const response = await fetch(`/api/transactions?sessionId=${sessionId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch transaction data');
+      }
+      const data = await response.json();
+      setTransactionData(data);
+    } catch (error) {
+      console.error('Error fetching transaction data:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch transaction data. Please try again later.',
+        variant: 'destructive',
+      });
+    }
+  };
 
-  const shareMessage = `I just activated the AI chatbot for @${channelName} on @ChannelChat!\n\nTrained on transcripts from YouTube videos, this chatbot can now generate responses to your messages in the style of the channel's host. Try it out!\n\n#ChannelChat #AI #Chatbot #YouTube\n\n`
-  const currentUrl = `https://channelchat.xyz/channel/@${channelName}`
+  if (!isOpen || !transactionData) return null;
+
+  const { activationAmount, creditPurchaseAmount, totalAmountInDollars, remainingToActivate } = transactionData;
+  const wasActivated = activationAmount > 0;
+  const newChatCreditsAdded = Math.floor(creditPurchaseAmount); // Assuming 1000 credits per $1
+
+  // Function to determine the share message
+  const determineShareMessage = () => {
+    if (wasActivated) {
+      return `I just activated @${channelName}'s AI chatbot on @ChannelChatXYZ and sponsored ${newChatCreditsAdded.toLocaleString()} chats!\n\nTrained on YouTube transcripts, it responds in ${channelTitle}'s style. Try it out!\n\n`;
+    } else if (badges.includes('founding')) {
+      return `I sponsored ${newChatCreditsAdded.toLocaleString()} chats for @${channelName} on @ChannelChatXYZ!\n\nIt's ${(1 - remainingToActivate/10) * 100}% funded, only $${remainingToActivate} more to activate! Help us cross the finish line.\n\n#ChannelChat #AI #Crowdfunding\n\n`;
+    } else {
+      return `I just sponsored ${newChatCreditsAdded.toLocaleString()} chats for @${channelName} on @ChannelChatXYZ!\n\nNow you can try it out for free! Join in and start chatting in the style of ${channelTitle}.\n\n`;
+    }
+  };
+
+  const shareMessage = determineShareMessage();
+
+  const currentUrl = `https://channelchat.xyz/channel/@${channelName}`;
 
   const shareUrls = {
     twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}&url=${encodeURIComponent(currentUrl)}`,
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`,
     linkedin: `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(currentUrl)}&title=${encodeURIComponent('I Activated an AI Chatbot!')}&summary=${encodeURIComponent(shareMessage)}`,
-  }
+  };
 
   const handleShare = (platform: keyof typeof shareUrls) => {
-    window.open(shareUrls[platform], '_blank', 'noopener,noreferrer')
-  }
+    window.open(shareUrls[platform], '_blank', 'noopener,noreferrer');
+  };
 
   const copyToClipboard = () => {
     if (isClient) {
       navigator.clipboard.writeText(`${shareMessage} ${currentUrl}`).then(() => {
         toast({
-          title: "Copied to clipboard",
-          description: "The share message has been copied to your clipboard.",
-        })
+          title: 'Copied to clipboard',
+          description: 'The share message has been copied to your clipboard.',
+        });
       }).catch((err) => {
-        console.error('Failed to copy: ', err)
+        console.error('Failed to copy: ', err);
         toast({
-          title: "Failed to copy",
-          description: "There was an error copying the message. Please try again.",
-          variant: "destructive",
-        })
-      })
+          title: 'Failed to copy',
+          description: 'There was an error copying the message. Please try again.',
+          variant: 'destructive',
+        });
+      });
     }
-  }
+  };
+
+  // Function to render the modal content based on conditions
+  const renderModalContent = () => {
+    return (
+      <>
+        <h2 className="text-4xl font-extrabold text-center mb-6 mt-4">
+          {wasActivated ? 'Congratulations! 🎉' : 'Thank you! 🙏'}
+        </h2>
+        <p className="text-2xl text-center mb-4 font-bold">
+          You sponsored {newChatCreditsAdded.toLocaleString()} chats!
+        </p>
+        {wasActivated ? (
+          <p className="text-lg text-center mb-8 font-light">
+            You successfully trained & activated the AI chatbot for @{channelName}! 🚀
+          </p>
+        ) : (
+          <p className="text-lg text-center mb-8 font-light">
+            Your contribution of ${totalAmountInDollars.toFixed(0)} has added {newChatCreditsAdded.toLocaleString()} chats for @{channelName}! 🎉
+          </p>
+        )}
+        {/* <div className="text-xl text-center mb-4 font-light flex items-center justify-center">
+          <span className="inline-flex items-center mx-1">
+            <Avatar className="inline-flex items-center">
+              <AvatarImage src="/logomark-play.png" alt="ChannelChat" />
+              <AvatarFallback>
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                  <span className="text-primary-foreground font-bold text-xl">C</span>
+                </div>
+              </AvatarFallback>
+            </Avatar>
+          </span>
+          <strong className="mr-2">ChannelChat</strong>{badges.includes('activator') ? ' activated for' : ''}
+        </div> */}
+        <h3 className="text-2xl font-bold text-center mb-2">{channelTitle}</h3>
+        <h4 className="text-xl font-bold text-center mb-8">@{channelName}</h4>
+        {(badges.length > 0) && (
+          <div className="flex flex-wrap justify-center gap-2 mt-12 mb-8">
+            {badges.map((badge) => (
+              <BadgeComponent key={badge} type={badge} />
+            ))}
+          </div>
+        )}
+        <p className="text-lg text-center mb-8 font-light">
+          Invite your friends to chat.
+        </p>
+      </>
+    );
+  };
 
   return (
     <AnimatePresence>
@@ -117,33 +196,7 @@ export const SuccessShareModal: React.FC<SuccessShareModalProps> = ({
               >
                 <X className="h-6 w-6" />
               </Button>
-              <h2 className="text-4xl font-extrabold text-center mb-6 mt-4">
-                Congratulations! 🎉
-              </h2>
-              <div className="text-xl text-center mb-6 font-light flex items-center justify-center">
-                <span className="inline-flex items-center mx-1">
-                  <Avatar className="inline-flex items-center">
-                    <AvatarImage src="/logomark-play.png" alt="ChannelChat" />
-                    <AvatarFallback>
-                      <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                        <span className="text-primary-foreground font-bold text-xl">C</span>
-                      </div>
-                    </AvatarFallback>
-                  </Avatar>
-                </span>
-                <strong className="mr-2">ChannelChat</strong>{' '}
-                activated for
-              </div>
-              <h3 className="text-2xl font-bold text-center mb-2">{channelTitle}</h3>
-              <h4 className="text-xl font-bold text-center mb-8">@{channelName}</h4>
-              <div className="flex flex-wrap justify-center gap-2">
-                {badges.map((badge) => (
-                  <BadgeComponent key={badge} type={badge} />
-                ))}
-              </div>
-              <p className="text-lg text-center mb-8 font-light">
-                Share your achievement and invite your friends to try it out.
-              </p>
+              {renderModalContent()}
               <div className="flex flex-col gap-4 items-center">
                 <Button
                   onClick={() => handleShare('twitter')}
@@ -191,5 +244,5 @@ export const SuccessShareModal: React.FC<SuccessShareModalProps> = ({
         </motion.div>
       )}
     </AnimatePresence>
-  )
-}
+  );
+};
