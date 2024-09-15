@@ -93,7 +93,7 @@ export default function AdminUserTable() {
               <TableCell>
                 <Button
                   onClick={() => handleViewTransactions(user.id)}
-                  className="px-2 py-1 text-xs bg-accent border-input border text-gray-800 dark:text-white"
+                  className="px-2 py-1 text-xs bg-background border-input border text-gray-800 dark:text-white hover:bg-accent"
                 >
                   View Transactions
                 </Button>
@@ -105,14 +105,14 @@ export default function AdminUserTable() {
       <div className="mt-4 flex justify-between items-center">
         <Button
           onClick={() => setPage(page - 1)} disabled={page === 1}
-          className="px-2 py-1 text-xs bg-accent border-input border text-gray-800 dark:text-white"
+          className="px-2 py-1 text-xs bg-background border-input border text-gray-800 dark:text-white hover:bg-accent"
         >
           Previous
         </Button>
         <span>Page {page} of {totalPages}</span>
         <Button
           onClick={() => setPage(page + 1)} disabled={page === totalPages}
-          className="px-2 py-1 text-xs bg-accent border-input border text-gray-800 dark:text-white"
+          className="px-2 py-1 text-xs bg-background border-input border text-gray-800 dark:text-white hover:bg-accent"
         >
           Next
         </Button>

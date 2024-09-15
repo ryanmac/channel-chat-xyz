@@ -233,7 +233,7 @@ export default function AdminChannelTable() {
                 <Button
                   onClick={() => handleProcessChannel(channel.id, channel.name)}
                   disabled={channel.isProcessing || channel.status !== 'ACTIVE'}
-                  className="px-2 py-1 text-xs bg-accent border-input border text-gray-800 dark:text-white"
+                  className="px-2 py-1 text-xs bg-background border-input border text-gray-800 dark:text-white hover:bg-accent"
                 >
                   {channel.isProcessing ? (
                     <>
@@ -260,7 +260,7 @@ export default function AdminChannelTable() {
                     <Button
                       onClick={() => handleBoost(channel.id, channel.name, channel.status)}
                       disabled={boostLoading[channel.id]}
-                      className="px-2 py-1 text-xs bg-accent border-input border text-gray-800 dark:text-white"
+                      className="px-2 py-1 text-xs bg-background border-input border text-gray-800 dark:text-white hover:bg-accent"
                     >
                       {boostLoading[channel.id] ? (
                         <>
@@ -315,7 +315,7 @@ export default function AdminChannelTable() {
       <div className="mt-4 flex justify-between">
         <Button
           onClick={() => setPage(page - 1)} disabled={page === 1}
-          className="px-2 py-1 text-xs bg-accent border-input border text-gray-800 dark:text-white"
+          className="px-2 py-1 text-xs bg-background border-input border text-gray-800 dark:text-white hover:bg-accent"
         >
           Previous
         </Button>
@@ -324,7 +324,7 @@ export default function AdminChannelTable() {
         </span>
         <Button
           onClick={() => setPage(page + 1)} disabled={page === totalPages}
-          className="px-2 py-1 text-xs bg-accent border-input border text-gray-800 dark:text-white"
+          className="px-2 py-1 text-xs bg-background border-input border text-gray-800 dark:text-white hover:bg-accent"
         >
           Next
         </Button>
