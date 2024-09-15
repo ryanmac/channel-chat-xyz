@@ -155,12 +155,12 @@ export default function ChannelPage({ params }: ChannelPageProps) {
 
         fetchSessionBadges();
 
-        console.log('Channel data:', data);
-        console.log('Channel is active:', data.status === 'ACTIVE');
-        console.log('Channel is processing:', data.isProcessing);
-        console.log('Current funding:', currentFundingInDollars);
-        console.log('New chat credits added:', creditsAdded);
-        console.log('Sponsorship amount:', lastSponsorshipAmount);
+        // console.log('Channel data:', data);
+        // console.log('Channel is active:', data.status === 'ACTIVE');
+        // console.log('Channel is processing:', data.isProcessing);
+        // console.log('Current funding:', currentFundingInDollars);
+        // console.log('New chat credits added:', creditsAdded);
+        // console.log('Sponsorship amount:', lastSponsorshipAmount);
       }
     } catch (error) {
       console.error('Error fetching channel data:', error);

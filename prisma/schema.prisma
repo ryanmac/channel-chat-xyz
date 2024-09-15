@@ -132,6 +132,7 @@ model Channel {
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
   featured          Boolean          @default(false)
+  interests         String?
   chats             Chat[]
   boosts            ChannelBoost[]
   transactions      Transaction[]

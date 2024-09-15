@@ -58,6 +58,7 @@ export interface ChannelData {
   maxTokens: number;
   chatsCreated: number;
   isFineTuned: boolean;
+  interests: string;
   metadata: ChannelMetadata;
 }
 
@@ -112,7 +113,7 @@ export async function fetchAndMergeChannelData(options: { channelId?: string; ch
     channel = await prisma.channel.create({
       data: {
         id: channel_id,
-        name: snippet.customUrl, // Use customUrl for the name
+        name: snippet.customUrl.replace('@', ''),
         title: snippet.title || '', 
         description: snippet.description || '', 
         subscriberCount: statistics.subscriberCount || '0',
@@ -120,7 +121,7 @@ export async function fetchAndMergeChannelData(options: { channelId?: string; ch
         viewCount: statistics.viewCount || '0',
         imageUrl: snippet.thumbnails.default.url,
         bannerUrl: brandingSettings.image.bannerExternalUrl || '',
-        status: 'ACTIVE', // Set a default status; adjust as needed
+        status: 'PENDING', // Set a default status; adjust as needed
         activationFunding: 0, // Default to 0; adjust as needed
         activationGoal: 1000, // Default goal; adjust as needed
         creditBalance: 0, // Default credit balance; adjust as needed
@@ -131,6 +132,7 @@ export async function fetchAndMergeChannelData(options: { channelId?: string; ch
         maxTokens: 200, // Default token count; adjust as needed
         chatsCreated: 0, // Default chats created; adjust as needed
         isFineTuned: false, // Default to false; adjust as needed
+        interests: '', // Default to empty string; adjust as needed
       },
     });
   } else {
@@ -147,10 +149,11 @@ export async function fetchAndMergeChannelData(options: { channelId?: string; ch
         bannerUrl: brandingSettings.image.bannerExternalUrl || '',
         totalEmbeddings: total_embeddings,
         totalVideos: unique_video_count,
-        model: 'gpt-4o-mini', // Keep the model consistent
-        maxTokens: 200, // Keep the maxTokens consistent
-        isFineTuned: false, // Keep fine-tuning status consistent
-        status: 'ACTIVE', // Update status as necessary
+        model: channel.model, // Keep the model consistent
+        maxTokens: channel.maxTokens, // Keep the maxTokens consistent
+        isFineTuned: channel.isFineTuned, // Keep fine-tuning status consistent
+        interests: channel.interests, // Update interests as necessary
+        status: channel.status, // Update status as necessary
       },
     });
   }
@@ -166,17 +169,18 @@ export async function fetchAndMergeChannelData(options: { channelId?: string; ch
     viewCount: statistics.viewCount || channel.viewCount || '0',
     imageUrl: snippet.thumbnails.default.url || channel.imageUrl || '',
     bannerUrl: brandingSettings.image.bannerExternalUrl || channel.bannerUrl || '',
-    status: 'ACTIVE', // Default to 'ACTIVE' or adjust as needed
+    status: channel.status || 'PENDING',
     activationFunding: channel.activationFunding || 0,
     activationGoal: channel.activationGoal || 1000,
     creditBalance: channel.creditBalance || 0,
     isProcessing: channel.isProcessing || false,
     totalEmbeddings: total_embeddings || channel.totalEmbeddings || 0,
     totalVideos: unique_video_count || channel.totalVideos || 0,
-    model: 'gpt-4o-mini', // Keep model consistent
-    maxTokens: 200, // Keep maxTokens consistent
+    model: channel.model || 'gpt-4o-mini', // Keep model consistent
+    maxTokens: channel.maxTokens || 200, // Keep maxTokens consistent
     chatsCreated: channel.chatsCreated || 0,
-    isFineTuned: false, // Keep fine-tuning status consistent
+    isFineTuned: channel.isFineTuned, // Keep fine-tuning status consistent
+    interests: channel.interests || '', // Update interests as necessary
     metadata: metadata
   };
 
