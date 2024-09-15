@@ -192,6 +192,9 @@ export default function AdminChannelTable() {
             <TableHead onClick={() => handleSort('name')}>
               Name {sortColumn === 'name' && (sortDirection === 'asc' ? '▲' : '▼')}
             </TableHead>
+            <TableHead onClick={() => handleSort('status')}>
+              Status {sortColumn === 'status' && (sortDirection === 'asc' ? '▲' : '▼')}
+            </TableHead>
             <TableHead>Actions</TableHead>
             <TableHead>Boost</TableHead>
             <TableHead onClick={() => handleSort('subscriberCount')}>
@@ -215,9 +218,6 @@ export default function AdminChannelTable() {
             <TableHead onClick={() => handleSort('chatsCreated')}>
               Chats Created {sortColumn === 'chatsCreated' && (sortDirection === 'asc' ? '▲' : '▼')}
             </TableHead>
-            <TableHead onClick={() => handleSort('status')}>
-              Status {sortColumn === 'status' && (sortDirection === 'asc' ? '▲' : '▼')}
-            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -228,6 +228,7 @@ export default function AdminChannelTable() {
                   {channel.name}
                 </Link>
               </TableCell>
+              <TableCell>{channel.status}</TableCell>
               <TableCell>
                 <Button
                   onClick={() => handleProcessChannel(channel.id, channel.name)}
@@ -307,7 +308,6 @@ export default function AdminChannelTable() {
                   ? Number(channel.chatsCreated).toLocaleString()
                   : '0'}
               </TableCell>
-              <TableCell>{channel.status}</TableCell>
             </TableRow>
           ))}
         </TableBody>
