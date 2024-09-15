@@ -66,10 +66,10 @@ export async function getChannelInfo(options: { channelId?: string; channelName?
   const cacheKey = `channel_info_${channelId || channelName || channelUrl}`;
 
   // temporarily disable cache
-  // const cachedData = getCache(cacheKey);
-  // if (cachedData) {
-  //   return cachedData;
-  // }
+  const cachedData = getCache(cacheKey);
+  if (cachedData) {
+    return cachedData;
+  }
 
   try {
     const mergedChannelData = await fetchAndMergeChannelData(options);
@@ -211,6 +211,18 @@ export async function getRelevantChunks(query: string, channelId: string, chunkL
     });
   } catch (error) {
     console.error('Error fetching relevant chunks:', error);
+    throw error;
+  }
+}
+
+export async function getRecentChunks(channelId: string, chunkLimit: number = 5) {
+  try {
+    return await fetchFromYES('/recent_chunks', 'GET', {
+      channel_id: channelId,
+      chunk_limit: chunkLimit,
+    });
+  } catch (error) {
+    console.error('Error fetching recent chunks:', error);
     throw error;
   }
 }

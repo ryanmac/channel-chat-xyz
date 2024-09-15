@@ -1,7 +1,7 @@
-// app/api/chat/route.ts
+// app/api/channel-summary/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { getRelevantChunks } from '@/utils/yesService';
+import { getRecentChunks } from '@/utils/yesService';
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 import { error } from 'console';
@@ -83,14 +83,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch relevant chunks
-    const chunksResponse = await getRelevantChunks(query, channelData.id);
+    const chunksResponse = await getRecentChunks(channelData.id, 100);
     if (!chunksResponse || !chunksResponse.chunks) {
       throw new Error('Failed to fetch relevant chunks');
     }
     const { chunks } = chunksResponse;
 
     // Prepare the prompt
-    const prompt = `You are an AI assistant representing the YouTube channel. Use the following context to answer the user's question in the style and tone of the channel's content creator:\n\n${chunks.map((chunk: any) => chunk.main_chunk).join('\n\n')}\n\nUser: ${query}\n\nAI:`;
+    const prompt = `You are an AI assistant representing the YouTube channel. Use the following context to briefly summarize the most interesting topics in the style and tone of the channel's content creator:\n\n${chunks.map((chunk: any) => chunk.main_chunk).join('\n\n')}\n\nUser: ${query}\n\nAI:`;
 
     // Check token count
     const promptTokens = prompt.split(' ').length; // This is a rough estimate
