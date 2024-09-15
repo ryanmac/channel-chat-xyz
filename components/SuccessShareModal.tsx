@@ -1,5 +1,5 @@
 // components/SuccessShareModal.tsx
-'use client'
+'use client';
 
 import React, { useEffect, useState } from 'react';
 import { X, Facebook, Linkedin, Link } from 'lucide-react';
@@ -77,15 +77,16 @@ export const SuccessShareModal: React.FC<SuccessShareModalProps> = ({
   if (!isOpen || !transactionData) return null;
 
   const { activationAmount, creditPurchaseAmount, totalAmountInDollars, remainingToActivate } = transactionData;
-  const wasActivated = activationAmount > 0;
-  const newChatCreditsAdded = Math.floor(creditPurchaseAmount); // Assuming 1000 credits per $1
+  const wasActivated = remainingToActivate <= 0;
+  const newChatCreditsAdded = (creditPurchaseAmount * 1000) + (wasActivated ? 1000 : 0); // Adjusted for initial credits
 
-  // Function to determine the share message
   const determineShareMessage = () => {
+    const channelActivationGoal = 10; // Assume some goal value, should be fetched or defined elsewhere
+
     if (wasActivated) {
       return `I just activated @${channelName}'s AI chatbot on @ChannelChatXYZ and sponsored ${newChatCreditsAdded.toLocaleString()} chats!\n\nTrained on YouTube transcripts, it responds in ${channelTitle}'s style. Try it out!\n\n`;
     } else if (badges.includes('founding')) {
-      return `I sponsored ${newChatCreditsAdded.toLocaleString()} chats for @${channelName} on @ChannelChatXYZ!\n\nIt's ${(1 - remainingToActivate/10) * 100}% funded, only $${remainingToActivate} more to activate! Help us cross the finish line.\n\n#ChannelChat #AI #Crowdfunding\n\n`;
+      return `I just contributed to @${channelName} on @ChannelChatXYZ!\n\nIt's ${(1 - remainingToActivate / channelActivationGoal) * 100}% funded, only $${remainingToActivate} more to activate! Help us cross the finish line.\n\n#ChannelChat #AI #Crowdfunding\n\n`;
     } else {
       return `I just sponsored ${newChatCreditsAdded.toLocaleString()} chats for @${channelName} on @ChannelChatXYZ!\n\nNow you can try it out for free! Join in and start chatting in the style of ${channelTitle}.\n\n`;
     }
@@ -123,7 +124,6 @@ export const SuccessShareModal: React.FC<SuccessShareModalProps> = ({
     }
   };
 
-  // Function to render the modal content based on conditions
   const renderModalContent = () => {
     return (
       <>
@@ -131,7 +131,9 @@ export const SuccessShareModal: React.FC<SuccessShareModalProps> = ({
           {wasActivated ? 'Congratulations! 🎉' : 'Thank you! 🙏'}
         </h2>
         <p className="text-2xl text-center mb-4 font-bold">
-          You sponsored {newChatCreditsAdded.toLocaleString()} chats!
+          {newChatCreditsAdded > 0
+            ? `You sponsored ${newChatCreditsAdded.toLocaleString()} chats!`
+            : `Thank you for your contribution!`}
         </p>
         {wasActivated ? (
           <p className="text-lg text-center mb-8 font-light">
@@ -139,25 +141,12 @@ export const SuccessShareModal: React.FC<SuccessShareModalProps> = ({
           </p>
         ) : (
           <p className="text-lg text-center mb-8 font-light">
-            Your contribution of ${totalAmountInDollars.toFixed(0)} has added {newChatCreditsAdded.toLocaleString()} chats for @{channelName}! 🎉
+            Your contribution of ${totalAmountInDollars.toFixed(0)} has been added towards @{channelName}'s activation! 🎉
           </p>
         )}
-        {/* <div className="text-xl text-center mb-4 font-light flex items-center justify-center">
-          <span className="inline-flex items-center mx-1">
-            <Avatar className="inline-flex items-center">
-              <AvatarImage src="/logomark-play.png" alt="ChannelChat" />
-              <AvatarFallback>
-                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-xl">C</span>
-                </div>
-              </AvatarFallback>
-            </Avatar>
-          </span>
-          <strong className="mr-2">ChannelChat</strong>{badges.includes('activator') ? ' activated for' : ''}
-        </div> */}
         <h3 className="text-2xl font-bold text-center mb-2">{channelTitle}</h3>
         <h4 className="text-xl font-bold text-center mb-8">@{channelName}</h4>
-        {(badges.length > 0) && (
+        {badges.length > 0 && (
           <div className="flex flex-wrap justify-center gap-2 mt-12 mb-8">
             {badges.map((badge) => (
               <BadgeComponent key={badge} type={badge} />

@@ -1,7 +1,9 @@
+// components/YouTubeChannelSearch.tsx
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
+import { useRouter } from 'next/navigation'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Search } from "lucide-react"
@@ -10,44 +12,29 @@ type Channel = {
   id: string
   name: string
   title: string
-  subscribers: number
+  description: string
+  thumbnailUrl: string
 }
 
 export default function YouTubeChannelSearch() {
   const [searchTerm, setSearchTerm] = useState('')
   const [results, setResults] = useState<Channel[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedIndex, setSelectedIndex] = useState<number>(-1)
+  const router = useRouter()
 
-  // Function to call YouTube Data API
+  // Debounced function to call our API route
   const searchChannels = useDebouncedCallback(async (term: string) => {
     setIsLoading(true)
     try {
-      const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${encodeURIComponent(term)}&maxResults=25&key=YOUR_API_KEY`)
+      const response = await fetch(`/api/youtube/search?q=${encodeURIComponent(term)}`)
       const data = await response.json()
-
-      // Extract channel information from API response
-      const channels = data.items.map((item: any) => ({
-        id: item.id.channelId,
-        name: `@${item.snippet.channelTitle}`,
-        title: item.snippet.title,
-        subscribers: 0, // Subscribers will be fetched separately
-      }))
-
-      // Fetch subscribers count for each channel
-      const channelIds = channels.map((channel: Channel) => channel.id).join(',')
-      const statsResponse = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${channelIds}&key=YOUR_API_KEY`)
-      const statsData = await statsResponse.json()
-
-      // Merge subscribers count with channel data
-      const channelsWithSubscribers = channels.map((channel: Channel) => {
-        const stats = statsData.items.find((item: any) => item.id === channel.id)
-        return {
-          ...channel,
-          subscribers: stats ? parseInt(stats.statistics.subscriberCount, 10) : 0
-        }
-      })
-
-      setResults(channelsWithSubscribers)
+      if (response.ok) {
+        setResults(data)
+      } else {
+        console.error('Error fetching YouTube channels:', data.error)
+        setResults([])
+      }
     } catch (error) {
       console.error('Error fetching YouTube channels:', error)
     } finally {
@@ -61,19 +48,62 @@ export default function YouTubeChannelSearch() {
     } else {
       setResults([])
     }
+    setSelectedIndex(-1)
   }, [searchTerm, searchChannels])
 
-  const formatSubscribers = (count: number) => {
-    if (count >= 1000000) {
-      return `${(count / 1000000).toFixed(1)}M`
-    } else if (count >= 1000) {
-      return `${(count / 1000).toFixed(1)}K`
+  const handleSelectChannel = useCallback(async (channel: Channel) => {
+    try {
+      // Fetch the channel info using the channelId
+      const response = await fetch(`/api/yes/channel-info?channel_id=${channel.id}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch channel data: ${response.status} ${response.statusText}`);
+      }
+      const channelInfo = await response.json();
+      // Navigate to /channel/@channelName
+      router.push(`/channel/@${channelInfo.channel_name}`);
+    } catch (error) {
+      console.error('Error in handleSelectChannel:', error);
+      // Optionally, display an error message to the user
     }
-    return count.toString()
-  }
+  }, [router]);
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (results.length === 0 && event.key === 'Enter') {
+      router.push(`/channel/@${searchTerm}`);
+      return;
+    }
+
+    if (results.length === 0) return;
+
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        setSelectedIndex((prevIndex) =>
+          prevIndex === -1 ? 0 : Math.min(prevIndex + 1, results.length - 1)
+        );
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        setSelectedIndex((prevIndex) =>
+          prevIndex === -1 ? results.length - 1 : Math.max(prevIndex - 1, 0)
+        );
+        break;
+      case 'Enter':
+        event.preventDefault();
+        if (selectedIndex >= 0) {
+          handleSelectChannel(results[selectedIndex]);
+        } else {
+          router.push(`/channel/@${searchTerm}`);
+        }
+        break;
+      case 'Escape':
+        setSelectedIndex(-1);
+        break;
+    }
+  };
 
   return (
-    <div className="w-full max-w-md mx-auto p-4">
+    <div className="relative w-full max-w-md mx-auto p-4">
       <div className="relative">
         <Input
           type="text"
@@ -81,6 +111,7 @@ export default function YouTubeChannelSearch() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pr-10"
+          onKeyDown={handleKeyDown}
         />
         <Button
           size="icon"
@@ -92,17 +123,26 @@ export default function YouTubeChannelSearch() {
           <span className="sr-only">Search</span>
         </Button>
       </div>
-      {isLoading && <div className="mt-2 text-center text-sm text-muted-foreground">Loading...</div>}
-      {results.length > 0 && (
-        <ul className="mt-2 bg-white border border-gray-200 rounded-md shadow-lg max-h-80 overflow-auto">
-          {results.map((channel: Channel) => (
-            <li key={channel.id} className="p-2 hover:bg-gray-100 cursor-pointer">
+      {isLoading && (
+        <div className="absolute top-full left-0 right-0 mt-1 p-2 bg-background border border-input rounded-md shadow-md text-center text-sm text-muted-foreground">
+          Loading...
+        </div>
+      )}
+      {results.length > 0 && !isLoading && (
+        <ul className="absolute top-full left-0 right-0 mt-1 bg-background border border-input rounded-md shadow-md max-h-80 overflow-auto z-50">
+          {results.map((channel, index) => (
+            <li
+              key={channel.id}
+              className={`p-2 hover:bg-accent cursor-pointer ${
+                selectedIndex === index ? 'bg-accent' : ''
+              }`}
+              onClick={() => handleSelectChannel(channel)}
+            >
               <div className="flex justify-between items-center">
                 <div>
-                  <div className="font-semibold">{channel.name}</div>
-                  <div className="text-sm text-muted-foreground">{channel.title}</div>
+                  <div className="font-semibold">{channel.title}</div>
+                  <div className="text-sm text-muted-foreground">@{channel.name}</div>
                 </div>
-                <div className="text-sm font-medium">{formatSubscribers(channel.subscribers)} subscribers</div>
               </div>
             </li>
           ))}

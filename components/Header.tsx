@@ -7,7 +7,7 @@ import { useTheme } from 'next-themes'
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Moon, Sun } from 'lucide-react'
-import YouTubeChannelSearch from '@/components/YouTubeChannelSearchMock'
+import YouTubeChannelSearch from '@/components/YouTubeChannelSearch'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { UserMenu } from '@/components/UserMenu'
 
@@ -37,7 +37,9 @@ export function Header() {
           <span className="text-xl font-bold">ChannelChat</span>
         </Link>
         <div className="flex items-center space-x-4">
-          <YouTubeChannelSearch className="hidden sm:block" />
+          <div className="hidden sm:block">
+            <YouTubeChannelSearch />
+          </div>
           {mounted && ( // Only render after client-side hydration
             <Button
               variant="ghost"

@@ -91,7 +91,10 @@ export default function AdminUserTable() {
               <TableCell>{user.sponsoredChannels}</TableCell>
               {/* <TableCell>${user.totalSpent.toFixed(2)}</TableCell> */}
               <TableCell>
-                <Button onClick={() => handleViewTransactions(user.id)}>
+                <Button
+                  onClick={() => handleViewTransactions(user.id)}
+                  className="px-2 py-1 text-xs bg-accent border-input border text-gray-800 dark:text-white"
+                >
                   View Transactions
                 </Button>
               </TableCell>
@@ -100,11 +103,17 @@ export default function AdminUserTable() {
         </TableBody>
       </Table>
       <div className="mt-4 flex justify-between items-center">
-        <Button onClick={() => setPage(page - 1)} disabled={page === 1}>
+        <Button
+          onClick={() => setPage(page - 1)} disabled={page === 1}
+          className="px-2 py-1 text-xs bg-accent border-input border text-gray-800 dark:text-white"
+        >
           Previous
         </Button>
         <span>Page {page} of {totalPages}</span>
-        <Button onClick={() => setPage(page + 1)} disabled={page === totalPages}>
+        <Button
+          onClick={() => setPage(page + 1)} disabled={page === totalPages}
+          className="px-2 py-1 text-xs bg-accent border-input border text-gray-800 dark:text-white"
+        >
           Next
         </Button>
       </div>

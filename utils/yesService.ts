@@ -58,7 +58,7 @@ async function fetchFromYES(
     return responseData;
   } catch (error) {
     console.error('Error in fetchFromYES:', error);
-    throw error;
+    // throw error;
   }
 }
 

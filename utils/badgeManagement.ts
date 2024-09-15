@@ -1,4 +1,5 @@
 // utils/badgeManagement.ts
+
 interface UserStats {
   totalChats: number;
   shares: number;
@@ -27,40 +28,34 @@ export const determineBadges = (
   isFirstSponsor: boolean,
   userStats: UserStats
 ): BadgeType[] => {
-  console.log('numericAmount', numericAmount);
-  console.log('fundingToGoal', fundingToGoal);
-  console.log('remainingToActivate', remainingToActivate);
-  console.log('isFirstSponsor', isFirstSponsor);
-  console.log('userStats', userStats);
-
   const badges = new Set<BadgeType>();
 
-  // Existing badge logic
+  // Refined badge logic
   if (isFirstSponsor || remainingToActivate <= 10) {
     badges.add('founding');
   }
 
-  if (numericAmount > 0 && (remainingToActivate - numericAmount) <= 5 && (remainingToActivate - numericAmount) > 0) {
+  if (numericAmount > 0 && remainingToActivate > 0 && (remainingToActivate - numericAmount) <= 5) {
     badges.add('close');
   }
 
-  if (numericAmount >= remainingToActivate) {
+  if (numericAmount >= remainingToActivate && remainingToActivate > 0) {
     badges.add('did-it');
   }
 
-  if (numericAmount > remainingToActivate) {
+  if (numericAmount > remainingToActivate && remainingToActivate > 0) {
     badges.add('activator');
   }
 
-  if (numericAmount >= remainingToActivate + 40) {
+  if (numericAmount >= remainingToActivate + 40 && remainingToActivate > 0) {
     badges.add('chad');
   }
 
-  if (numericAmount >= remainingToActivate + 80) {
+  if (numericAmount >= remainingToActivate + 80 && remainingToActivate > 0) {
     badges.add('giga-chad');
   }
 
-  // New badge logic
+  // New badge logic based on user stats
   if (userStats.totalChats >= 100) badges.add('chatterbox');
   if (userStats.shares >= 50) badges.add('viral');
   if (userStats.daysActive >= 30) badges.add('loyal-fan');

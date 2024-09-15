@@ -1,3 +1,4 @@
+// app/api/transactions/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
@@ -12,6 +13,10 @@ export async function GET(request: NextRequest) {
     const transactions = await prisma.transaction.findMany({
       where: { sessionId },
     });
+
+    if (transactions.length === 0) {
+      return NextResponse.json({ error: 'No transactions found for this session ID' }, { status: 404 });
+    }
 
     const activationAmount = transactions
       .filter(t => t.type === 'ACTIVATION')
@@ -32,12 +37,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Channel not found' }, { status: 404 });
     }
 
-    const remainingToActivate = Math.max(channel.activationGoal - channel.activationFunding, 0);
+    // Updated logic to ensure accurate calculation
+    const remainingToActivate = Math.max(channel.activationGoal - (channel.activationFunding + activationAmount), 0);
+    const totalAmountInDollars = activationAmount + (creditPurchaseAmount / 1000);
 
     return NextResponse.json({
       activationAmount,
       creditPurchaseAmount,
-      totalAmountInDollars: activationAmount + (creditPurchaseAmount / 1000),
+      totalAmountInDollars,
       remainingToActivate,
     });
   } catch (error) {

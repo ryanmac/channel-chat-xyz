@@ -192,6 +192,8 @@ export default function AdminChannelTable() {
             <TableHead onClick={() => handleSort('name')}>
               Name {sortColumn === 'name' && (sortDirection === 'asc' ? '▲' : '▼')}
             </TableHead>
+            <TableHead>Actions</TableHead>
+            <TableHead>Boost</TableHead>
             <TableHead onClick={() => handleSort('subscriberCount')}>
               Subscribers {sortColumn === 'subscriberCount' && (sortDirection === 'asc' ? '▲' : '▼')}
             </TableHead>
@@ -216,8 +218,6 @@ export default function AdminChannelTable() {
             <TableHead onClick={() => handleSort('status')}>
               Status {sortColumn === 'status' && (sortDirection === 'asc' ? '▲' : '▼')}
             </TableHead>
-            <TableHead>Actions</TableHead>
-            <TableHead>Boost</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -227,6 +227,52 @@ export default function AdminChannelTable() {
                 <Link href={`/channel/@${channel.name}`}>
                   {channel.name}
                 </Link>
+              </TableCell>
+              <TableCell>
+                <Button
+                  onClick={() => handleProcessChannel(channel.id, channel.name)}
+                  disabled={channel.isProcessing || channel.status !== 'ACTIVE'}
+                  className="px-2 py-1 text-xs bg-accent border-input border text-gray-800 dark:text-white"
+                >
+                  {channel.isProcessing ? (
+                    <>
+                      <Spinner />
+                    </>
+                  ) : (
+                    'Process'
+                  )}
+                </Button>
+              </TableCell>
+              <TableCell>
+                {channel.status === 'PENDING' || channel.status === 'ACTIVE' ? (
+                  <div className="flex items-center">
+                    <Input
+                      type="number"
+                      value={boostAmounts[channel.id]}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setBoostAmounts((prev) => ({ ...prev, [channel.id]: value }));
+                      }}
+                      className="w-16 mr-2 ml-1"
+                      placeholder="Amount"
+                    />
+                    <Button
+                      onClick={() => handleBoost(channel.id, channel.name, channel.status)}
+                      disabled={boostLoading[channel.id]}
+                      className="px-2 py-1 text-xs bg-accent border-input border text-gray-800 dark:text-white"
+                    >
+                      {boostLoading[channel.id] ? (
+                        <>
+                          <Spinner />
+                        </>
+                      ) : (
+                        channel.status === 'PENDING' ? 'Activate' : 'Credits'
+                      )}
+                    </Button>
+                  </div>
+                ) : (
+                  <span>N/A</span>
+                )}
               </TableCell>
               <TableCell>
                 {channel.subscriberCount
@@ -262,62 +308,24 @@ export default function AdminChannelTable() {
                   : '0'}
               </TableCell>
               <TableCell>{channel.status}</TableCell>
-              <TableCell>
-                <Button
-                  onClick={() => handleProcessChannel(channel.id, channel.name)}
-                  disabled={channel.isProcessing || channel.status !== 'ACTIVE'}
-                >
-                  {channel.isProcessing ? (
-                    <>
-                      <Spinner />
-                    </>
-                  ) : (
-                    'Process'
-                  )}
-                </Button>
-              </TableCell>
-              <TableCell>
-                {channel.status === 'PENDING' || channel.status === 'ACTIVE' ? (
-                  <div className="flex items-center">
-                    <Input
-                      type="number"
-                      value={boostAmounts[channel.id]}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setBoostAmounts((prev) => ({ ...prev, [channel.id]: value }));
-                      }}
-                      className="w-24 mr-2"
-                      placeholder="Amount"
-                    />
-                    <Button
-                      onClick={() => handleBoost(channel.id, channel.name, channel.status)}
-                      disabled={boostLoading[channel.id]}
-                    >
-                      {boostLoading[channel.id] ? (
-                        <>
-                          <Spinner />
-                        </>
-                      ) : (
-                        channel.status === 'PENDING' ? 'Activate' : 'Credits'
-                      )}
-                    </Button>
-                  </div>
-                ) : (
-                  <span>N/A</span>
-                )}
-              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
       <div className="mt-4 flex justify-between">
-        <Button onClick={() => setPage(page - 1)} disabled={page === 1}>
+        <Button
+          onClick={() => setPage(page - 1)} disabled={page === 1}
+          className="px-2 py-1 text-xs bg-accent border-input border text-gray-800 dark:text-white"
+        >
           Previous
         </Button>
         <span>
           Page {page} of {totalPages}
         </span>
-        <Button onClick={() => setPage(page + 1)} disabled={page === totalPages}>
+        <Button
+          onClick={() => setPage(page + 1)} disabled={page === totalPages}
+          className="px-2 py-1 text-xs bg-accent border-input border text-gray-800 dark:text-white"
+        >
           Next
         </Button>
       </div>

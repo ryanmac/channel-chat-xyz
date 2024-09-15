@@ -2,20 +2,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getChannelInfo } from '@/utils/yesService';
 
-console.log('Channel info route loaded');
-
 export async function GET(request: NextRequest) {
   const channelUrl = request.nextUrl.searchParams.get('channel_url');
-  console.log('Channel URL:', channelUrl);
   const channelName = request.nextUrl.searchParams.get('channel_name');
-  console.log('Channel Name:', channelName);
+  const channelId = request.nextUrl.searchParams.get('channel_id');
 
-  if (!channelUrl && !channelName) {
-    return NextResponse.json({ error: 'Missing channel_url or channel_name parameter' }, { status: 400 });
+  if (!channelUrl && !channelName && !channelId) {
+    return NextResponse.json({ error: 'Missing channel_url, channel_name, or channel_id parameter' }, { status: 400 });
   }
 
   try {
-    const data = await getChannelInfo({ channelUrl: channelUrl || undefined, channelName: channelName || undefined });
+    const data = await getChannelInfo({
+      channelUrl: channelUrl || undefined,
+      channelName: channelName || undefined,
+      channelId: channelId || undefined, // Pass channelId to the function
+    });
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error fetching channel info:', error);
