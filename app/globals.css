@@ -88,6 +88,20 @@
   margin-bottom: 1.5rem;
 }
 
+/* Ensure ordered lists display their numbers */
+.custom-prose ol,
+.custom-prose ul {
+  list-style: decimal; /* Ensures numbers are displayed */
+  margin-left: 1rem; /* Adds space on the left for the numbers */
+  padding-left: 1rem; /* Adds padding to align the numbers neatly */
+}
+
+/* Optional: Style the list items for better readability */
+.custom-prose ol li,
+.custom-prose ul li {
+  margin-bottom: 0.5rem; /* Adds spacing between list items */
+}
+
 /* Remove margin-bottom for the last element */
 .custom-prose > :last-child {
   margin-bottom: 0;

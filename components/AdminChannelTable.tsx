@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { Spinner } from "@/components/ui/spinner";
+import { RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 
 interface Channel {
@@ -37,6 +38,7 @@ export default function AdminChannelTable() {
   // State variables for boost functionality
   const [boostAmounts, setBoostAmounts] = useState<{ [key: string]: string }>({});
   const [boostLoading, setBoostLoading] = useState<{ [key: string]: boolean }>({});
+  const [interestsLoading, setInterestsLoading] = useState<{ [key: string]: boolean }>({}); // New state for interests loading
 
   const fetchChannels = async () => {
     try {
@@ -177,6 +179,40 @@ export default function AdminChannelTable() {
     }
   };
 
+  const handleRefreshInterests = async (channelId: string, channelName: string) => {
+    setInterestsLoading((prev) => ({ ...prev, [channelId]: true }));
+
+    try {
+      const response = await fetch('/api/admin/interests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channelData: { id: channelId, name: channelName } }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to refresh channel interests');
+      }
+
+      const data = await response.json();
+      const { response: interestsResponse } = data;
+
+      toast({
+        title: "Interests Updated",
+        description: `Successfully updated interests for ${channelName}: ${interestsResponse}`,
+      });
+
+      fetchChannels();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to refresh channel interests. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setInterestsLoading((prev) => ({ ...prev, [channelId]: false }));
+    }
+  };
+
   return (
     <div className="mb-8">
       <h2 className="text-xl font-semibold mb-4">Channels</h2>
@@ -197,6 +233,7 @@ export default function AdminChannelTable() {
             </TableHead>
             <TableHead>Actions</TableHead>
             <TableHead>Boost</TableHead>
+            <TableHead>Interests</TableHead>
             <TableHead onClick={() => handleSort('subscriberCount')}>
               Subscribers {sortColumn === 'subscriberCount' && (sortDirection === 'asc' ? '▲' : '▼')}
             </TableHead>
@@ -274,6 +311,20 @@ export default function AdminChannelTable() {
                 ) : (
                   <span>N/A</span>
                 )}
+              </TableCell>
+              <TableCell>
+                {/* Interests button */}
+                <Button
+                  onClick={() => handleRefreshInterests(channel.id, channel.name)}
+                  disabled={interestsLoading[channel.id]}
+                  className="px-2 py-1 text-xs bg-background border-input border text-gray-800 dark:text-white hover:bg-accent"
+                >
+                  {interestsLoading[channel.id] ? (
+                    <Spinner />
+                  ) : (
+                    <RotateCcw />
+                  )}
+                </Button>
               </TableCell>
               <TableCell>
                 {channel.subscriberCount

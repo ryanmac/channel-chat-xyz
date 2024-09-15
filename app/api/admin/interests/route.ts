@@ -1,4 +1,4 @@
-// app/api/interests/route.ts
+// app/api/admin/interests/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { getRecentChunks } from '@/utils/yesService';
@@ -34,13 +34,24 @@ export async function POST(request: NextRequest) {
     const { chunks } = chunksResponse;
 
     // Prepare the prompt
-    const prompt = `You are an AI assistant representing the YouTube channel. Use the following recent transcripts to briefly list the most interesting topics in the style and tone of the channel's content creator:\n\n${chunks.map((chunk: any) => chunk.main_chunk).join('\n\n')}\n\nUser: Generate a numbered list of fascinating topics we should discuss.\n\nAI:`;
+    const prompt = `You are an AI assistant representing the YouTube channel.
+Use the following recent transcripts to briefly list the most interesting topics in the style and tone of the channel's content creator, written from the creator's perspective:
+
+${chunks.map((chunk: any) => chunk.main_chunk).join('\n\n')}
+
+Format your response as a list of topics, starting with "1." and continuing with each new topic on a new line.
+
+Start your response with:
+"""
+Here's a list of topics we could discuss:
+1. """
+`;
 
     // Generate response using OpenAI
     const completion = await openai.chat.completions.create({
       messages: [{ role: 'user', content: 'You are a YouTube channel AI assistant.' }, { role: 'assistant', content: prompt }],
       model: 'gpt-4o-mini',
-      max_tokens: 200,
+      max_tokens: 400,
     });
 
     const response = completion.choices[0].message.content?.trim() || '';
