@@ -139,7 +139,7 @@ export async function fetchAndMergeChannelData(options: { channelId?: string; ch
     channel = await prisma.channel.update({
       where: { id: channel_id },
       data: {
-        name: snippet.customUrl, // Update name to customUrl
+        name: snippet.customUrl.replace('@', ''), // Update name to customUrl
         title: snippet.title || '', 
         description: snippet.description || '', 
         subscriberCount: statistics.subscriberCount || '0',
@@ -161,7 +161,7 @@ export async function fetchAndMergeChannelData(options: { channelId?: string; ch
   // Merge API and DB data
   const mergedData: ChannelData = {
     id: channel_id,
-    name: snippet.customUrl || channel.name, // Use customUrl or fallback to DB name
+    name: snippet.customUrl.replace('@', '') || channel.name, // Use customUrl or fallback to DB name
     title: snippet.title || channel.title || '', 
     description: snippet.description || channel.description || '', 
     subscriberCount: statistics.subscriberCount || channel.subscriberCount || '0',

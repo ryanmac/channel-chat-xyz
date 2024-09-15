@@ -16,7 +16,6 @@ export const publicRoutes = [
     "/terms",
     "/user/[username]",
     "/channel/[channelName]",
-    "/channel2/[channelName]",
 ];
 
 /**
