@@ -2,12 +2,12 @@
 import prisma from "@/lib/prisma";
 import config from "@/config";
 import { setCache, getCache, deleteCache } from '@/utils/cache';
-import { getOrCreateChannel, updateChannelMetrics, ChannelData } from '@/utils/channelManagement';
+import { fetchAndMergeChannelData } from '@/utils/channelManagement';
 
 const YES_URL = config.yes.url;
 const YES_API_KEY = config.yes.apiKey;
 
-async function fetchFromYES(
+export async function fetchFromYES(
   endpoint: string,
   method: 'GET' | 'POST',
   params?: Record<string, any>,
@@ -47,7 +47,6 @@ async function fetchFromYES(
     console.log(curlCommand); // Log the curl command
 
     const response = await fetch(url.toString(), fetchOptions);
-
     const responseData = await response.json();
 
     if (!response.ok) {
@@ -64,52 +63,29 @@ async function fetchFromYES(
 
 export async function getChannelInfo(options: { channelId?: string; channelName?: string; channelUrl?: string; }) {
   const { channelId, channelName, channelUrl } = options;
+  const cacheKey = `channel_info_${channelId || channelName || channelUrl}`;
 
-  console.log('yesService: getChannelInfo');
-  const cacheKey = `channel_info_${channelId || channelName || channelUrl}`; // Unique cache key for channel info
-  const cachedData = getCache(cacheKey); // Check cache for existing data
-
-  if (cachedData) {
-    return cachedData; // Return cached data if available
-  }
+  // temporarily disable cache
+  // const cachedData = getCache(cacheKey);
+  // if (cachedData) {
+  //   return cachedData;
+  // }
 
   try {
-    console.log(`Fetching channel info for ${channelId || channelName || channelUrl}`);
-
-    if (!channelId && !channelName && !channelUrl) {
-      throw new Error('At least one of channelId, channelName, or channelUrl must be provided.');
-    }
-
-    const params: Record<string, string> = {};
-    if (channelId) {
-      params['channel_id'] = channelId;
-    } else if (channelName) {
-      params['channel_name'] = channelName;
-    } else if (channelUrl) {
-      params['channel_url'] = channelUrl;
-    }
-
-    const channelInfo: ChannelData = await fetchFromYES('/channel_info', 'GET', params);
-
-    // Create or update the channel record
-    const channel = await getOrCreateChannel(channelInfo);
-
-    // Update the channel metrics
-    await updateChannelMetrics(channel.id, channelInfo.total_embeddings, channelInfo.unique_video_count);
-
-    setCache(cacheKey, channelInfo, 600000); // Cache the result for 10 minutes
-    return channelInfo; // Return the fetched data
+    const mergedChannelData = await fetchAndMergeChannelData(options);
+    setCache(cacheKey, mergedChannelData, 600000); // Cache for 10 minutes
+    return mergedChannelData;
   } catch (error) {
     console.error('Error fetching channel info:', error);
-    throw error;
+    throw new Error(`Failed to fetch channel info: ${error}`); // Provide more detailed error information
   }
 }
 
 export async function refreshChannelInfo(options: { channelId?: string; channelName?: string; channelUrl?: string; }) {
   const { channelId, channelName, channelUrl } = options;
-  const cacheKey = `channel_info_${channelId || channelName || channelUrl}`; // Unique cache key
-  deleteCache(cacheKey); // Delete the cache entry to force a refresh
-  return await getChannelInfo(options); // Fetch the data again
+  const cacheKey = `channel_info_${channelId || channelName || channelUrl}`;
+  deleteCache(cacheKey);
+  return await getChannelInfo(options);
 }
 
 export async function refreshChannelMetadata(options: { channelId?: string; channelName?: string; channelUrl?: string; }) {
@@ -193,8 +169,8 @@ export async function processChannelAsync(channelId: string, channelName: string
       data: {
         status: 'ACTIVE',
         isProcessing: false,
-        totalEmbeddings: updatedChannelInfo.total_embeddings,
-        totalVideos: updatedChannelInfo.unique_video_count,
+        totalEmbeddings: updatedChannelInfo.totalEmbeddings,
+        totalVideos: updatedChannelInfo.totalVideos,
       },
     });
     console.log(`Channel ${channelName} (${channelId}) activated and metrics updated`);

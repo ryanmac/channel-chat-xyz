@@ -1,6 +1,5 @@
 // components/LeaderboardList.tsx
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 
 interface LeaderboardEntry {
   user: {
@@ -28,7 +27,7 @@ export function LeaderboardList({ leaderboard }: LeaderboardListProps) {
             <span>{entry.user.username}</span>
           </div>
           <div className="flex items-center space-x-2">
-            <span>{(entry.totalChatsSponsored/1000).toFixed(0)}k chats</span>
+            <span>{(entry.totalChatsSponsored / 1000).toFixed(0)}k chats</span>
           </div>
         </li>
       ))}

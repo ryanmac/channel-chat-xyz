@@ -25,10 +25,10 @@ const MAX_TOKENS_PER_CHAT = 50000;
 const WARNING_TOKENS_THRESHOLD = 40000;
 
 export async function POST(request: NextRequest) {
-  const { channelId, query, chatSessionId } = await request.json();
+  const { channelData, query, chatSessionId } = await request.json();
 
-  if (!channelId || !query) {
-    return NextResponse.json({ error: 'Missing channelId or query' }, { status: 400 });
+  if (!channelData || !query) {
+    return NextResponse.json({ error: 'Missing channelData or query' }, { status: 400 });
   }
 
   const session = await auth();
@@ -36,16 +36,6 @@ export async function POST(request: NextRequest) {
   const sessionId = request.cookies.get('sessionId')?.value || '';
 
   try {
-    // Fetch the channel
-    const channel = await prisma.channel.findUnique({
-      where: { id: channelId },
-      select: { creditBalance: true }
-    });
-
-    if (!channel) {
-      return NextResponse.json({ error: 'Channel not found' }, { status: 404 });
-    }
-
     let chatSession;
     if (chatSessionId) {
       // Fetch existing chat session
@@ -56,8 +46,8 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // Check if channel has enough credits before creating a new session
-      if (channel.creditBalance <= 0) {
-        console.log('No credits remaining for channel:', channelId);
+      if (channelData.creditBalance <= 0) {
+        console.log('No credits remaining for channel:', channelData.id);
         return NextResponse.json({
           response: "Oh no, I'm out of chats. Consider supporting the bot. $1 buys 1000 chats.",
           chatSessionId: null, // No active session
@@ -70,20 +60,20 @@ export async function POST(request: NextRequest) {
       chatSession = await prisma.$transaction(async (prisma) => {
         const newSession = await prisma.chatSession.create({
           data: {
-            channelId,
+            channelId: channelData.id,
             userId,
             sessionId,
           }
         });
 
         await prisma.channel.update({
-          where: { id: channelId },
+          where: { id: channelData.id },
           data: { creditBalance: { decrement: 1 } }
         });
 
         // Increment the chat count for the channel
         await prisma.channel.update({
-          where: { id: channelId },
+          where: { id: channelData.id },
           data: { chatsCreated: { increment: 1 } }
         });
 
@@ -92,7 +82,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch relevant chunks
-    const chunksResponse = await getRelevantChunks(query, channelId);
+    const chunksResponse = await getRelevantChunks(query, channelData.id);
     if (!chunksResponse || !chunksResponse.chunks) {
       throw new Error('Failed to fetch relevant chunks');
     }

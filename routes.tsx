@@ -7,8 +7,6 @@
  */
 export const publicRoutes = [
     "/",
-    "/admin", // This route is only accessible to admins, but debugging purposes left here.
-    "/api/admin/boost", // This route is only accessible to admins, but debugging purposes left here.
     "/signup",
     "/auth/new-verification",
     "/about",
@@ -18,6 +16,7 @@ export const publicRoutes = [
     "/terms",
     "/user/[username]",
     "/channel/[channelName]",
+    "/channel2/[channelName]",
 ];
 
 /**
@@ -36,22 +35,16 @@ export const authRoutes = [
  * These routes will redirect non-admin users to the home page
  * @type {string[]}
  */
-// export const adminRoutes = [
-//     "/admin",
-//     "/api/admin/boost",
-// ];
+export const adminRoutes = [
+    "/admin",
+    "/api/admin/boost",
+];
 
 /**
  * An array of API routes that do not require authentication
  * @type {string[]}
  */
 export const publicApiRoutes = [
-    "/admin",
-    "/api/admin/boost",
-    "/api/admin/channels",
-    "/api/admin/users",
-
-
     "/api/auth/callback/google",
     "/api/auth/user",
     "/api/chat",

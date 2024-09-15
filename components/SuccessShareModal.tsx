@@ -10,13 +10,13 @@ import { BadgeComponent } from '@/components/BadgeComponent';
 import { BadgeType } from '@/utils/badgeManagement';
 import Confetti from 'react-confetti';
 import { useToast } from '@/hooks/use-toast';
+import { ChannelData } from '@/utils/channelManagement';
 
 interface SuccessShareModalProps {
   isOpen: boolean;
   onClose: () => void;
   sessionId: string;
-  channelName: string;
-  channelTitle: string;
+  channelData: ChannelData;
   badges: BadgeType[];
 }
 
@@ -31,8 +31,7 @@ export const SuccessShareModal: React.FC<SuccessShareModalProps> = ({
   isOpen,
   onClose,
   sessionId,
-  channelName,
-  channelTitle,
+  channelData,
   badges,
 }) => {
   const [isClient, setIsClient] = useState(false);
@@ -84,17 +83,17 @@ export const SuccessShareModal: React.FC<SuccessShareModalProps> = ({
     const channelActivationGoal = 10; // Assume some goal value, should be fetched or defined elsewhere
 
     if (wasActivated) {
-      return `I just activated @${channelName}'s AI chatbot on @ChannelChatXYZ and sponsored ${newChatCreditsAdded.toLocaleString()} chats!\n\nTrained on YouTube transcripts, it responds in ${channelTitle}'s style. Try it out!\n\n`;
+      return `I just activated @${channelData.title}'s AI chatbot on @ChannelChatXYZ and sponsored ${newChatCreditsAdded.toLocaleString()} chats!\n\nTrained on YouTube transcripts, it responds in ${channelData.title}'s style. Try it out!\n\n`;
     } else if (badges.includes('founding')) {
-      return `I just contributed to @${channelName} on @ChannelChatXYZ!\n\nIt's ${(1 - remainingToActivate / channelActivationGoal) * 100}% funded, only $${remainingToActivate} more to activate! Help us cross the finish line.\n\n#ChannelChat #AI #Crowdfunding\n\n`;
+      return `I just contributed to @${channelData.name} on @ChannelChatXYZ!\n\nIt's ${(1 - remainingToActivate / channelActivationGoal) * 100}% funded, only $${remainingToActivate} more to activate! Help us cross the finish line.\n\n#ChannelChat #AI #Crowdfunding\n\n`;
     } else {
-      return `I just sponsored ${newChatCreditsAdded.toLocaleString()} chats for @${channelName} on @ChannelChatXYZ!\n\nNow you can try it out for free! Join in and start chatting in the style of ${channelTitle}.\n\n`;
+      return `I just sponsored ${newChatCreditsAdded.toLocaleString()} chats for @${channelData.name} on @ChannelChatXYZ!\n\nNow you can try it out for free! Join in and start chatting in the style of ${channelData.title}.\n\n`;
     }
   };
 
   const shareMessage = determineShareMessage();
 
-  const currentUrl = `https://channelchat.xyz/channel/@${channelName}`;
+  const currentUrl = `https://channelchat.xyz/channel/@${channelData.name}`;
 
   const shareUrls = {
     twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}&url=${encodeURIComponent(currentUrl)}`,
@@ -137,15 +136,15 @@ export const SuccessShareModal: React.FC<SuccessShareModalProps> = ({
         </p>
         {wasActivated ? (
           <p className="text-lg text-center mb-8 font-light">
-            You successfully trained & activated the AI chatbot for @{channelName}! 🚀
+            You successfully trained & activated the AI chatbot for @{channelData.name}! 🚀
           </p>
         ) : (
           <p className="text-lg text-center mb-8 font-light">
-            Your contribution of ${totalAmountInDollars.toFixed(0)} has been added towards @{channelName}'s activation! 🎉
+            Your contribution of ${totalAmountInDollars.toFixed(0)} has been added towards @{channelData.name}'s activation! 🎉
           </p>
         )}
-        <h3 className="text-2xl font-bold text-center mb-2">{channelTitle}</h3>
-        <h4 className="text-xl font-bold text-center mb-8">@{channelName}</h4>
+        <h3 className="text-2xl font-bold text-center mb-2">{channelData.title}</h3>
+        <h4 className="text-xl font-bold text-center mb-8">@{channelData.name}</h4>
         {badges.length > 0 && (
           <div className="flex flex-wrap justify-center gap-2 mt-12 mb-8">
             {badges.map((badge) => (

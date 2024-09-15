@@ -1,85 +1,92 @@
 // components/ShareChannelActivation.tsx
-import React, { useState, useEffect } from 'react'
-import { Share2, Facebook, Linkedin, Link } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { motion, AnimatePresence } from 'framer-motion'
-import { useToast } from "@/hooks/use-toast"
+import React, { useState, useEffect } from 'react';
+import { Share2, Facebook, Linkedin, Link } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from '@/hooks/use-toast';
+import { ChannelData } from '@/utils/channelManagement';
 
 interface ShareChannelActivationProps {
-  channelName: string
-  channelId: string
-  initialFunding: number
-  goalFunding: number
+  channelData: ChannelData | null;
 }
 
-export function ShareChannelActivation({ channelName, channelId, initialFunding, goalFunding }: ShareChannelActivationProps) {
-  const [isClient, setIsClient] = useState(false)
-  const [currentFunding, setCurrentFunding] = useState(initialFunding)
-  const [isLoading, setIsLoading] = useState(false)
-  const { toast } = useToast()
+export function ShareChannelActivation({ channelData }: ShareChannelActivationProps) {
+  const [isClient, setIsClient] = useState(false);
+  const [currentFunding, setCurrentFunding] = useState(channelData?.activationFunding || 0);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const currentUrl = `https://channelchat.xyz/channel/@${channelName}`
+  const currentUrl = `https://channelchat.xyz/channel/@${channelData?.name}`;
 
   useEffect(() => {
-    setIsClient(true)
-    fetchLatestFunding()
-  }, [])
+    setIsClient(true);
+    if (channelData) {
+      fetchLatestFunding();
+    }
+  }, [channelData]);
 
   const fetchLatestFunding = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const response = await fetch(`/api/channel/funding?channelId=${channelId}`)
+      const response = await fetch(`/api/channel/funding?channelId=${channelData?.id}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch latest funding')
+        throw new Error('Failed to fetch latest funding');
       }
-      const data = await response.json()
-      setCurrentFunding(data.currentFunding)
+      const data = await response.json();
+      setCurrentFunding(data.currentFunding);
     } catch (error) {
-      console.error('Error fetching latest funding:', error)
+      console.error('Error fetching latest funding:', error);
       toast({
         title: 'Error',
         description: 'Failed to fetch latest funding information.',
         variant: 'destructive',
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
-  const remainingToActivate = Math.max(0, goalFunding - currentFunding)
-  const percentageComplete = (currentFunding / goalFunding) * 100
+  const remainingToActivate = Math.max(0, (channelData?.activationGoal || 0) - currentFunding);
+  const percentageComplete = (currentFunding / (channelData?.activationGoal || 1)) * 100;
 
-  const shareMessage = `Help unlock AI-powered conversations with @${channelName} on @ChannelChatXYZ! 🚀\n\nWe're only $${remainingToActivate.toFixed(0)} away from activating and training the chatbot on YouTube transcripts.\n\nLet's make it happen together!`
+  const shareMessage = `Help unlock AI-powered conversations with @${channelData?.name} on @ChannelChatXYZ! 🚀\n\nWe're only $${remainingToActivate.toFixed(
+    0
+  )} away from activating and training the chatbot on YouTube transcripts.\n\nLet's make it happen together!`;
 
   const shareUrls = {
     x: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}&url=${encodeURIComponent(currentUrl)}`,
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}&quote=${encodeURIComponent(shareMessage)}`,
-    linkedin: `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(currentUrl)}&title=${encodeURIComponent('Help Activate AI Chatbot')}&summary=${encodeURIComponent(shareMessage)}`,
-  }
+    linkedin: `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(currentUrl)}&title=${encodeURIComponent(
+      'Help Activate AI Chatbot'
+    )}&summary=${encodeURIComponent(shareMessage)}`,
+  };
 
   const handleShare = (platform: keyof typeof shareUrls) => {
     if (isClient) {
-      window.open(shareUrls[platform], '_blank', 'noopener,noreferrer')
+      window.open(shareUrls[platform], '_blank', 'noopener,noreferrer');
     }
-  }
+  };
 
   const copyToClipboard = () => {
     if (isClient) {
-      navigator.clipboard.writeText(`${shareMessage} ${currentUrl}`).then(() => {
-        toast({
-          title: "Copied to clipboard",
-          description: "The share message has been copied to your clipboard.",
+      navigator.clipboard
+        .writeText(`${shareMessage} ${currentUrl}`)
+        .then(() => {
+          toast({
+            title: 'Copied to clipboard',
+            description: 'The share message has been copied to your clipboard.',
+          });
         })
-      }).catch((err) => {
-        console.error('Failed to copy: ', err)
-        toast({
-          title: "Failed to copy",
-          description: "There was an error copying the message. Please try again.",
-          variant: "destructive",
-        })
-      })
+        .catch((err) => {
+          console.error('Failed to copy: ', err);
+          toast({
+            title: 'Failed to copy',
+            description: 'There was an error copying the message. Please try again.',
+            variant: 'destructive',
+          });
+        });
     }
-  }
+  };
 
   return (
     <motion.div
@@ -89,11 +96,9 @@ export function ShareChannelActivation({ channelName, channelId, initialFunding,
       className="w-full mt-8 overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-700 shadow-2xl"
     >
       <div className="p-8 text-white">
-        <h2 className="text-3xl font-extrabold text-center mb-6">
-          Can't contribute? Spread the word!
-        </h2>
+        <h2 className="text-3xl font-extrabold text-center mb-6">Can't contribute? Spread the word!</h2>
         <p className="text-xl mb-4 text-center font-light">
-          Your network could be the key to unlocking <strong>@{channelName}</strong>'s AI chatbot!
+          Your network could be the key to unlocking <strong>@{channelData?.name}</strong>'s AI chatbot!
         </p>
         <p className="text-lg mb-8 text-center font-light">
           We're so close - just <span className="font-semibold text-yellow-300">${remainingToActivate.toFixed(0)}</span> away from bringing this amazing AI experience to life.
@@ -156,14 +161,14 @@ export function ShareChannelActivation({ channelName, channelId, initialFunding,
         </motion.div>
       </div>
     </motion.div>
-  )
+  );
 }
 
 interface ShareButtonProps {
-  onClick: () => void
-  icon: React.ReactNode
-  label: string
-  className?: string
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+  className?: string;
 }
 
 function ShareButton({ onClick, icon, label, className }: ShareButtonProps) {
@@ -175,5 +180,5 @@ function ShareButton({ onClick, icon, label, className }: ShareButtonProps) {
       {icon}
       <span>{label}</span>
     </Button>
-  )
+  );
 }

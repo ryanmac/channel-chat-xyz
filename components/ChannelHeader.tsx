@@ -1,39 +1,29 @@
-// components/ChannelHeader.tsx
-import { useState } from 'react'
-import Link from 'next/link'
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Bot, Youtube } from 'lucide-react'
-import { TokenUsageInfo } from './TokenUsageInfo'
+import { useState } from 'react';
+import Link from 'next/link';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Bot, Youtube } from 'lucide-react';
+import { ChannelData } from '@/utils/channelManagement';
 
 interface ChannelHeaderProps {
-  channelName: string; // Unique identifier
-  channelTitle: string; // Human-readable title
-  subscriberCount: number;
-  totalViews: number;
-  videoCount: number;
-  description: string;
-  bannerUrl: string;
-  profilePictureUrl: string;
-  botTier: string;
-  isActive: boolean;
-  chatsCreated: number;
+  channelData: ChannelData;
 }
 
 export function ChannelHeader({
-  channelName,
-  channelTitle,
-  subscriberCount,
-  totalViews,
-  videoCount,
-  description,
-  bannerUrl,
-  profilePictureUrl,
-  botTier,
-  isActive,
-  chatsCreated
+  channelData,
 }: ChannelHeaderProps) {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  
+  // Extract data from channelData
+  const {
+    name: channelName,
+    title: channelTitle,
+    metadata: {
+      snippet: { localized: { description }, thumbnails, customUrl },
+      statistics: { subscriberCount, viewCount, videoCount },
+      brandingSettings: { image: { bannerExternalUrl } }
+    }
+  } = channelData;
+
   const sanitizedChannelName = channelName.replace(/^@/, '');
 
   const truncateDescription = (text: string, maxLength: number) => {
@@ -56,15 +46,15 @@ export function ChannelHeader({
       return `${(count / 1000).toFixed(1)}K`;
     }
     return count.toString();
-  }
+  };
 
   return (
     <div className="w-full">
-      <div className="w-full h-48 bg-cover bg-center" style={{ backgroundImage: `url(${bannerUrl})` }} />
+      <div className="w-full h-48 bg-cover bg-center" style={{ backgroundImage: `url(${bannerExternalUrl})` }} />
       <div className="container mx-auto px-4 -mt-6">
         <div className="flex flex-col md:flex-row items-center md:items-end space-y-4 md:space-y-0 md:space-x-6">
           <Avatar className="w-32 h-32 border-4 border-white align-top">
-            <AvatarImage src={profilePictureUrl} alt={sanitizedChannelName} />
+            <AvatarImage src={thumbnails.default.url} alt={sanitizedChannelName} />
             <AvatarFallback>{sanitizedChannelName[0]}</AvatarFallback>
           </Avatar>
           <div className="text-center md:text-left flex-grow w-full">
@@ -94,7 +84,7 @@ export function ChannelHeader({
                 @{channelName}
               </Link>
               {' • '}
-              {abbreviateNumber(subscriberCount)} subscribers • {abbreviateNumber(totalViews)} views • {videoCount.toLocaleString()} videos
+              {abbreviateNumber(parseInt(subscriberCount))} subscribers • {abbreviateNumber(parseInt(viewCount))} views • {parseInt(videoCount).toLocaleString()} videos
             </p>
             <div className="mt-2 text-center md:text-left">
               <p className="inline">
@@ -114,5 +104,5 @@ export function ChannelHeader({
         </div>
       </div>
     </div>
-  )
+  );
 }

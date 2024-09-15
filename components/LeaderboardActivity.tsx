@@ -6,11 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LeaderboardList } from "@/components/LeaderboardList";
 import { ActivityList } from "@/components/ActivityList";
 import { Trophy, Activity } from "lucide-react";
+import { ChannelData } from '@/utils/channelManagement';
 
 interface LeaderboardEntry {
   user: {
     username: string;
-    image: string | null;
+    image?: string | null;
   };
   totalAmount: number;
   totalChatsSponsored: number;
@@ -20,12 +21,10 @@ interface ActivityEntry {
   id: string;
   user: {
     username: string;
-    image: string | null;
+    image?: string | null;
   };
   channel: {
     name: string;
-    title: string;
-    imageUrl: string;
   };
   amount: number;
   type: string;
@@ -33,10 +32,10 @@ interface ActivityEntry {
 }
 
 interface LeaderboardActivityProps {
-  channelId: string;
+  channelData: ChannelData;
 }
 
-export function LeaderboardActivity({ channelId }: LeaderboardActivityProps) {
+export function LeaderboardActivity({ channelData }: LeaderboardActivityProps) {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [recentActivity, setRecentActivity] = useState<ActivityEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,7 +44,7 @@ export function LeaderboardActivity({ channelId }: LeaderboardActivityProps) {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await fetch(`/api/channel/leaderboard?channelId=${channelId}`);
+        const response = await fetch(`/api/channel/leaderboard?channelId=${channelData.id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch leaderboard data');
         }
@@ -61,7 +60,7 @@ export function LeaderboardActivity({ channelId }: LeaderboardActivityProps) {
     }
 
     fetchData();
-  }, [channelId]);
+  }, [channelData.id]);
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -84,10 +83,7 @@ export function LeaderboardActivity({ channelId }: LeaderboardActivityProps) {
           </CardHeader>
           <CardContent className="px-6">
             {leaderboard.length > 0 ? (
-              <LeaderboardList leaderboard={leaderboard.map(entry => ({
-                ...entry,
-                totalChatsSponsored: entry.totalChatsSponsored // Display total chats sponsored
-              }))} />
+              <LeaderboardList leaderboard={leaderboard} />
             ) : (
               <p className="text-center text-gray-500">Be the first to sponsor this channel!</p>
             )}

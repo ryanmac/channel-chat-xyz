@@ -1,5 +1,5 @@
 // app/channel/[channelName]/page.tsx
-'use client'
+'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -9,7 +9,6 @@ import { SponsorshipCTA } from '@/components/SponsorshipCTA';
 import { LeaderboardActivity } from '@/components/LeaderboardActivity';
 import { ChatInterface } from '@/components/ChatInterface';
 import { UnlockChannelChat } from '@/components/UnlockChannelChat';
-import { CuratedChannels } from '@/components/CuratedChannels';
 import { FeaturedChannels } from '@/components/FeaturedChannels';
 import { DisclaimerSection } from '@/components/DisclaimerSection';
 import { Header } from '@/components/Header';
@@ -25,7 +24,7 @@ import { BadgeType } from '@/utils/badgeManagement';
 import { ChannelData } from '@/utils/channelManagement';
 import { useToast } from '@/hooks/use-toast';
 import { useSession } from 'next-auth/react';
-import { refreshChannelInfo } from '@/utils/yesService';
+import { defaultChannelData } from '@/constants/channelData';
 import { getCache, setCache } from '@/utils/cache';
 
 interface ChannelPageProps {
@@ -34,72 +33,11 @@ interface ChannelPageProps {
   };
 }
 
-interface BotData {
-  tier: string;
-  isActive: boolean;
-  boosts: string[];
-  embeddedTranscripts?: number;
-  totalVideos?: number;
-  model?: string;
-  maxTokens?: number;
-  chatsCreated?: number;
-  creditBalance?: number;
-  maxCredits?: number;
-  botScore?: number;
-  isProcessing?: boolean;
-  lastSponsorshipAmount?: number;
-}
-
-const defaultChannelData: ChannelData = {
-  channel_id: '',
-  unique_video_count: 0,
-  total_embeddings: 0,
-  metadata: {
-    snippet: {
-      title: '404 Testing Channel',
-      description: 'Channel not found.',
-      thumbnails: {
-        default: { url: '/placeholder.svg?height=100&width=100&text=Profile' },
-        high: { url: '/placeholder.svg?height=100&width=100&text=Profile' },
-      },
-      customUrl: '@404TestingChannel',
-      localized: {
-        title: '404 Title',
-        description: '404 Description',
-      },
-      country: 'USA',
-    },
-    statistics: {
-      subscriberCount: '0',
-      viewCount: '0',
-      videoCount: '0',
-    },
-    brandingSettings: {
-      image: {
-        bannerExternalUrl: '/placeholder.svg?height=200&width=1000&text=Channel+Banner',
-      },
-    },
-  },
-};
-
 export default function ChannelPage({ params }: ChannelPageProps) {
   const { data: session, status } = useSession();
   const { channelName: rawChannelName } = params;
   const channelName = rawChannelName.startsWith('%40') ? rawChannelName.slice(3) : rawChannelName;
   const [channelData, setChannelData] = useState<ChannelData | null>(null);
-  const [botData, setBotData] = useState<BotData>({
-    tier: 'Inactive',
-    isActive: false,
-    boosts: [],
-    embeddedTranscripts: 0,
-    totalVideos: 0,
-    model: 'gpt-4o-mini',
-    maxTokens: 200,
-    chatsCreated: 0,
-    creditBalance: 0,
-    maxCredits: 1000,
-    botScore: 0
-  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isChannelActive, setIsChannelActive] = useState(false);
@@ -112,11 +50,9 @@ export default function ChannelPage({ params }: ChannelPageProps) {
   const [currentFunding, setCurrentFunding] = useState(0);
   const [goalFunding, setGoalFunding] = useState(10); // Consider fetching this from an API
 
-  // Dynamic state based on sponsorship and funding
-  const [sponsorshipAmount, setSponsorshipAmount] = useState(0); // The initial sponsorship amount
-  const [totalFunding, setTotalFunding] = useState(currentFunding); // Set initial total funding from currentFunding
-  const [newChatCreditsAdded, setNewChatCreditsAdded] = useState(0); // Start with zero new chat credits
-  const [wasActivated, setWasActivated] = useState(botData.isActive); // Use botData to determine if it was activated
+  const [sponsorshipAmount, setSponsorshipAmount] = useState(0);
+  const [totalFunding, setTotalFunding] = useState(currentFunding);
+  const [newChatCreditsAdded, setNewChatCreditsAdded] = useState(0);
 
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
@@ -144,10 +80,8 @@ export default function ChannelPage({ params }: ChannelPageProps) {
       const result = await response.json();
       console.log('Badge transfer result:', result);
   
-      // Optionally refresh the user data or UI here
     } catch (error) {
       console.error('Error transferring badges:', error);
-      // Implement retry logic here if needed
     }
   };
 
@@ -157,7 +91,6 @@ export default function ChannelPage({ params }: ChannelPageProps) {
     }
   }, [status, sessionId]);
 
-  // Function to fetch badges associated with the session
   const fetchSessionBadges = useCallback(async () => {
     console.log('Channel Page: Fetching session badges for:', sessionId);
     if (!sessionId) return;
@@ -193,57 +126,38 @@ export default function ChannelPage({ params }: ChannelPageProps) {
     }
   }, [sessionId, toast]);
 
-  // Function to fetch channel data and handle state updates
   const fetchChannelData = useCallback(async () => {
     if (fetchedRef.current) return;
     setIsLoading(true);
     setError(null);
     console.log('Fetching channel data for:', channelName);
     try {
-      // Fetch the initial channel data
       const response = await fetch(`/api/yes/channel-info?channel_name=${channelName}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch channel data: ${response.status} ${response.statusText}`);
       }
-      const data = await response.json();
+      const data: ChannelData = await response.json();
       setChannelData(data);
 
-      if (data && data.channel_id) {
-        // Fetch bot data related to the channel
-        const botResponse = await fetch(`/api/bot/info?channelId=${data.channel_id}`);
-        if (!botResponse.ok) {
-          throw new Error(`Failed to fetch bot data: ${botResponse.status} ${botResponse.statusText}`);
-        }
-        const botData = await botResponse.json();
-        setBotData(botData);
-        setIsChannelActive(botData.isActive);
-        setIsProcessing(botData.isProcessing || false);
+      if (data && data.id) {
+        setIsChannelActive(data.status === 'ACTIVE');
+        setIsProcessing(data.isProcessing);
 
-        // Calculate the current funding in dollars
-        const currentFundingInDollars = botData.creditBalanace / 100;
+        const currentFundingInDollars = (data.creditBalance ?? 0) / 100;
         setCurrentFunding(currentFundingInDollars);
-        setTotalFunding(currentFundingInDollars); // Update total funding based on current credits
+        setTotalFunding(currentFundingInDollars);
 
-        // Determine if the channel has been activated
-        const activated = botData.isActive;
-        setWasActivated(activated);
-
-        // Update sponsorship amount and new chat credits if applicable
-        const lastSponsorshipAmount = botData.lastSponsorshipAmount || 0; // Assuming you get this from botData
+        const lastSponsorshipAmount = data.activationFunding || 0; // Adjusted to match `ChannelData`
         setSponsorshipAmount(lastSponsorshipAmount);
 
-        // Calculate new chat credits added
         const creditsAdded = lastSponsorshipAmount > 9 ? (lastSponsorshipAmount - 9) * 1000 : 0;
         setNewChatCreditsAdded(creditsAdded);
 
-        // Fetch session badges after fetching channel data
         fetchSessionBadges();
 
-        // Log for debugging
         console.log('Channel data:', data);
-        console.log('Bot data:', botData);
-        console.log('Channel is active:', activated);
-        console.log('Channel is processing:', botData.isProcessing);
+        console.log('Channel is active:', data.status === 'ACTIVE');
+        console.log('Channel is processing:', data.isProcessing);
         console.log('Current funding:', currentFundingInDollars);
         console.log('New chat credits added:', creditsAdded);
         console.log('Sponsorship amount:', lastSponsorshipAmount);
@@ -257,21 +171,16 @@ export default function ChannelPage({ params }: ChannelPageProps) {
     }
   }, [channelName, fetchSessionBadges]);
 
-  // Function to check the processing status of the channel
   const checkProcessingStatus = useCallback(async () => {
-    if (!channelData?.channel_id) return;
+    if (!channelData?.id) return;
     try {
-      const response = await fetch(`/api/bot/info?channelId=${channelData.channel_id}`);
-      console.log('Checking processing status for channel:', channelData.channel_id);
+      const response = await fetch(`/api/bot/info?channelId=${channelData.id}`);
+      console.log('Checking processing status for channel:', channelData.id);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
-      setBotData(data);
       setIsProcessing(data.isProcessing);
       setIsChannelActive(data.isActive);
-      setCurrentFunding(data.creditBalanace / 100);
-      // if (data.isActive) {
-      //   setShowSuccessModal(true);
-      // }
+      setCurrentFunding(data.creditBalance / 100);
     } catch (error) {
       console.error('Error checking processing status:', error);
       toast({
@@ -292,7 +201,7 @@ export default function ChannelPage({ params }: ChannelPageProps) {
   }, [debouncedFetchChannelData]);
 
   useEffect(() => {
-    if (sessionId && channelData?.channel_id) {
+    if (sessionId && channelData?.id) {
       checkProcessingStatus();
     }
   }, [sessionId, channelData, checkProcessingStatus]);
@@ -312,99 +221,51 @@ export default function ChannelPage({ params }: ChannelPageProps) {
 
   const channelInfo = channelData || defaultChannelData;
 
-  const curatedChannels = [
-    { name: "@TechTalks", description: "Latest in technology", isSponsored: true },
-    { name: "@AIDiscussion", description: "AI and machine learning topics", isSponsored: false },
-    { name: "@ScienceDaily", description: "Daily science news", isSponsored: true },
-  ];
-
   return (
     <div className="min-h-screen">
       <Header />
-      <ChannelHeader
-        channelName={channelName}
-        channelTitle={channelInfo.metadata.snippet.localized.title}
-        subscriberCount={parseInt(channelInfo.metadata.statistics.subscriberCount)}
-        totalViews={parseInt(channelInfo.metadata.statistics.viewCount)}
-        videoCount={parseInt(channelInfo.metadata.statistics.videoCount)}
-        description={channelInfo.metadata.snippet.localized.description}
-        bannerUrl={channelInfo.metadata.brandingSettings.image.bannerExternalUrl}
-        profilePictureUrl={channelInfo.metadata.snippet.thumbnails.default.url}
-        botTier={botData.tier}
-        isActive={botData.isActive}
-        chatsCreated={0}
-      />
+      <ChannelHeader channelData={channelInfo} />
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             {isProcessing ? (
-              <ChannelProcessing channelName={channelInfo.metadata.snippet.title} />
+              <ChannelProcessing channelData={channelInfo} />
             ) : isChannelActive ? (
               <div>
-                <ChatInterface 
-                  channelName={channelInfo.metadata.snippet.title} 
-                  channelId={channelInfo.channel_id} 
-                  profilePictureUrl={channelInfo.metadata.snippet.thumbnails.default.url}
-                  botTier={botData.tier}
-                  boosts={botData.boosts}
-                  isActive={botData.isActive}
-                  uniqueVideoCount={channelInfo.unique_video_count}
-                />
+                <ChatInterface channelData={channelInfo} />
                 <DisclaimerSection />
               </div>
             ) : (
               <>
-                <UnlockChannelChat
-                  channelName={channelName}
-                  channelTitle={channelInfo.metadata.snippet.title}
-                  channelId={channelInfo.channel_id}
-                  initialFunding={currentFunding}
-                  goalFunding={goalFunding}
-                  onFundingUpdate={fetchChannelData}
-                />
-                <ShareChannelActivation
-                  channelName={channelName}
-                  channelId={channelInfo.channel_id}
-                  initialFunding={currentFunding}
-                  goalFunding={goalFunding}
-                />
+                <UnlockChannelChat channelData={channelInfo} onFundingUpdate={fetchChannelData} />
+                <ShareChannelActivation channelData={channelInfo} />
               </>
             )}
           </div>
           <div>
             {isChannelActive && (
-              <SponsorshipCTA
-                channelName={channelName}
-                channelTitle={channelInfo.metadata.snippet.title}
-                channelId={channelInfo.channel_id}
-                creditBalance={botData.creditBalance ?? 0}
-              />
+              <SponsorshipCTA channelData={channelInfo} />
             )}
             {isChannelActive && (
               <div className="mb-8">
                 <FuelGauge 
-                  creditBalance={botData.creditBalance ?? 0}
-                  maxCredits={botData.maxCredits ?? 100000}
+                  creditBalance={channelInfo.creditBalance ?? 0}
+                  maxCredits={100000} // Default or from a different source
                 />
               </div>
             )}
             {isChannelActive && false && (
               <BotAttributesPanel
-                channelId={channelInfo.channel_id}
-                botTier={botData.tier}
-                isActive={botData.isActive}
+                channelData={channelInfo}
                 onActivate={fetchChannelData}
               />
             )}
             {isChannelActive && (
-              <LeaderboardActivity
-                channelId={channelInfo.channel_id}
-              />
+              <LeaderboardActivity channelData={channelInfo} />
             )}
-            {!botData.isActive && !isProcessing && (
+            {!isChannelActive && !channelInfo.isProcessing && !isProcessing && (
               <>
                 <h2 className="text-2xl font-bold mt-8 mb-4">Explore other chatbots...</h2>
-                {/* <CuratedChannels channels={curatedChannels} /> */}
                 <FeaturedChannels showStats={false} />
               </>
             )}
@@ -420,8 +281,7 @@ export default function ChannelPage({ params }: ChannelPageProps) {
           }
         }}
         sessionId={sessionId || ''}
-        channelName={channelName}
-        channelTitle={channelInfo.metadata.snippet.title}
+        channelData={channelInfo}
         badges={earnedBadges}
       />
       <SignUpModal

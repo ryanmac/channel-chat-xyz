@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const data = await getChannelInfo({
       channelUrl: channelUrl || undefined,
       channelName: channelName || undefined,
-      channelId: channelId || undefined, // Pass channelId to the function
+      channelId: channelId || undefined,
     });
     return NextResponse.json(data);
   } catch (error) {

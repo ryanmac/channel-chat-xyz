@@ -71,3 +71,13 @@ export const determineBadges = (
 
   return Array.from(badges);
 };
+
+// utils/badgeManagement.ts
+export const createFetchSessionBadges = async (sessionId: string): Promise<BadgeType[]> => {
+  const response = await fetch(`/api/badges/session?sessionId=${sessionId}`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch session badges: ${response.status} ${response.statusText}`);
+  }
+  const data = await response.json();
+  return data.badges ? data.badges.split(',') : [];
+};

@@ -1,5 +1,5 @@
 // components/SponsorshipCTA.tsx
-'use client'
+'use client';
 
 import { useState, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
@@ -8,15 +8,13 @@ import { Slider } from "@/components/ui/slider";
 import { Bot, MessageSquare } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { createCheckoutSession } from "@/utils/stripePayments";
+import { ChannelData } from '@/utils/channelManagement';
 
 interface SponsorshipCTAProps {
-  channelName: string;
-  channelTitle: string;
-  channelId: string;
-  creditBalance: number;
+  channelData: ChannelData;
 }
 
-export function SponsorshipCTA({ channelName, channelTitle, channelId, creditBalance }: SponsorshipCTAProps) {
+export function SponsorshipCTA({ channelData }: SponsorshipCTAProps) {
   const [sliderValue, setSliderValue] = useState([10]); // Default to $10
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -30,7 +28,7 @@ export function SponsorshipCTA({ channelName, channelTitle, channelId, creditBal
     setIsLoading(true);
 
     try {
-      await createCheckoutSession(channelId, channelName, sponsorAmount);
+      await createCheckoutSession(channelData.id, channelData.name, sponsorAmount);
     } catch (error) {
       console.error('Error creating checkout session:', error);
       toast({
@@ -51,7 +49,7 @@ export function SponsorshipCTA({ channelName, channelTitle, channelId, creditBal
       <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white relative mb-4 rounded-t-xl">
         <CardTitle>
           <p className="font-semibold flex items-center">
-            Sponsor {channelTitle} Chats
+            Sponsor {channelData.title} Chats
             <Bot className="w-6 h-6 text-white ml-2" />
           </p>
         </CardTitle>

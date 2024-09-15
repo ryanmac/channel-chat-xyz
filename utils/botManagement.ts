@@ -28,6 +28,22 @@ interface BotScoreFactors {
   isFineTuned: boolean;
 }
 
+export interface BotData {
+  tier: string;
+  isActive: boolean;
+  boosts: string[];
+  embeddedTranscripts?: number;
+  totalVideos?: number;
+  model?: string;
+  maxTokens?: number;
+  chatsCreated?: number;
+  creditBalance?: number;
+  maxCredits?: number;
+  botScore?: number;
+  isProcessing?: boolean;
+  lastSponsorshipAmount?: number;
+}
+
 export async function getActivationFunding(channelId: string): Promise<number> {
   const result = await prisma.transaction.aggregate({
     where: {
@@ -188,3 +204,11 @@ export function calculateBotScore(factors: BotScoreFactors): number {
 
   return Math.min(Math.round(score), 1000); // Cap at 1000 points
 }
+
+export const createFetchBotInfo = async (channelId: string): Promise<BotData> => {
+  const response = await fetch(`/api/bot/info?channelId=${channelId}`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch bot data: ${response.status} ${response.statusText}`);
+  }
+  return await response.json();
+};

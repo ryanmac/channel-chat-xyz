@@ -10,53 +10,22 @@ import { FineTuningStatus } from '@/components/FineTuningStatus';
 import { BotScore } from '@/components/BotScore';
 import { createCheckoutSession } from "@/utils/stripePayments";
 import { Loader2 } from 'lucide-react';
-import { BotAttributes } from '@/utils/botManagement';
+import { ChannelData } from '@/utils/channelManagement';
 
 interface BotAttributesPanelProps {
-  channelId: string;
-  botTier: string;
-  isActive: boolean;
+  channelData: ChannelData;
   onActivate: () => Promise<void>;
 }
 
-export function BotAttributesPanel({ 
-  channelId, 
-  botTier, 
-  isActive, 
-  onActivate 
-}: BotAttributesPanelProps) {
-  const [botAttributes, setBotAttributes] = useState<BotAttributes | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export function BotAttributesPanel({ channelData, onActivate }: BotAttributesPanelProps) {
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const fetchBotAttributes = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(`/api/bot/info?channelId=${channelId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch bot info');
-      }
-      const data = await response.json();
-      setBotAttributes(data);
-    } catch (err) {
-      console.error('Error fetching bot info:', err);
-      setError('Failed to load bot attributes');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchBotAttributes();
-  }, [channelId]);
 
   const handleBoost = async (type: 'memory' | 'model' | 'fineTuning') => {
     try {
       const amount = 10; // Example amount, adjust as needed
-      await createCheckoutSession(channelId, `Boost ${type}`, amount);
-      // Refresh bot attributes after successful boost
-      await fetchBotAttributes();
+      await createCheckoutSession(channelData.id, `Boost ${type}`, amount);
+      // Fetch updated channel data after boosting (omitted for simplicity)
     } catch (err) {
       console.error(`Failed to boost ${type}:`, err);
       setError(`Failed to boost ${type}`);
@@ -66,60 +35,61 @@ export function BotAttributesPanel({
   const handleRefuel = async () => {
     try {
       const amount = 50; // Example amount for refueling
-      await createCheckoutSession(channelId, 'Refuel credits', amount);
-      // Refresh bot attributes after successful refuel
-      await fetchBotAttributes();
+      await createCheckoutSession(channelData.id, 'Refuel credits', amount);
+      // Fetch updated channel data after refueling (omitted for simplicity)
     } catch (err) {
       console.error('Failed to refuel:', err);
       setError('Failed to refuel');
     }
   };
 
-  if (isLoading) return (
-    <Card className="w-full p-6 mb-8 flex flex-col items-center justify-center">
-      <Loader2 className="w-6 h-6 animate-spin mb-2" />
-      <span className="text-center">Loading bot attributes...</span>
-    </Card>
-  );
+  if (isLoading) {
+    return (
+      <Card className="w-full p-6 mb-8 flex flex-col items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin mb-2" />
+        <span className="text-center">Loading channel attributes...</span>
+      </Card>
+    );
+  }
 
-  if (error) return <Card className="w-full p-6 mb-8 text-red-500">Error: {error}</Card>;
-
-  if (!botAttributes) return null;
+  if (error) {
+    return <Card className="w-full p-6 mb-8 text-red-500">Error: {error}</Card>;
+  }
 
   return (
     <Card className="w-full mb-8">
       <CardHeader>
         <CardTitle className="flex justify-between items-center">
-          <span>Stats: {botAttributes.tier}</span>
+          <span>Stats: {channelData.status}</span>
           <Button 
-            variant={botAttributes.isActive ? "secondary" : "default"}
+            variant={channelData.status === 'ACTIVE' ? "secondary" : "default"}
             onClick={onActivate}
           >
-            {botAttributes.isActive ? "Active" : "Activate"}
+            {channelData.status === 'ACTIVE' ? "Active" : "Activate"}
           </Button>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <BotScore score={botAttributes.botScore} />
+        <BotScore score={channelData.creditBalance || 0} />
         <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
           <MemoryDisplay
-            totalEmbeddings={botAttributes.totalEmbeddings}
-            totalEmbeddedVideos={botAttributes.totalEmbeddedVideos}
-            totalChannelVideos={botAttributes.totalChannelVideos}
+            totalEmbeddings={channelData.totalEmbeddings}
+            totalEmbeddedVideos={channelData.totalVideos} // Assuming equivalent to total embedded videos
+            totalChannelVideos={channelData.totalVideos}
             onBoost={() => handleBoost('memory')}
           />
           <ModelInfo 
-            model={botAttributes.model}
-            maxTokens={botAttributes.maxTokens}
+            model={channelData.model}
+            maxTokens={channelData.maxTokens}
             onBoost={() => handleBoost('model')}
           />
-          <ChatStats chatsCreated={botAttributes.chatsCreated} />
+          <ChatStats chatsCreated={channelData.chatsCreated} />
           <FuelGauge 
-            creditBalance={botAttributes.creditBalance}
-            maxCredits={botAttributes.maxCredits}
+            creditBalance={channelData.creditBalance}
+            maxCredits={100000} // Use a default or a dynamic value if available
           />
           <FineTuningStatus 
-            isFineTuned={botAttributes.isFineTuned}
+            isFineTuned={channelData.isFineTuned}
             onToggleFineTuning={() => handleBoost('fineTuning')}
           />
         </div>

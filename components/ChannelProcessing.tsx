@@ -3,13 +3,13 @@
 import React, { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 
-export const ChannelProcessing: React.FC<{ channelName: string }> = ({ channelName }) => {
+export const ChannelProcessing: React.FC<{ channelData: { name: string } }> = ({ channelData }) => {
   const [progress, setProgress] = useState(0)
 
   useEffect(() => {
     const timer = setInterval(() => {
       setProgress((prevProgress) => (prevProgress >= 100 ? 0 : prevProgress + 1))
-    }, 300)
+    }, 1000)
 
     return () => clearInterval(timer)
   }, [])
@@ -25,7 +25,7 @@ export const ChannelProcessing: React.FC<{ channelName: string }> = ({ channelNa
             <div className="absolute inset-4 border-4 border-white border-t-transparent rounded-full animate-spin animation-delay-300"></div>
           </div>
           <h2 className="text-3xl font-bold text-center mb-4">
-            Activating {channelName}
+            Activating {channelData.name}
           </h2>
           <p className="text-lg text-center mb-6">
             We're processing your channel activation. This may take a few minutes.

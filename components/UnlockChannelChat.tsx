@@ -14,13 +14,10 @@ import { useToast } from '@/hooks/use-toast';
 import { createCheckoutSession } from '@/utils/stripePayments';
 import { BadgeComponent } from '@/components/BadgeComponent';
 import { determineBadges, BadgeType } from '@/utils/badgeManagement';
+import { ChannelData } from '@/utils/channelManagement';
 
 interface UnlockChannelChatProps {
-  channelName: string;
-  channelTitle: string;
-  channelId: string;
-  initialFunding: number;
-  goalFunding: number;
+  channelData: ChannelData | null;
   onFundingUpdate: () => void;
 }
 
@@ -29,15 +26,8 @@ interface Contributor {
   avatar: string;
 }
 
-export function UnlockChannelChat({
-  channelName,
-  channelTitle,
-  channelId,
-  initialFunding,
-  goalFunding,
-  onFundingUpdate,
-}: UnlockChannelChatProps) {
-  const [currentFunding, setCurrentFunding] = useState(initialFunding);
+export function UnlockChannelChat({ channelData, onFundingUpdate }: UnlockChannelChatProps) {
+  const [activationFunding, setActivationFunding] = useState(channelData?.activationFunding || 0); // Corrected state variable
   const [amount, setAmount] = useState<number>(5);
   const [customAmount, setCustomAmount] = useState('');
   const [earnedBadges, setEarnedBadges] = useState<BadgeType[]>([]);
@@ -56,12 +46,12 @@ export function UnlockChannelChat({
     const fetchLatestFunding = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`/api/channel/funding?channelId=${channelId}`);
+        const response = await fetch(`/api/channel/funding?channelId=${channelData?.id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch latest funding');
         }
         const data = await response.json();
-        setCurrentFunding(data.currentFunding);
+        setActivationFunding(data.channelData.activationFunding);
         onFundingUpdate();
       } catch (error) {
         console.error('Error fetching latest funding:', error);
@@ -75,15 +65,17 @@ export function UnlockChannelChat({
       }
     };
 
-    fetchLatestFunding();
-  }, [channelId, sessionId, onFundingUpdate]);
+    if (channelData) {
+      fetchLatestFunding();
+    }
+  }, [channelData, onFundingUpdate]);
 
   useEffect(() => {
     const calculateFundingImpact = () => {
       const numericAmount = Number(amount);
-      const remainingToActivate = Math.max(0, goalFunding - currentFunding);
+      const remainingToActivate = Math.max(0, (channelData?.activationGoal || 0) - activationFunding);
       const activationContribution = Math.min(numericAmount, remainingToActivate);
-      const potentialPercentage = (activationContribution / goalFunding) * 100;
+      const potentialPercentage = (activationContribution / (channelData?.activationGoal || 1)) * 100;
       const potentialExcessFunding = Math.max(0, numericAmount - activationContribution);
 
       setPotentialPercentage(potentialPercentage);
@@ -91,7 +83,7 @@ export function UnlockChannelChat({
     };
 
     calculateFundingImpact();
-  }, [amount, currentFunding, goalFunding]);
+  }, [amount, channelData, activationFunding]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -116,7 +108,7 @@ export function UnlockChannelChat({
     }
     setIsLoading(true);
     try {
-      await createCheckoutSession(channelId, channelName, selectedAmount);
+      await createCheckoutSession(channelData?.id || '', channelData?.name || '', selectedAmount);
       onFundingUpdate();
     } catch (error) {
       console.error('Error creating checkout session:', error);
@@ -137,39 +129,47 @@ export function UnlockChannelChat({
 
   const calculateContributionImpact = () => {
     const numericAmount = Number(amount);
-    const remainingToActivate = Math.max(0, goalFunding - currentFunding);
+    const remainingToActivate = Math.max(0, (channelData?.activationGoal || 0) - activationFunding);
     const activationContribution = Math.min(numericAmount, remainingToActivate);
     const extraContribution = Math.max(0, numericAmount - activationContribution);
-    const badgeTypes = determineBadges(numericAmount, goalFunding - currentFunding, remainingToActivate, contributors.length === 0, {
-      totalChats: 0,
-      shares: 0,
-      daysActive: 0,
-      earlyMorningChats: 0,
-      lateNightChats: 0,
-      uniqueChannels: 0,
-      uniqueQueries: 0,
-      longConversations: 0,
-      conversationsStarted: 0,
-      factChecks: 0,
-      trendingConversations: 0,
-      complexQueries: 0,
-    });
+    const badgeTypes = determineBadges(
+      numericAmount,
+      (channelData?.activationGoal || 0) - activationFunding,
+      remainingToActivate,
+      contributors.length === 0,
+      {
+        totalChats: 0,
+        shares: 0,
+        daysActive: 0,
+        earlyMorningChats: 0,
+        lateNightChats: 0,
+        uniqueChannels: 0,
+        uniqueQueries: 0,
+        longConversations: 0,
+        conversationsStarted: 0,
+        factChecks: 0,
+        trendingConversations: 0,
+        complexQueries: 0,
+      }
+    );
 
     return (
       <ul className="list-disc list-inside text-sm">
-        {activationContribution > 0 && (remainingToActivate - numericAmount) > 0 && (
+        {activationContribution > 0 && remainingToActivate - numericAmount > 0 && (
           <li>
-            Contribute {((activationContribution / goalFunding) * 100).toFixed(0)}% toward activating the channel for the community
+            Contribute {((activationContribution / (channelData?.activationGoal || 1)) * 100).toFixed(0)}% toward
+            activating the channel for the community
           </li>
         )}
-        {activationContribution > 0 && (remainingToActivate - numericAmount) <= 0 && (
+        {activationContribution > 0 && remainingToActivate - numericAmount <= 0 && (
           <li>
             <strong>Activate the channel for the community!</strong>
           </li>
         )}
         {extraContribution >= 0 && (
           <li>
-            Add <strong>{(Math.floor(extraContribution * 1000) / 1000).toLocaleString()}k</strong> chats for the community
+            Add <strong>{(Math.floor(extraContribution * 1000) / 1000).toLocaleString()}k</strong> chats for the
+            community
           </li>
         )}
         {badgeTypes.length > 0 && (
@@ -195,7 +195,7 @@ export function UnlockChannelChat({
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            Activate {channelTitle}'s Chatbot
+            Activate {channelData?.title}'s Chatbot
             <motion.div animate={botAnimation} className="absolute top-4 right-4">
               <Bot className="w-12 h-12 text-white" />
             </motion.div>
@@ -208,14 +208,15 @@ export function UnlockChannelChat({
           <div className="mb-2">
             <ProgressBar
               items={[
-                { value: (currentFunding / goalFunding) * 100, className: 'bg-white' },
+                { value: (activationFunding / (channelData?.activationGoal || 1)) * 100, className: 'bg-white' },
                 ...(sliderMoved ? [{ value: potentialPercentage, className: 'bg-green-300' }] : []),
               ]}
-              height='h-6'
+              height="h-6"
             />
           </div>
           <p className="text-sm text-gray-600">
-            ${currentFunding.toFixed(0)} raised so far toward ${goalFunding.toFixed(0)} activation goal
+            ${activationFunding.toFixed(0)} raised so far toward ${(channelData?.activationGoal || 0).toFixed(0)}{' '}
+            activation goal
           </p>
         </div>
         <div className="mb-6">
@@ -225,7 +226,7 @@ export function UnlockChannelChat({
             <span className="mr-2">
               {contributors.length > 0
                 ? `Join ${contributors.length} others who've already contributed!`
-                : "Be the first to contribute!"}
+                : 'Be the first to contribute!'}
             </span>
             {contributors.length > 0 && (
               <div className="flex -space-x-2">
@@ -258,7 +259,7 @@ export function UnlockChannelChat({
             max={100}
             step={1}
             className="mb-4"
-            filledColor='bg-green-300'
+            filledColor="bg-green-300"
           />
           <div className="flex justify-between items-center">
             <span className="text-2xl font-bold">${amount}</span>
@@ -268,10 +269,10 @@ export function UnlockChannelChat({
               className="bg-gradient-to-r from-green-600 to-blue-700 hover:from-green-700 hover:to-blue-800 transition-all duration-300 ease-in-out transform hover:scale-110 text-white font-bold py-2 px-4 rounded"
             >
               {isLoading
-                ? "Processing..."
-                : currentFunding + Number(amount) >= goalFunding
-                ? "Activate Now!"
-                : "Contribute"}
+                ? 'Processing...'
+                : activationFunding + Number(amount) >= (channelData?.activationGoal || 0)
+                ? 'Activate Now!'
+                : 'Contribute'}
             </Button>
           </div>
         </div>
@@ -283,8 +284,10 @@ export function UnlockChannelChat({
           <div>
             <h3 className="text-lg font-semibold mb-2">Why Sponsor?</h3>
             <ul className="list-disc list-inside text-sm">
-              <li>Activate the chatbot for {channelTitle}'s channel</li>
-              <li><strong>5x</strong> chat response limits for <strong>ALL</strong> channels</li>
+              <li>Activate the chatbot for {channelData?.title}'s channel</li>
+              <li>
+                <strong>5x</strong> chat response limits for <strong>ALL</strong> channels
+              </li>
               <li>
                 Help advance AI technology and research
                 <Heart className="w-4 h-4 inline-block ml-1" />
@@ -294,8 +297,8 @@ export function UnlockChannelChat({
         </div>
         <div className="text-sm text-gray-600">
           <Info className="w-4 h-4 inline-block mr-1" />
-          A Chat roughly corresponds to about 29 book pages or 6 blog posts.{' '}
-          Funds are used for AI model training, server costs, chats, and ongoing improvements.{' '}
+          A Chat roughly corresponds to about 29 book pages or 6 blog posts. Funds are used for AI model training,
+          server costs, chats, and ongoing improvements.{' '}
           <Link href="/about">
             <span className="text-blue-500 hover:underline">Learn more</span>
           </Link>

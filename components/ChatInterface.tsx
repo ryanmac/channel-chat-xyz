@@ -1,114 +1,102 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Bot, ArrowDown } from 'lucide-react'
-import { default as ClientMarkdown } from '@/components/ClientMarkdown'
-import QuickPrompts from '@/components/QuickPrompts'
-import TypingIndicator from '@/components/TypingIndicator'
-import { useToast } from "@/hooks/use-toast"
+// components/ChatInterface.tsx
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Bot, ArrowDown } from 'lucide-react';
+import { default as ClientMarkdown } from '@/components/ClientMarkdown';
+import QuickPrompts from '@/components/QuickPrompts';
+import TypingIndicator from '@/components/TypingIndicator';
+import { useToast } from "@/hooks/use-toast";
+import { ChannelData } from '@/utils/channelManagement';
 
 interface Message {
-  id: number
-  sender: string
-  content: string
-  timestamp: string
+  id: number;
+  sender: string;
+  content: string;
+  timestamp: string;
 }
 
 interface ChatInterfaceProps {
-  channelName: string
-  channelId: string
-  profilePictureUrl: string
-  botTier: string
-  boosts: string[]
-  isActive: boolean
-  uniqueVideoCount: number
+  channelData: ChannelData;
 }
 
 const MAX_TOKENS = 50000;
 const WARNING_TOKENS = 40000;
 
-export const ChatInterface: React.FC<ChatInterfaceProps> = ({
-  channelName,
-  channelId,
-  profilePictureUrl,
-  botTier,
-  boosts,
-  isActive,
-  uniqueVideoCount
-}) => {
+export const ChatInterface: React.FC<ChatInterfaceProps> = ({ channelData }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
       sender: 'AI',
-      content: `Welcome to the ${channelName} chatbot!\n\nMy memory is loaded with **${uniqueVideoCount}** video transcripts.\n\nHow can I assist you today?`,
+      content: `Welcome to the ${channelData.title} chatbot!\n\nMy memory is loaded with **${channelData.totalVideos}** video transcripts.\n\nHow can I assist you today?`,
       timestamp: '12:00 PM'
     }
   ]);
-  const [input, setInput] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [showScrollButton, setShowScrollButton] = useState(false)
-  const [chatSessionId, setChatSessionId] = useState<string | null>(null)
-  const [tokenCount, setTokenCount] = useState(0)
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const [chatSessionId, setChatSessionId] = useState<string | null>(null);
+  const [tokenCount, setTokenCount] = useState(0);
 
-  const { toast } = useToast()
+  const { toast } = useToast();
 
-  const chatContainerRef = useRef<HTMLDivElement>(null)
-  const lastMessageRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const lastMessageRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = useCallback(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
-  }, [])
+  }, []);
 
   const handleScroll = useCallback(() => {
     if (chatContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current
-      const isScrolledUp = scrollTop < scrollHeight - clientHeight - 100
-      setShowScrollButton(isScrolledUp)
+      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+      const isScrolledUp = scrollTop < scrollHeight - clientHeight - 100;
+      setShowScrollButton(isScrolledUp);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    const chatContainer = chatContainerRef.current
+    const chatContainer = chatContainerRef.current;
     if (chatContainer) {
-      chatContainer.addEventListener('scroll', handleScroll)
-      return () => chatContainer.removeEventListener('scroll', handleScroll)
+      chatContainer.addEventListener('scroll', handleScroll);
+      return () => chatContainer.removeEventListener('scroll', handleScroll);
     }
-  }, [handleScroll])
+  }, [handleScroll]);
 
   useEffect(() => {
     if (!showScrollButton) {
-      scrollToBottom()
+      scrollToBottom();
     }
-  }, [messages, showScrollButton, scrollToBottom])
+  }, [messages, showScrollButton, scrollToBottom]);
 
   // Auto-expand textarea
   const adjustTextareaHeight = () => {
     if (inputRef.current) {
-      inputRef.current.style.height = 'auto' // Reset height to allow shrinking
-      inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 120)}px` // Limit to 5 lines (120px)
+      inputRef.current.style.height = 'auto'; // Reset height to allow shrinking
+      inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 120)}px`; // Limit to 5 lines (120px)
     }
-  }
+  };
 
   useEffect(() => {
-    adjustTextareaHeight()
-  }, [input])
+    adjustTextareaHeight();
+  }, [input]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value)
-    adjustTextareaHeight()
-  }
+    setInput(e.target.value);
+    adjustTextareaHeight();
+  };
 
   const handleQuickPrompt = (prompt: string) => {
-    setInput(prompt)
-    adjustTextareaHeight()
+    setInput(prompt);
+    adjustTextareaHeight();
     if (inputRef.current) {
-      inputRef.current.focus()
+      inputRef.current.focus();
     }
-  }
+  };
 
   const handleSend = async () => {
     if (input.trim() && !isLoading) {
@@ -117,14 +105,14 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           title: "Token limit reached",
           description: "You've reached the maximum token limit for this chat. Please start a new chat.",
           variant: "destructive",
-        })
-        return
+        });
+        return;
       }
 
-      setIsLoading(true)
-      const userMessage: Message = { id: messages.length + 1, sender: 'You', content: input, timestamp: new Date().toLocaleTimeString() }
-      setMessages(prevMessages => [...prevMessages, userMessage])
-      setInput('')
+      setIsLoading(true);
+      const userMessage: Message = { id: messages.length + 1, sender: 'You', content: input, timestamp: new Date().toLocaleTimeString() };
+      setMessages(prevMessages => [...prevMessages, userMessage]);
+      setInput('');
 
       try {
         const response = await fetch('/api/chat', {
@@ -132,8 +120,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ channelId, query: input, chatSessionId }),
-        })
+          body: JSON.stringify({ channelData, query: input, chatSessionId }),
+        });
 
         if (!response.ok) {
           const errorData = await response.json();
@@ -148,35 +136,35 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           throw new Error('Failed to get AI response');
         }
 
-        const data = await response.json()
-        const aiMessage: Message = { id: messages.length + 2, sender: 'AI', content: data.response, timestamp: new Date().toLocaleTimeString() }
-        setMessages(prevMessages => [...prevMessages, aiMessage])
-        setChatSessionId(data.chatSessionId)
-        setTokenCount(data.tokenCount)
+        const data = await response.json();
+        const aiMessage: Message = { id: messages.length + 2, sender: 'AI', content: data.response, timestamp: new Date().toLocaleTimeString() };
+        setMessages(prevMessages => [...prevMessages, aiMessage]);
+        setChatSessionId(data.chatSessionId);
+        setTokenCount(data.tokenCount);
 
         if (data.tokenCount >= WARNING_TOKENS) {
           toast({
             title: "Token Warning",
             description: `Warning: You've used ${data.tokenCount} tokens. Approaching limit.`,
             variant: "destructive",
-          })
+          });
         }
       } catch (error) {
-        console.error('Error in chat:', error)
-        const errorMessage: Message = { id: messages.length + 2, sender: 'AI', content: 'An error occurred. Please try again.', timestamp: new Date().toLocaleTimeString() }
-        setMessages(prevMessages => [...prevMessages, errorMessage])
+        console.error('Error in chat:', error);
+        const errorMessage: Message = { id: messages.length + 2, sender: 'AI', content: 'An error occurred. Please try again.', timestamp: new Date().toLocaleTimeString() };
+        setMessages(prevMessages => [...prevMessages, errorMessage]);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-  }
+  };
 
   return (
     <Card className="w-full mt-8">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span className="flex">
-            Chat with {channelName}
+            Chat with {channelData.title}
             <Bot className="w-6 h-6 text-gray-500 dark:text-white ml-1" />
           </span>
           {tokenCount >= WARNING_TOKENS && (
@@ -185,22 +173,22 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="relative">
-        <div 
+        <div
           ref={chatContainerRef}
           className="h-[calc(100vh-400px)] min-h-[300px] max-h-[600px] overflow-y-auto pr-4"
           style={{ scrollBehavior: 'smooth' }}
         >
           {messages.map((message, index) => (
-            <div 
-              key={message.id} 
+            <div
+              key={message.id}
               className={`mb-4 flex ${message.sender === 'You' ? 'justify-end' : 'justify-start'}`}
               ref={index === messages.length - 1 ? lastMessageRef : null}
             >
               {message.sender === 'AI' && (
                 <div className="relative mr-2">
                   <Avatar className="w-8 h-8">
-                    <AvatarImage src={profilePictureUrl} alt={channelName} />
-                    <AvatarFallback>{channelName[0]}</AvatarFallback>
+                    <AvatarImage src={channelData.imageUrl} alt={channelData.title} />
+                    <AvatarFallback>{channelData.title[0]}</AvatarFallback>
                   </Avatar>
                 </div>
               )}
@@ -208,7 +196,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 <p className="font-semibold flex items-center dark:prose-invert">
                   {message.sender === 'AI' ? (
                     <>
-                      {channelName}
+                      {channelData.title}
                       <Bot className="w-4 h-4 text-gray-500 dark:text-white ml-1" />
                     </>
                   ) : (
@@ -226,8 +214,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
             <div className="flex justify-start mb-4">
               <div className="relative mr-2">
                 <Avatar className="w-8 h-8">
-                  <AvatarImage src={profilePictureUrl} alt={channelName} />
-                  <AvatarFallback>{channelName[0]}</AvatarFallback>
+                  <AvatarImage src={channelData.imageUrl} alt={channelData.title} />
+                  <AvatarFallback>{channelData.title[0]}</AvatarFallback>
                 </Avatar>
               </div>
               <TypingIndicator />
@@ -265,5 +253,5 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         </div>
       </CardFooter>
     </Card>
-  )
-}
+  );
+};

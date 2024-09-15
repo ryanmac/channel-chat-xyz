@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch channel data from database
     const channel = await prisma.channel.findUnique({
-      where: { id: channelId || channelInfo.channel_id },
+      where: { id: channelId || channelInfo.id },
     });
 
     if (!channel) {
