@@ -30,7 +30,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ channelData }) => 
     {
       id: 1,
       sender: 'AI',
-      content: `Welcome to the ${channelData.title} chatbot!\n\nMy memory is loaded with **${channelData.totalVideos}** video transcripts.\n\n${channelData.interests.length > 0 ? channelData.interests + "\n\n" : ''}How can I assist you today?`,
+      content: `Welcome to the ${channelData.title} chatbot!\n\nMy memory is loaded with **${channelData.totalVideos}** video transcripts so far.\n\n${channelData.interests.length > 0 ? channelData.interests + "\n\n" : ''}What would you like to discuss?`,
       timestamp: '12:00 PM'
     }
   ]);
