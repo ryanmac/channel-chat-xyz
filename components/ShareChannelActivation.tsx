@@ -1,5 +1,5 @@
 // components/ShareChannelActivation.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Share2, Facebook, Linkedin, Link } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,17 +25,17 @@ export function ShareChannelActivation({ channelData }: ShareChannelActivationPr
     }
   }, [channelData]);
 
-  const fetchLatestFunding = async () => {
+  const fetchLatestFunding = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/channel/funding?channelId=${channelData?.id}`);
+      const response = await fetch(`/api/yes/channel-info?channel_name=${channelData?.name}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch latest funding');
+        throw new Error('Failed to fetch latest funding information');
       }
       const data = await response.json();
-      setCurrentFunding(data.currentFunding);
+      setCurrentFunding(data.activationFunding);
     } catch (error) {
-      console.error('Error fetching latest funding:', error);
+      console.error('Error fetching latest funding information:', error);
       toast({
         title: 'Error',
         description: 'Failed to fetch latest funding information.',
@@ -44,7 +44,7 @@ export function ShareChannelActivation({ channelData }: ShareChannelActivationPr
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [channelData, toast]);
 
   const remainingToActivate = Math.max(0, (channelData?.activationGoal || 0) - currentFunding);
   const percentageComplete = (currentFunding / (channelData?.activationGoal || 1)) * 100;

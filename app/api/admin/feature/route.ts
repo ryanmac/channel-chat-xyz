@@ -1,3 +1,4 @@
+// app/api/admin/feature/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from "@/auth";
 import ChannelController from "@/controllers/ChannelController";
@@ -28,7 +29,8 @@ export async function GET(req: NextRequest) {
       direction = undefined;
     }
 
-    const pageSize = pageSizeParam ? parseInt(pageSizeParam, 20) : 20;
+    // Set default page size if not provided
+    const pageSize = pageSizeParam ? parseInt(pageSizeParam, 10) : 10;
 
     const channelController = new ChannelController();
     const data = await channelController.getAllChannels({
@@ -36,7 +38,7 @@ export async function GET(req: NextRequest) {
       sort,
       direction,
       page: page ? parseInt(page, 10) : 1,
-      pageSize: pageSize,
+      pageSize,
     });
 
     return NextResponse.json(data);

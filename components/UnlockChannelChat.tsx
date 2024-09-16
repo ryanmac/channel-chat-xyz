@@ -1,5 +1,5 @@
 // components/UnlockChannelChat.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { motion, useAnimation } from 'framer-motion';
@@ -28,7 +28,7 @@ interface Contributor {
 }
 
 export function UnlockChannelChat({ channelData, onFundingUpdate }: UnlockChannelChatProps) {
-  const [activationFunding, setActivationFunding] = useState(channelData?.activationFunding || 0); // Corrected state variable
+  const [activationFunding, setActivationFunding] = useState(channelData?.activationFunding || 0);
   const [amount, setAmount] = useState<number>(5);
   const [customAmount, setCustomAmount] = useState('');
   const [earnedBadges, setEarnedBadges] = useState<BadgeType[]>([]);
@@ -42,34 +42,34 @@ export function UnlockChannelChat({ channelData, onFundingUpdate }: UnlockChanne
   const sessionId = searchParams.get('session_id');
   const botAnimation = useAnimation();
 
-  useEffect(() => {
-    // Fetch the latest funding status when the component mounts or the sessionId changes
-    const fetchLatestFunding = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch(`/api/channel/funding?channelId=${channelData?.id}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch latest funding');
-        }
-        const data = await response.json();
-        setActivationFunding(data.channelData.activationFunding);
-        onFundingUpdate();
-      } catch (error) {
-        console.error('Error fetching latest funding:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to fetch latest funding information.',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
+  const fetchLatestChannelData = useCallback(async () => {
+    if (!channelData) return;
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/yes/channel-info?channel_name=${channelData.name}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch latest channel data');
       }
-    };
-
-    if (channelData) {
-      fetchLatestFunding();
+      const data = await response.json();
+      setActivationFunding(data.activationFunding);
+      onFundingUpdate();
+    } catch (error) {
+      console.error('Error fetching channel data:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch latest channel information.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
     }
-  }, [channelData, onFundingUpdate]);
+  }, [channelData, onFundingUpdate, toast]);
+
+  useEffect(() => {
+    if (channelData) {
+      fetchLatestChannelData();
+    }
+  }, [channelData, fetchLatestChannelData]);
 
   useEffect(() => {
     const calculateFundingImpact = () => {
@@ -121,11 +121,6 @@ export function UnlockChannelChat({ channelData, onFundingUpdate }: UnlockChanne
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleCustomAmountSponsor = () => {
-    const selectedAmount = Number(customAmount);
-    handleSponsor(selectedAmount);
   };
 
   const calculateContributionImpact = () => {

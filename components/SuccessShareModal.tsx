@@ -85,9 +85,9 @@ export const SuccessShareModal: React.FC<SuccessShareModalProps> = ({
     if (wasActivated) {
       return `I just activated @${channelData.title}'s AI chatbot on @ChannelChatXYZ and sponsored ${newChatCreditsAdded.toLocaleString()} chats!\n\nTrained on YouTube transcripts, it responds in ${channelData.title}'s style. Try it out!\n\n`;
     } else if (badges.includes('founding')) {
-      return `I just contributed to @${channelData.name} on @ChannelChatXYZ!\n\nIt's ${(1 - remainingToActivate / channelActivationGoal) * 100}% funded, only $${remainingToActivate} more to activate! Help us cross the finish line.\n\n#ChannelChat #AI #Crowdfunding\n\n`;
+      return `I just contributed to @${channelData.name}'s AI chatbot on @ChannelChatXYZ!\n\nOnly $${remainingToActivate} more to activate a chatbot trained on transcripts!\n\n`;
     } else {
-      return `I just sponsored ${newChatCreditsAdded.toLocaleString()} chats for @${channelData.name} on @ChannelChatXYZ!\n\nNow you can try it out for free! Join in and start chatting in the style of ${channelData.title}.\n\n`;
+      return `I just sponsored ${newChatCreditsAdded.toLocaleString()} chats for @${channelData.title}'s AI chatbot on @ChannelChatXYZ!\n\nNow you can try it out for free! It's trained on ${channelData.name}'s transcripts.\n\n`;
     }
   };
 

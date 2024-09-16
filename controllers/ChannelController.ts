@@ -36,6 +36,7 @@ interface SerializedChannel {
   isProcessing: boolean;
   status: string;
   interests: string;
+  featured: boolean;
 }
 
 export default class ChannelController {
@@ -66,6 +67,7 @@ export default class ChannelController {
       'totalVideos',
       'chatsCreated',
       'status',
+      'featured',
       // Add other allowed fields here
     ];
 
@@ -111,6 +113,7 @@ export default class ChannelController {
         isProcessing: true,
         status: true,
         interests: true,
+        featured: true,
         // Include any other fields you need
       },
     });
@@ -152,6 +155,7 @@ export default class ChannelController {
       isProcessing: channel.isProcessing,
       status: channel.status,
       interests: channel.interests,
+      featured: channel.featured,
     };
   }
 }

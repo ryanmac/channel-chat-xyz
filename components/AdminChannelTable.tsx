@@ -32,6 +32,7 @@ interface Channel {
   isProcessing: boolean;
   status: string;
   interests: string;
+  featured: boolean;
 }
 
 type SortColumn = keyof Channel;
@@ -42,6 +43,7 @@ export default function AdminChannelTable() {
   const [sortColumn, setSortColumn] = useState<SortColumn>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const { toast } = useToast();
 
@@ -52,7 +54,7 @@ export default function AdminChannelTable() {
   const fetchChannels = async () => {
     try {
       const response = await fetch(
-        `/api/admin/channels?search=${encodeURIComponent(searchTerm)}&sort=${sortColumn}&direction=${sortDirection}&page=${page}`
+        `/api/admin/channels?search=${encodeURIComponent(searchTerm)}&sort=${sortColumn}&direction=${sortDirection}&page=${page}&pageSize=${pageSize}`
       );
       if (!response.ok) {
         throw new Error('Failed to fetch channels');
@@ -82,7 +84,12 @@ export default function AdminChannelTable() {
 
   useEffect(() => {
     fetchChannels();
-  }, [searchTerm, sortColumn, sortDirection, page]);
+  }, [searchTerm, sortColumn, sortDirection, page, pageSize]);  // Include pageSize in the dependency array
+
+  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setPageSize(Number(e.target.value));
+    setPage(1);  // Reset to first page whenever page size changes
+  };
 
   useEffect(() => {
     const processingChannels = channels.some(channel => channel.isProcessing);
@@ -168,6 +175,30 @@ export default function AdminChannelTable() {
     }
   };
 
+  const handleFeature = async (channelId: string, channelName: string) => {
+    const updatedChannelAfterFeature = await fetch('/api/admin/feature', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channelName }),
+    });
+
+    if (!updatedChannelAfterFeature.ok) {
+      toast({
+        title: "Error",
+        description: "Failed to feature channel. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    } else {
+      toast({
+        title: "Channel Featured",
+        description: `Successfully featured ${channelName}`,
+      });
+    }
+
+    fetchChannels();
+  }
+
   const handleBoost = async (channelId: string, channelName: string, channelStatus: string) => {
     const amount = boostAmounts[channelId];
 
@@ -247,12 +278,24 @@ export default function AdminChannelTable() {
   return (
     <div className="mb-8">
       <h2 className="text-xl font-semibold mb-4">Channels</h2>
-      <Input
-        placeholder="Search channels"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="mb-4"
-      />
+        <div className="flex items-center space-x-4 mb-4">
+        <Input
+          placeholder="Search channels"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="mb-4"
+        />
+        <select
+          value={pageSize}
+          onChange={handlePageSizeChange}
+          className="p-2 border rounded"
+        >
+          <option value={5}>5 per page</option>
+          <option value={10}>10 per page</option>
+          <option value={20}>20 per page</option>
+          <option value={50}>50 per page</option>
+        </select>
+      </div>
       <Table>
         <TableHeader>
           <TableRow>
@@ -302,7 +345,18 @@ export default function AdminChannelTable() {
                   </Link>
                 </div>
               </TableCell>
-              <TableCell>{channel.status}</TableCell>
+              <TableCell>
+                {channel.status === 'ACTIVE' ? (
+                  <Button
+                    onClick={() => handleFeature(channel.id, channel.name)}
+                    className="px-2 py-1 text-xs bg-background border-input border text-gray-800 dark:text-white hover:bg-accent"
+                  >
+                    {channel.featured ? 'Unfeature' : 'Feature'}
+                  </Button>
+                ) : (
+                  <span className="text-gray-500">Pending</span>
+                )}
+              </TableCell>
               <TableCell>
                 <Button
                   onClick={() => handleProcessChannel(channel.id, channel.name)}

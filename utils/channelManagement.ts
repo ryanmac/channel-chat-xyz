@@ -105,10 +105,6 @@ export async function fetchAndMergeChannelData(options: { channelId?: string; ch
   });
 
   if (!channel) {
-    throw new Error(`Channel ${channel_id} not found in DB.`);
-  }
-
-  if (!channel) {
     console.log(`Channel ${channel_id} not found in DB. Creating new channel.`);
     channel = await prisma.channel.create({
       data: {
@@ -123,7 +119,7 @@ export async function fetchAndMergeChannelData(options: { channelId?: string; ch
         bannerUrl: brandingSettings.image.bannerExternalUrl || '',
         status: 'PENDING', // Set a default status; adjust as needed
         activationFunding: 0, // Default to 0; adjust as needed
-        activationGoal: 1000, // Default goal; adjust as needed
+        activationGoal: 10, // Default goal; adjust as needed
         creditBalance: 0, // Default credit balance; adjust as needed
         isProcessing: false, // Default to false; adjust as needed
         totalEmbeddings: total_embeddings || 0,
@@ -171,7 +167,7 @@ export async function fetchAndMergeChannelData(options: { channelId?: string; ch
     bannerUrl: brandingSettings.image.bannerExternalUrl || channel.bannerUrl || '',
     status: channel.status || 'PENDING',
     activationFunding: channel.activationFunding || 0,
-    activationGoal: channel.activationGoal || 1000,
+    activationGoal: channel.activationGoal || 10,
     creditBalance: channel.creditBalance || 0,
     isProcessing: channel.isProcessing || false,
     totalEmbeddings: total_embeddings || channel.totalEmbeddings || 0,

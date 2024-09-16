@@ -39,12 +39,16 @@ export async function GET(request: NextRequest) {
             },
           });
         }
+        // Delete the SessionBadge after transfer
+        const sessionBadgeUpdated = await prisma.sessionBadge.findUnique({
+          where: { sessionId },
+        });
+        if (sessionBadgeUpdated) {
+          await prisma.sessionBadge.delete({
+            where: { id: sessionBadge.id },
+          });
+        }
       }
-
-      // Delete the SessionBadge after transfer
-      await prisma.sessionBadge.delete({
-        where: { id: sessionBadge.id },
-      });
 
       return NextResponse.json({ message: 'Badges transferred to user' });
     }
