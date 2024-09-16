@@ -21,6 +21,7 @@ interface GetAllChannelsOptions {
 interface SerializedChannel {
   id: string;
   name: string;
+  imageUrl: string;
   subscriberCount: number;
   videoCount: number;
   viewCount: number;
@@ -34,6 +35,7 @@ interface SerializedChannel {
   botScore: number;
   isProcessing: boolean;
   status: string;
+  interests: string;
 }
 
 export default class ChannelController {
@@ -94,6 +96,7 @@ export default class ChannelController {
       select: {
         id: true,
         name: true,
+        imageUrl: true,
         subscriberCount: true,
         videoCount: true,
         viewCount: true,
@@ -107,6 +110,7 @@ export default class ChannelController {
         botScore: true,
         isProcessing: true,
         status: true,
+        interests: true,
         // Include any other fields you need
       },
     });
@@ -133,6 +137,7 @@ export default class ChannelController {
     return {
       id: channel.id,
       name: channel.name,
+      imageUrl: channel.imageUrl,
       subscriberCount: channel.subscriberCount ? channel.subscriberCount.toString() : null,
       videoCount: channel.videoCount ? channel.videoCount.toString() : null,
       viewCount: channel.viewCount ? channel.viewCount.toString() : null,
@@ -146,6 +151,7 @@ export default class ChannelController {
       botScore: channel.botScore ? channel.botScore.toString() : null,
       isProcessing: channel.isProcessing,
       status: channel.status,
+      interests: channel.interests,
     };
   }
 }

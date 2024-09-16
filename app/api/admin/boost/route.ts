@@ -68,19 +68,19 @@ export async function POST(request: NextRequest) {
 
       // Handle activation
       if (activationAmount > 0) {
-        await createTransaction(channel.id, null, 'admin-boost', activationAmount, 'ACTIVATION');
+        await createTransaction(channel.id, session.user.id, 'admin-boost', activationAmount, 'ACTIVATION');
 
         // Check if this transaction activates the channel
         if (currentActivationFunding + activationAmount >= channel.activationGoal) {
           creditsToAdd += 1000; // Initial 1000 credits for activation
-          await createTransaction(channel.id, null, 'admin-boost', 1000, 'CREDIT_PURCHASE');
+          await createTransaction(channel.id, session.user.id, 'admin-boost', 1000, 'CREDIT_PURCHASE');
           wasActivated = true;
         }
       }
 
       // Handle credit purchase
       if (creditAmount > 0) {
-        await createTransaction(channel.id, null, 'admin-boost', creditAmount * 1000, 'CREDIT_PURCHASE');
+        await createTransaction(channel.id, session.user.id, 'admin-boost', creditAmount * 1000, 'CREDIT_PURCHASE');
         creditsToAdd += creditAmount * 1000; // 1000 credits per $1
       }
 

@@ -1,7 +1,7 @@
 // app/api/admin/interests/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { getRecentChunks } from '@/utils/yesService';
+import { getRelevantChunks, getRecentChunks } from '@/utils/yesService';
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 import { error } from 'console';
@@ -27,9 +27,13 @@ export async function POST(request: NextRequest) {
 
   try {
     // Fetch relevant chunks
-    const chunksResponse = await getRecentChunks(channelData.id, 100);
+    const chunkLimit = 50;
+    // const chunksResponse = await getRecentChunks(channelData.id, 50);
+    const query = 'interesting conversations and topics';
+    const chunksResponse = await getRelevantChunks(query, channelData.id, chunkLimit);
+
     if (!chunksResponse || !chunksResponse.chunks) {
-      throw new Error('Failed to fetch relevant chunks');
+      throw new Error('Failed to fetch recent chunks');
     }
     const { chunks } = chunksResponse;
 

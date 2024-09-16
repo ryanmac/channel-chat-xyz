@@ -15,6 +15,7 @@ import { createCheckoutSession } from '@/utils/stripePayments';
 import { BadgeComponent } from '@/components/BadgeComponent';
 import { determineBadges, BadgeType } from '@/utils/badgeManagement';
 import { ChannelData } from '@/utils/channelManagement';
+import { FaRobot } from "react-icons/fa6";
 
 interface UnlockChannelChatProps {
   channelData: ChannelData | null;
@@ -197,7 +198,7 @@ export function UnlockChannelChat({ channelData, onFundingUpdate }: UnlockChanne
           >
             Activate {channelData?.title}'s Chatbot
             <motion.div animate={botAnimation} className="absolute top-4 right-4">
-              <Bot className="w-12 h-12 text-white" />
+              <FaRobot className="w-12 h-12 text-white" />
             </motion.div>
           </motion.div>
         </CardTitle>

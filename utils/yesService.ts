@@ -114,30 +114,42 @@ export async function refreshChannelMetadata(options: { channelId?: string; chan
 
 export async function processChannel(channelId: string, videoLimit: number = 20) {
   try {
-    console.log(`Processing channel: ${channelId}, videoLimit: ${videoLimit}`);
+      console.log(`Processing channel: ${channelId}, videoLimit: ${videoLimit}`);
 
-    const requestBody: any = {
-      channel_id: channelId,
-      video_limit: videoLimit
-    };
+      const requestBody: any = {
+          channel_id: channelId,
+          video_limit: videoLimit
+      };
 
-    const response = await fetchFromYES('/process_channel', 'POST', undefined, requestBody);
+      const response = await fetchFromYES('/process_channel', 'POST', undefined, requestBody);
 
-    // Start polling for job status
-    let jobStatus = await getJobStatus(response.job_id);
-    while (jobStatus.status !== 'SUCCESS' && jobStatus.status !== 'FAILED') {
-      await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
-      jobStatus = await getJobStatus(response.job_id);
-    }
+      // Start polling for job status
+      let jobStatus;
+      try {
+          jobStatus = await getJobStatus(response.job_id);
+      } catch (error) {
+          console.error('Error during initial job status fetch:', error);
+          return;  // Stop further processing on failure
+      }
 
-    if (jobStatus.status === 'FAILED') {
-      throw new Error(`Channel processing failed: ${jobStatus.error}`);
-    }
+      while (jobStatus && jobStatus.status !== 'SUCCESS' && jobStatus.status !== 'FAILED') {
+          await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+          try {
+              jobStatus = await getJobStatus(response.job_id);
+          } catch (error) {
+              console.error('Error while polling job status:', error);
+              break;  // Exit loop on repeated failure
+          }
+      }
 
-    return jobStatus;
+      if (jobStatus && jobStatus.status === 'FAILED') {
+          throw new Error(`Channel processing failed: ${jobStatus.error}`);
+      }
+
+      return jobStatus;
   } catch (error) {
-    console.error('Error processing channel:', error);
-    throw error;
+      console.error('Error processing channel:', error);
+      throw error;
   }
 }
 
@@ -194,10 +206,14 @@ export async function processChannelAsync(channelId: string, channelName: string
 
 export async function getJobStatus(jobId: string) {
   try {
-    return await fetchFromYES(`/job_status/${jobId}`, 'GET');
+      const response = await fetchFromYES(`/job_status/${jobId}`, 'GET');
+      if (!response) {
+          throw new Error('Received undefined response from YES API.');
+      }
+      return response;
   } catch (error) {
-    console.error('Error fetching job status:', error);
-    throw error;
+      console.error('Error fetching job status:', error);
+      throw error;
   }
 }
 

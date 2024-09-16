@@ -7,12 +7,21 @@ import { Input } from "@/components/ui/input";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { Spinner } from "@/components/ui/spinner";
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Info } from 'lucide-react';
 import Link from 'next/link';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { abbreviateNumber, parseAbbreviatedNumber } from '@/utils/numberUtils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Channel {
   id: string;
   name: string;
+  imageUrl: string;
   subscriberCount: string | null;
   videoCount: string | null;
   activationFunding: string | null;
@@ -22,6 +31,7 @@ interface Channel {
   chatsCreated: string | null;
   isProcessing: boolean;
   status: string;
+  interests: string;
 }
 
 type SortColumn = keyof Channel;
@@ -35,10 +45,9 @@ export default function AdminChannelTable() {
   const [totalPages, setTotalPages] = useState(1);
   const { toast } = useToast();
 
-  // State variables for boost functionality
   const [boostAmounts, setBoostAmounts] = useState<{ [key: string]: string }>({});
   const [boostLoading, setBoostLoading] = useState<{ [key: string]: boolean }>({});
-  const [interestsLoading, setInterestsLoading] = useState<{ [key: string]: boolean }>({}); // New state for interests loading
+  const [interestsLoading, setInterestsLoading] = useState<{ [key: string]: boolean }>({});
 
   const fetchChannels = async () => {
     try {
@@ -52,7 +61,6 @@ export default function AdminChannelTable() {
       setChannels(data.channels);
       setTotalPages(data.totalPages || 1);
 
-      // Initialize boostAmounts with default '1' for any new channels
       setBoostAmounts((prevBoostAmounts) => {
         const newBoostAmounts = { ...prevBoostAmounts };
         data.channels.forEach((channel: Channel) => {
@@ -76,29 +84,53 @@ export default function AdminChannelTable() {
     fetchChannels();
   }, [searchTerm, sortColumn, sortDirection, page]);
 
-  // Polling for channels that are processing
   useEffect(() => {
     const processingChannels = channels.some(channel => channel.isProcessing);
     if (processingChannels) {
       const intervalId = setInterval(() => {
         fetchChannels();
-      }, 5000); // Poll every 5 seconds
+      }, 5000);
       return () => clearInterval(intervalId);
     }
   }, [channels]);
 
   const handleSort = (column: SortColumn) => {
     if (column === sortColumn) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+      setSortDirection(sortDirection === 'desc' ? 'asc' : 'desc');
     } else {
       setSortColumn(column);
-      setSortDirection('asc');
+      setSortDirection('desc');
     }
   };
+  
+  const sortedChannels = [...channels].sort((a, b) => {
+    const aValue = a[sortColumn];
+    const bValue = b[sortColumn];
+  
+    if (aValue === null && bValue === null) return 0;
+    if (aValue === null) return 1;
+    if (bValue === null) return -1;
+  
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      if (['subscriberCount', 'videoCount', 'activationFunding', 'creditBalance', 'totalEmbeddings', 'totalVideos', 'chatsCreated'].includes(sortColumn)) {
+        const aNum = parseAbbreviatedNumber(aValue);
+        const bNum = parseAbbreviatedNumber(bValue);
+        return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
+      } else {
+        return sortDirection === 'asc' 
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+    }
+  
+    // Fallback for any other type of comparison
+    return sortDirection === 'asc' 
+      ? (aValue < bValue ? -1 : 1)
+      : (bValue < aValue ? -1 : 1);
+  });
 
   const handleProcessChannel = async (channelId: string, channelName: string) => {
     try {
-      // Optimistically set isProcessing to true
       setChannels(prevChannels =>
         prevChannels.map(channel =>
           channel.id === channelId ? { ...channel, isProcessing: true } : channel
@@ -122,7 +154,6 @@ export default function AdminChannelTable() {
 
       fetchChannels();
     } catch (error) {
-      // Revert isProcessing to false in case of error
       setChannels(prevChannels =>
         prevChannels.map(channel =>
           channel.id === channelId ? { ...channel, isProcessing: false } : channel
@@ -258,12 +289,18 @@ export default function AdminChannelTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {channels.map((channel) => (
+          {sortedChannels.map((channel) => (
             <TableRow key={channel.id}>
               <TableCell>
-                <Link href={`/channel/@${channel.name}`}>
-                  {channel.name}
-                </Link>
+                <div className="flex items-center space-x-2">
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage src={channel.imageUrl} alt={channel.name} />
+                    <AvatarFallback>{channel.name[0]}</AvatarFallback>
+                  </Avatar>
+                  <Link href={`/channel/@${channel.name}`}>
+                    {channel.name}
+                  </Link>
+                </div>
               </TableCell>
               <TableCell>{channel.status}</TableCell>
               <TableCell>
@@ -274,7 +311,7 @@ export default function AdminChannelTable() {
                 >
                   {channel.isProcessing ? (
                     <>
-                      <Spinner />
+                      <Spinner className="w-4 h-4" />
                     </>
                   ) : (
                     'Process'
@@ -301,7 +338,7 @@ export default function AdminChannelTable() {
                     >
                       {boostLoading[channel.id] ? (
                         <>
-                          <Spinner />
+                          <Spinner className="w-4 h-4" />
                         </>
                       ) : (
                         channel.status === 'PENDING' ? 'Activate' : 'Credits'
@@ -313,31 +350,39 @@ export default function AdminChannelTable() {
                 )}
               </TableCell>
               <TableCell>
-                {/* Interests button */}
-                <Button
-                  onClick={() => handleRefreshInterests(channel.id, channel.name)}
-                  disabled={interestsLoading[channel.id]}
-                  className="px-2 py-1 text-xs bg-background border-input border text-gray-800 dark:text-white hover:bg-accent"
-                >
-                  {interestsLoading[channel.id] ? (
-                    <Spinner />
-                  ) : (
-                    <RotateCcw />
-                  )}
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        onClick={() => handleRefreshInterests(channel.id, channel.name)}
+                        disabled={interestsLoading[channel.id]}
+                        className="px-2 py-1 text-xs bg-background border-input border text-gray-800 dark:text-white hover:bg-accent"
+                      >
+                        {interestsLoading[channel.id] ? (
+                          <Spinner className="w-4 h-4" />
+                        ) : (
+                          <RotateCcw className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{channel.interests || "No interests available"}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </TableCell>
               <TableCell>
                 {channel.subscriberCount
-                  ? Number(channel.subscriberCount).toLocaleString()
+                  ? abbreviateNumber(parseInt(channel.subscriberCount))
                   : '0'}
               </TableCell>
               <TableCell>
-                {channel.videoCount ? Number(channel.videoCount) : '0'}
+                {channel.videoCount ? abbreviateNumber(parseInt(channel.videoCount)) : '0'}
               </TableCell>
               <TableCell>
                 {channel.activationFunding
-                  ? `$${Number(channel.activationFunding).toFixed(0)}`
-                  : '$0'}
+                  ? `$${Number(channel.activationFunding).toFixed(2)}`
+                  : '$0.00'}
               </TableCell>
               <TableCell>
                 {channel.creditBalance

@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bot, Youtube } from 'lucide-react';
 import { ChannelData } from '@/utils/channelManagement';
+import { abbreviateNumber } from '@/utils/numberUtils';
+import { FaRobot } from "react-icons/fa6";
 
 interface ChannelHeaderProps {
   channelData: ChannelData;
@@ -39,15 +41,6 @@ export function ChannelHeader({
   const truncatedDescription = truncateDescription(description, collapsedDescriptionLength);
   const showMoreLink = description.length > collapsedDescriptionLength;
 
-  const abbreviateNumber = (count: number) => {
-    if (count >= 1000000) {
-      return `${(count / 1000000).toFixed(1)}M`;
-    } else if (count >= 1000) {
-      return `${(count / 1000).toFixed(1)}K`;
-    }
-    return count.toString();
-  };
-
   return (
     <div className="w-full">
       <div className="w-full h-48 bg-cover bg-center" style={{ backgroundImage: `url(${bannerExternalUrl})` }} />
@@ -61,7 +54,7 @@ export function ChannelHeader({
             <div className="flex items-center justify-center md:justify-start space-x-2 mt-4 md:mt-0">
               <h1 className="text-3xl font-bold flex items-center">
                 {channelTitle}
-                <Bot className="w-8 h-8 text-gray-500 dark:text-white ml-1" />
+                <FaRobot className="w-8 h-8 text-gray-500 dark:text-white ml-1" />
               </h1>
               <Link
                 href={`https://www.youtube.com/channel/@${sanitizedChannelName}`}

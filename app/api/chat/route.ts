@@ -83,7 +83,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch relevant chunks
-    const chunksResponse = await getRelevantChunks(query, channelData.id);
+    const chunkLimit = 5;
+    const chunksResponse = await getRelevantChunks(query, channelData.id, chunkLimit);
     if (!chunksResponse || !chunksResponse.chunks) {
       throw new Error('Failed to fetch relevant chunks');
     }

@@ -9,6 +9,7 @@ import { Bot, MessageSquare } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { createCheckoutSession } from "@/utils/stripePayments";
 import { ChannelData } from '@/utils/channelManagement';
+import { FaR, FaRobot } from "react-icons/fa6";
 
 interface SponsorshipCTAProps {
   channelData: ChannelData;
@@ -50,7 +51,7 @@ export function SponsorshipCTA({ channelData }: SponsorshipCTAProps) {
         <CardTitle>
           <p className="font-semibold flex items-center">
             Sponsor {channelData.title} Chats
-            <Bot className="w-6 h-6 text-white ml-2" />
+            <FaRobot className="w-6 h-6 text-white ml-2" />
           </p>
         </CardTitle>
       </CardHeader>

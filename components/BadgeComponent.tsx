@@ -3,6 +3,7 @@ import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Award, Bot, Clock, Users, MessageSquare, Share2, Calendar, Star, Zap, Coffee, Brain } from "lucide-react";
 import { BadgeType } from "@/utils/badgeManagement";
+import { FaRobot } from "react-icons/fa6";
 
 interface BadgeProps {
   type: BadgeType;
@@ -11,7 +12,7 @@ interface BadgeProps {
 const badgeConfig: Record<BadgeType, { name: string; icon: React.ReactNode; rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' }> = {
   founding: { name: "Founding Sponsor", icon: <Award className="h-4 w-4" />, rarity: 'legendary' },
   close: { name: "So Close", icon: <Clock className="h-4 w-4" />, rarity: 'uncommon' },
-  'did-it': { name: "I Did It!", icon: <Bot className="h-4 w-4" />, rarity: 'rare' },
+  'did-it': { name: "I Did It!", icon: <FaRobot className="h-4 w-4" />, rarity: 'rare' },
   activator: { name: "Activator", icon: <Users className="h-4 w-4" />, rarity: 'epic' },
   chad: { name: "Chad", icon: <Award className="h-4 w-4" />, rarity: 'epic' },
   'giga-chad': { name: "Giga Chad", icon: <Award className="h-4 w-4" />, rarity: 'legendary' },
@@ -26,7 +27,7 @@ const badgeConfig: Record<BadgeType, { name: string; icon: React.ReactNode; rari
   'conversation-starter': { name: "Conversation Starter", icon: <MessageSquare className="h-4 w-4" />, rarity: 'common' },
   'fact-checker': { name: "Fact Checker", icon: <Coffee className="h-4 w-4" />, rarity: 'rare' },
   trendsetter: { name: "Trendsetter", icon: <Zap className="h-4 w-4" />, rarity: 'epic' },
-  'ai-whisperer': { name: "AI Whisperer", icon: <Bot className="h-4 w-4" />, rarity: 'legendary' },
+  'ai-whisperer': { name: "AI Whisperer", icon: <FaRobot className="h-4 w-4" />, rarity: 'legendary' },
 };
 
 export const BadgeComponent: React.FC<BadgeProps> = ({ type }) => {

@@ -9,6 +9,7 @@ import QuickPrompts from '@/components/QuickPrompts';
 import TypingIndicator from '@/components/TypingIndicator';
 import { useToast } from "@/hooks/use-toast";
 import { ChannelData } from '@/utils/channelManagement';
+import { FaRobot } from "react-icons/fa6";
 
 interface Message {
   id: number;
@@ -165,7 +166,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ channelData }) => 
         <CardTitle className="flex items-center justify-between">
           <span className="flex">
             Chat with {channelData.title}
-            <Bot className="w-6 h-6 text-gray-500 dark:text-white ml-1" />
+            <FaRobot className="w-6 h-6 text-gray-500 dark:text-white ml-1" />
           </span>
           {tokenCount >= WARNING_TOKENS && (
             <span className="text-sm font-normal">Tokens used: {tokenCount}/{MAX_TOKENS}</span>
@@ -199,7 +200,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ channelData }) => 
                   {message.sender === 'AI' ? (
                     <>
                       {channelData.title}
-                      <Bot className="w-4 h-4 text-gray-500 dark:text-white ml-1" />
+                      <FaRobot className="w-4 h-4 text-gray-500 dark:text-white ml-1" />
                     </>
                   ) : (
                     'You'

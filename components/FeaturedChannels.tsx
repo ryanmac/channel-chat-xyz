@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { Youtube, MessageCircle, Zap } from "lucide-react";
+import { abbreviateNumber } from '@/utils/numberUtils';
 
 interface Channel {
   id: string;
@@ -55,15 +56,6 @@ export function FeaturedChannels({ showStats = true }: FeaturedChannelsProps) {
 
   if (error) {
     return <div>{error}</div>;
-  }
-
-  const abbreviateNumber = (count: number) => {
-    if (count >= 1000000) {
-      return `${(count / 1000000).toFixed(1)}M`;
-    } else if (count >= 1000) {
-      return `${(count / 1000).toFixed(1)}K`;
-    }
-    return count.toLocaleString();
   }
 
   return (

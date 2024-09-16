@@ -26,6 +26,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useSession } from 'next-auth/react';
 import { defaultChannelData } from '@/constants/channelData';
 import { getCache, setCache } from '@/utils/cache';
+// import { Bot } from 'lucide-react';
+import { FaRobot } from "react-icons/fa6";
 
 interface ChannelPageProps {
   params: {
@@ -210,7 +212,10 @@ export default function ChannelPage({ params }: ChannelPageProps) {
     return (
       <div className="flex flex-col justify-center items-center h-screen space-y-4">
         <Spinner size="large" />
-        <div>Loading @{channelName}...</div>
+        <div className="flex items-center space-x-2">
+          <span className="text-2xl">Loading @{channelName}</span>
+          <FaRobot className="w-8 h-8 text-gray-500 dark:text-white" />
+        </div>
       </div>
     );
   }
