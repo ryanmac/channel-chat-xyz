@@ -175,24 +175,26 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ channelData }) => 
       <CardContent className="relative">
         <div
           ref={chatContainerRef}
-          className="h-[calc(100vh-400px)] min-h-[300px] max-h-[600px] overflow-y-auto pr-4"
+          className="h-[calc(100vh-400px)] min-h-[300px] max-h-[600px] overflow-y-auto pr-2 sm:pr-4" /* Updated pr to adjust on smaller screens */
           style={{ scrollBehavior: 'smooth' }}
         >
           {messages.map((message, index) => (
             <div
               key={message.id}
-              className={`mb-4 flex ${message.sender === 'You' ? 'justify-end' : 'justify-start'}`}
+              className={`mb-2 flex ${message.sender === 'You' ? 'justify-end' : 'justify-start'} sm:mb-4`} /* Adjust margin-bottom on small screens */
               ref={index === messages.length - 1 ? lastMessageRef : null}
             >
               {message.sender === 'AI' && (
-                <div className="relative mr-2">
+                <div className="relative hidden mr-2 sm:block">
                   <Avatar className="w-8 h-8">
                     <AvatarImage src={channelData.imageUrl} alt={channelData.title} />
                     <AvatarFallback>{channelData.title[0]}</AvatarFallback>
                   </Avatar>
                 </div>
               )}
-              <div className={`inline-block p-2 rounded-lg max-w-[80%] ${message.sender === 'You' ? 'bg-blue-500 text-white dark:bg-blue-800 dark:text-white' : 'bg-gray-200 text-black dark:bg-gray-800 dark:text-white'}`}>
+              <div
+                className={`inline-block p-2 sm:p-4 rounded-lg max-w-[100%] sm:max-w-[90%] ${message.sender === 'You' ? 'bg-blue-500 text-white dark:bg-blue-800 dark:text-white' : 'bg-gray-200 text-black dark:bg-gray-800 dark:text-white'}`} /* Increased max-width on smaller screens */
+              >
                 <p className="font-semibold flex items-center dark:prose-invert">
                   {message.sender === 'AI' ? (
                     <>
@@ -207,7 +209,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ channelData }) => 
                   <ClientMarkdown content={message.content} />
                 </div>
               </div>
-              {message.sender === 'You' && <div className="w-8 h-8 ml-2" />}
+              {message.sender === 'You' && <div className="w-8 h-8 ml-0 sm:ml-2" />}
             </div>
           ))}
           {isLoading && (
