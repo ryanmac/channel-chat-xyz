@@ -56,7 +56,7 @@ export default function ChannelPage({ params }: ChannelPageProps) {
   const { toast } = useToast();
 
   const transferBadges = async () => {
-    console.log(`Attempting to transfer badges for session ${sessionId} and user ${session?.user?.id}`);
+    // console.log(`Attempting to transfer badges for session ${sessionId} and user ${session?.user?.id}`);
     try {
       const response = await fetch('/api/badges/transfer', {
         method: 'POST',
@@ -88,15 +88,15 @@ export default function ChannelPage({ params }: ChannelPageProps) {
   }, [status, sessionId]);
 
   const fetchSessionBadges = useCallback(async () => {
-    console.log('Channel Page: Fetching session badges for:', sessionId);
     if (!sessionId) return;
 
+    // console.log('Channel Page: Fetching session badges for:', sessionId);
     const cacheKey = `session_badges_${sessionId}`;
     const cachedData = getCache(cacheKey);
     let badgesArray: BadgeType[] = [];
     try {
       if (cachedData) {
-        console.log('Using cached session badges:', cachedData);
+        // console.log('Using cached session badges:', cachedData);
         setEarnedBadges(cachedData);
         badgesArray = cachedData;
       } else {
@@ -127,7 +127,7 @@ export default function ChannelPage({ params }: ChannelPageProps) {
 
     setIsLoading(true);
     setError(null);
-    console.log('Fetching channel data for:', channelName);
+    // console.log('Fetching channel data for:', channelName);
     try {
       const response = await fetch(`/api/yes/channel-info?channel_name=${channelName}`);
       if (!response.ok) {
@@ -187,10 +187,11 @@ export default function ChannelPage({ params }: ChannelPageProps) {
   if (isLoading) {
     return (
       <div className="flex flex-col justify-center items-center h-screen space-y-4">
-        <Spinner size="large" />
+        <FaRobot className="w-16 h-16 text-gray-500 dark:text-white animate-spin" />
         <div className="flex items-center space-x-2">
-          <span className="text-2xl">Loading @{channelName}</span>
-          <FaRobot className="w-8 h-8 text-gray-500 dark:text-white" />
+          <span className="text-2xl mr-2">Loading</span>
+          <FaRobot className="w-8 h-8 text-gray-500 dark:text-white -mr-1 p-0" />
+          <span className="text-3xl ml-0">{channelName}</span>
         </div>
       </div>
     );
@@ -212,7 +213,7 @@ export default function ChannelPage({ params }: ChannelPageProps) {
             {isProcessing ? (
               <ChannelProcessing channelData={channelInfo} />
             ) : isChannelActive ? (
-              <div>
+              <div className="mt-8">
                 <ChatInterface channelData={channelInfo} />
                 <DisclaimerSection />
               </div>

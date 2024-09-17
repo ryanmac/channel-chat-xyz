@@ -1,69 +1,70 @@
-// components/YouTubeChannelSearch.tsx
+// components/ChannelSearch.tsx
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useDebouncedCallback } from 'use-debounce'
-import { useRouter } from 'next/navigation'
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Search } from "lucide-react"
+import { useState, useEffect, useCallback } from 'react';
+import { useDebouncedCallback } from 'use-debounce';
+import { useRouter } from 'next/navigation';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
 
 type Channel = {
-  id: string
-  name: string
-  title: string
-  description: string
-  thumbnailUrl: string
-}
+  name: string;
+  title: string;
+  imageUrl: string;
+  subscriberCount: number;
+};
 
-export default function YouTubeChannelSearch() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [results, setResults] = useState<Channel[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [selectedIndex, setSelectedIndex] = useState<number>(-1)
-  const router = useRouter()
+type ChannelSearchProps = {
+  inputClassName?: string; // Optional prop to accept input-specific styles
+  buttonClassName?: string; // Optional prop to accept button-specific styles
+  containerClassName?: string; // Optional prop to accept container-specific styles
+};
 
-  // Debounced function to call our API route
+export default function ChannelSearch({
+  inputClassName = '',
+  buttonClassName = '',
+  containerClassName = '',
+}: ChannelSearchProps) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [results, setResults] = useState<Channel[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState<number>(-1);
+  const router = useRouter();
+
   const searchChannels = useDebouncedCallback(async (term: string) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const response = await fetch(`/api/youtube/search?q=${encodeURIComponent(term)}`)
-      const data = await response.json()
+      const response = await fetch(`/api/channel/search?q=${encodeURIComponent(term)}`);
+      const data = await response.json();
       if (response.ok) {
-        setResults(data)
+        setResults(data);
       } else {
-        console.error('Error fetching YouTube channels:', data.error)
-        setResults([])
+        console.error('Error fetching channels:', data.error);
+        setResults([]);
       }
     } catch (error) {
-      console.error('Error fetching YouTube channels:', error)
+      console.error('Error fetching channels:', error);
+      setResults([]);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, 300)
+  }, 300);
 
   useEffect(() => {
     if (searchTerm) {
-      searchChannels(searchTerm)
+      searchChannels(searchTerm);
     } else {
-      setResults([])
+      setResults([]);
     }
-    setSelectedIndex(-1)
-  }, [searchTerm, searchChannels])
+    setSelectedIndex(-1);
+  }, [searchTerm, searchChannels]);
 
   const handleSelectChannel = useCallback(async (channel: Channel) => {
     try {
-      // Fetch the channel info using the channelId
-      const response = await fetch(`/api/yes/channel-info?channel_id=${channel.id}`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch channel data: ${response.status} ${response.statusText}`);
-      }
-      const channelInfo = await response.json();
-      // Navigate to /channel/@channelName
-      router.push(`/channel/@${channelInfo.channel_name}`);
+      router.push(`/channel/@${channel.name}`);
     } catch (error) {
       console.error('Error in handleSelectChannel:', error);
-      // Optionally, display an error message to the user
     }
   }, [router]);
 
@@ -103,20 +104,20 @@ export default function YouTubeChannelSearch() {
   };
 
   return (
-    <div className="relative w-full max-w-md mx-auto p-4">
+    <div className={`relative w-full max-w-md mx-auto p-4 ${containerClassName}`}>
       <div className="relative">
         <Input
           type="text"
-          placeholder="Enter YouTube @username"
+          placeholder="Enter channel name (@channel)"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pr-10 bg-gray-200 dark:bg-accent dark:text-white"
+          className={`pr-10 bg-gray-200 dark:bg-accent dark:text-white rounded-md ${inputClassName}`}
           onKeyDown={handleKeyDown}
         />
         <Button
           size="icon"
           variant="ghost"
-          className="absolute right-0 top-0 h-full"
+          className={`absolute right-0 top-0 h-full ${buttonClassName}`}
           disabled={isLoading}
         >
           <Search className="h-4 w-4" />
@@ -132,7 +133,7 @@ export default function YouTubeChannelSearch() {
         <ul className="absolute top-full left-0 right-0 mt-1 bg-background border border-input rounded-md shadow-md max-h-80 overflow-auto z-50">
           {results.map((channel, index) => (
             <li
-              key={channel.id}
+              key={channel.name}
               className={`p-2 hover:bg-accent cursor-pointer ${
                 selectedIndex === index ? 'bg-accent' : ''
               }`}
@@ -143,11 +144,14 @@ export default function YouTubeChannelSearch() {
                   <div className="font-semibold">{channel.title}</div>
                   <div className="text-sm text-muted-foreground">@{channel.name}</div>
                 </div>
+                {channel.imageUrl && (
+                  <img src={channel.imageUrl} alt={channel.title} className="w-8 h-8 rounded-full" />
+                )}
               </div>
             </li>
           ))}
         </ul>
       )}
     </div>
-  )
+  );
 }

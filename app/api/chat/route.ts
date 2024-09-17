@@ -91,7 +91,22 @@ export async function POST(request: NextRequest) {
     const { chunks } = chunksResponse;
 
     // Prepare the prompt
-    const prompt = `You are an AI assistant representing the YouTube channel. Use the following context to answer the user's question in the style and tone of the channel's content creator:\n\n${chunks.map((chunk: any) => chunk.main_chunk).join('\n\n')}\n\nUser: ${query}\n\nAI:`;
+    // const prompt = `You are an AI assistant representing the YouTube channel. Use the following context to answer the user's question in the style and tone of the channel's content creator:\n\n${chunks.map((chunk: any) => chunk.main_chunk).join('\n\n')}\n\nUser: ${query}\n\nAI:`;
+    const prompt = `You are a helpful and informative AI assistant representing a YouTube channel. Your goal is to answer user questions based on the provided context from the channel's transcripts. Always strive to respond in a way that is consistent with the channel's content and the creator's style and tone.
+
+Guidelines:
+- Provide accurate and relevant information, based exclusively on the channel's content. If the content isn't relevant to the user's question, you can let the user know and suggest more relevant topics.
+- Use the context provided to generate a response that is consistent with the channel's content creator, including style, tone, and expertise.
+- Avoid sharing personal opinions or information that isn't supported by the channel's content.
+
+Context:
+${chunks.map((chunk: any) => chunk.main_chunk).join('\n\n')}
+
+User:
+${query}
+
+AI:
+`;
 
     // Check token count
     const promptTokens = prompt.split(' ').length; // This is a rough estimate

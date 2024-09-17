@@ -7,7 +7,7 @@ import { useTheme } from 'next-themes'
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Moon, Sun } from 'lucide-react'
-import YouTubeChannelSearch from '@/components/YouTubeChannelSearch'
+import ChannelSearch from '@/components/ChannelSearch'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { UserMenu } from '@/components/UserMenu'
 
@@ -23,22 +23,26 @@ export function Header() {
   if (!mounted) return null
 
   return (
-    <header className="border-b">
+    <header className="bg-gradient-to-b from-blue-400 to-blue-200 dark:from-blue-950 dark:to-blue-900 border-b">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-2">
           <Avatar>
-            <AvatarImage src="/logomark2.png" alt="ChannelChat" />
+            <AvatarImage src="/logomark-play2.png" alt="ChannelChat" />
             <AvatarFallback>
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-xl">C</span>
               </div>
             </AvatarFallback>
           </Avatar>
-          <span className="text-xl font-bold">ChannelChat</span>
+          <span className="text-3xl font-black tracking-tighter text-indigo-900 dark:text-indigo-50">ChannelChat</span>
         </Link>
         <div className="flex items-center space-x-4">
-          <div className="hidden sm:block">
-            <YouTubeChannelSearch />
+          <div className="hidden sm:block sm:w-full">
+            <ChannelSearch
+              containerClassName="w-full sm:w-[20rem]"
+              inputClassName="h-10"
+              buttonClassName="w-10"
+            />
           </div>
           {mounted && ( // Only render after client-side hydration
             <Button

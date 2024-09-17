@@ -106,3 +106,20 @@
 .custom-prose > :last-child {
   margin-bottom: 0;
 }
+
+@media (min-height: 800px) {
+  .chat-container {
+    height: calc(100vh - 200px); /* Height for larger screens */
+  }
+}
+
+@media (max-height: 600px) {
+  .chat-container {
+    height: 300px; /* Fixed height on smaller screens */
+  }
+}
+
+/* Default for other heights */
+.chat-container {
+  height: calc(100vh - 400px); /* Default calculation */
+}

@@ -20,7 +20,7 @@ export function LeaderboardList({ leaderboard }: LeaderboardListProps) {
       {leaderboard.map((entry) => (
         <li key={entry.user.username} className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <Avatar>
+            <Avatar className="rounded-full">
               <AvatarImage src={entry.user.image || undefined} />
               <AvatarFallback>{entry.user.username[0]}</AvatarFallback>
             </Avatar>

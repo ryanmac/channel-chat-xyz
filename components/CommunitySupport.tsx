@@ -51,7 +51,7 @@ export function CommunitySupport() {
   }
 
   return (
-    <section className="py-12 bg-white dark:bg-gray-800">
+    <section className="py-12 bg-indigo-50 dark:bg-gray-800">
       <div className="container px-4 md:px-6">
         <h2 className="text-3xl font-bold text-center mb-8">Activate a Channel</h2>
         <div className="max-w-3xl mx-auto space-y-6">
@@ -65,7 +65,7 @@ export function CommunitySupport() {
                 <Link key={channel.id} href={`/channel/@${channel.name}`} className="block transform transition-transform duration-200 hover:scale-105">
                   <div className="flex items-start space-x-4">
                     {/* Avatar on the left */}
-                    <Avatar className="h-12 w-12 border-4 border-primary/20">
+                    <Avatar className="h-12 w-12 border-4 border-primary/20 rounded-full">
                       <AvatarImage src={channel.imageUrl || ""} alt={channel.name || ""} />
                       <AvatarFallback className="text-4xl">
                         {channel.name ? channel.name[0] : "U"}

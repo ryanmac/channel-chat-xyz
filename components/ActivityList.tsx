@@ -33,7 +33,7 @@ export function ActivityList({ recentActivity }: ActivityListProps) {
           <li key={activity.id} className="flex items-center space-x-3">
             {/* Wrap the entire content in a Link to the channel URL */}
             <Link href={`/channel/${activity.channel.name}`} className="flex items-center space-x-3">
-              <Avatar>
+              <Avatar className="rounded-full">
                 <AvatarImage src={activity.user.image || undefined} />
                 <AvatarFallback>{activity.user.username[0]}</AvatarFallback>
               </Avatar>

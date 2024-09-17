@@ -65,7 +65,6 @@ export async function getChannelInfo(options: { channelId?: string; channelName?
   const { channelId, channelName, channelUrl } = options;
   const cacheKey = `channel_info_${channelId || channelName || channelUrl}`;
 
-  // temporarily disable cache
   const cachedData = getCache(cacheKey);
   if (cachedData) {
     return cachedData;

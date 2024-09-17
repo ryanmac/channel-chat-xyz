@@ -29,7 +29,7 @@ export function UserMenu({ user, session }: UserMenuProps) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <Avatar className="h-8 w-8">
+          <Avatar className="h-8 w-8 rounded-full">
             <AvatarImage src={user.image || ''} alt={user.name || ''} />
             <AvatarFallback>{user.name ? user.name[0] : 'U'}</AvatarFallback>
           </Avatar>

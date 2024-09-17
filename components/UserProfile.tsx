@@ -52,7 +52,7 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
   return (
     <div className="space-y-8 p-6 bg-gradient-to-b from-primary/5 to-background rounded-lg shadow-lg">
       <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
-        <Avatar className="h-32 w-32 border-4 border-primary/20">
+        <Avatar className="h-32 w-32 border-4 border-primary/20 rounded-full">
           <AvatarImage src={user.image || ""} alt={user.name || ""} />
           <AvatarFallback className="text-4xl">{user.name ? user.name[0] : "U"}</AvatarFallback>
         </Avatar>
@@ -102,7 +102,7 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
                           variant="secondary"
                           className="bg-purple-200 text-purple-800 hover:bg-purple-300 hover:text-purple-600 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center space-x-2 p-2"
                         >
-                          <Avatar className="h-12 w-12 border-2 border-secondary/20 -mr-1">
+                          <Avatar className="h-12 w-12 border-2 border-secondary/20 -mr-1 rounded-full">
                             <AvatarImage src={sponsorship.channel.imageUrl || ""} alt={sponsorship.channel.title || ""} />
                             <AvatarFallback className="text-4xl">
                               {sponsorship.channel.title ? sponsorship.channel.title[0] : "U"}

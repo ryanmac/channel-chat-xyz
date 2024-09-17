@@ -46,7 +46,7 @@ export function ChannelHeader({
       <div className="w-full h-48 bg-cover bg-center" style={{ backgroundImage: `url(${bannerExternalUrl})` }} />
       <div className="container mx-auto px-4 -mt-6">
         <div className="flex flex-col md:flex-row items-center md:items-end space-y-4 md:space-y-0 md:space-x-6">
-          <Avatar className="w-32 h-32 border-4 border-white align-top">
+          <Avatar className="w-32 h-32 border-4 border-white align-top rounded-full">
             <AvatarImage src={thumbnails.default.url} alt={sanitizedChannelName} />
             <AvatarFallback>{sanitizedChannelName[0]}</AvatarFallback>
           </Avatar>

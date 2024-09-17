@@ -1,15 +1,57 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import YouTubeChannelSearch from '@/components/YouTubeChannelSearchMock'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import ChannelSearch from '@/components/ChannelSearch';
+import { ChannelData } from '@/utils/channelManagement';
 import Image from 'next/image'
+import { ChatInterface } from './ChatInterface';
+import { Spinner } from '@/components/ui/spinner';
+import { FaRobot } from "react-icons/fa6";
+import { defaultChannelData } from '@/constants/channelData';
 
 export function Hero() {
   const [mounted, setMounted] = useState(false)
+  const channelName = 'ycombinator'
+  const [channelData, setChannelData] = useState<ChannelData | null>(null);
+  const fetchedRef = useRef(false)
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  const fetchChannelData = useCallback(async () => {
+    if (fetchedRef.current) return;
+    const channelName = 'ycombinator';
+
+    setIsLoading(true);
+
+    // create a temporary sleep function to simulate loading for longer
+    // const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+    // await sleep(20000);
+
+    setError(null);
+    // console.log('Fetching channel data for:', channelName);
+    try {
+      const response = await fetch(`/api/yes/channel-info?channel_name=${channelName}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch channel data: ${response.status} ${response.statusText}`);
+      }
+      const data: ChannelData = await response.json();
+      setChannelData(data);
+    } catch (error) {
+      console.error('Error fetching channel data:', error);
+      setError('Failed to load channel data. Please try again later.');
+    } finally {
+      setIsLoading(false);
+      fetchedRef.current = true;
+    }
+  }, [channelName]);
+
+  useEffect(() => {
+    fetchChannelData();
+  });
 
   // JavaScript for generating dynamic keyframes
   const createWaveAnimation = (index: number) => {
@@ -66,27 +108,65 @@ export function Hero() {
         </div>
       )}
 
-      <div className="container relative z-10 px-4 md:px-6">
-        <div className="flex flex-col items-center space-y-4 text-center">
-          <div className="space-y-2">
-            <div className="flex items-center justify-center space-x-2">
-              <Image
-                src="/logomark-play2.png"
-                alt="ChannelChat Logo"
-                width={48}
-                height={48}
-                className="h-12 w-auto"
-              />
-              <h1 className="text-3xl font-bold tracking-tighter text-white sm:text-4xl md:text-5xl lg:text-6xl/none">
-                ChannelChat
+      <div className="container relative z-10 mx-auto px-4 md:px-6">
+        <div className="flex flex-col items-center gap-12 lg:flex-row lg:gap-12">
+          {/* Left side content */}
+          <div className="flex w-full flex-col items-center space-y-8 text-center lg:w-1/2 lg:items-start lg:text-left">
+            <div className="space-y-4 px-4 pb-0">
+              <div className="inline-flex items-center rounded-full px-3 py-1">
+                <Image
+                  src="/logomark-play2.png"
+                  alt="ChannelChat Logo"
+                  width={200}
+                  height={200}
+                  className="mr-2 h-[200px] w-auto"
+                />
+              </div>
+              <h1 className="text-4xl font-bold tracking-tighter text-white sm:text-5xl md:text-6xl lg:text-7xl">
+                Chat with AI-powered YouTube Channels
               </h1>
+              <p className="max-w-[600px] text-lg text-gray-300 md:text-xl">
+                Engage with your favorite content creators through intelligent conversations powered by AI.
+              </p>
             </div>
-            <p className="mx-auto max-w-[700px] py-8 text-gray-200 md:text-xl">
-              Chat with AI-powered YouTube Channels
-            </p>
+            <div className="w-full max-w-md">
+              <ChannelSearch
+                containerClassName="sm:w-[24rem] lg:ml-0"
+                inputClassName="h-16 text-lg"
+                buttonClassName="w-16 h-16"
+              />
+            </div>
           </div>
-          <div className="w-full max-w-md mx-auto">
-            <YouTubeChannelSearch />
+
+          {/* Right side content */}
+          <div className="relative w-full lg:w-1/2">
+            {isLoading ? (
+              <div className="flex items-center justify-center h-96 bg-gray-800 rounded-xl shadow-2xl">
+                <div className="flex flex-col items-center space-y-4">
+                  {/* Spinning large FaRobot */}
+                  <FaRobot className="w-16 h-16 text-gray-500 dark:text-white animate-spin" />
+                  
+                  {/* Loading text with smaller FaRobot */}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-2xl mr-2">Loading</span>
+                    <FaRobot className="w-8 h-8 text-gray-500 dark:text-white" />
+                    <span className="text-2xl ml-0">{channelName} chat...</span>
+                  </div>
+                </div>
+              </div>
+            ) : channelData ? (
+              <ChatInterface
+                channelData={channelData || defaultChannelData}
+                showMaximize={true}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-96 bg-gray-800 rounded-xl shadow-2xl">
+                <div className="flex flex-col items-center space-y-4">
+                  <FaRobot className="w-16 h-16 text-gray-500 dark:text-white" />
+                  <p className="text-xl text-gray-300 dark:text-gray-400">Select a YouTube channel to start chatting with its AI chatbot.</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

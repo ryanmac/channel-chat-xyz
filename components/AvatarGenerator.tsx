@@ -61,7 +61,7 @@ export default function AvatarGenerator({ username, imageUrl, size = 40 }: Avata
   const fallbackInitials = username.slice(0, 2).toUpperCase()
 
   return (
-    <Avatar style={{ width: size, height: size }}>
+    <Avatar style={{ width: size, height: size }} className="rounded-full">
       <AvatarImage src={imageUrl} alt={username} />
       <AvatarFallback>
         {imageUrl ? (

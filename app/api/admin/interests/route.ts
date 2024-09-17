@@ -39,11 +39,11 @@ export async function POST(request: NextRequest) {
 
     // Prepare the prompt
     const prompt = `You are an AI assistant representing the YouTube channel.
-Use the following recent transcripts to briefly list the top 5 interesting topics in the style and tone of the channel's content creator, written from the creator's perspective:
+Use the following recent transcripts to briefly list the top 3 interesting topics in the style and tone of the channel's content creator, written from the creator's perspective:
 
 ${chunks.map((chunk: any) => chunk.main_chunk).join('\n\n')}
 
-Format your response as a list of topics, starting with "1." and continuing with each new topic on a new line until 5.
+Format your response as a list of 3 topics, starting with "1." and continuing with each new topic on a new line until 3.
 
 Start your response with:
 """

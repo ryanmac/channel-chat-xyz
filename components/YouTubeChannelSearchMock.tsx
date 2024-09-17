@@ -100,10 +100,10 @@ export default function YouTubeChannelSearch({
 
   return (
     <div className={`relative w-full ${className}`}>
-      <div className={`relative ${inputWidth} ${inputHeight} mx-auto`}>
+      <div className={`relative ${inputWidth} ${inputHeight}`}>
         <Input
           type="text"
-          placeholder="Search YouTube channels"
+          placeholder="YouTube @username"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className={`pr-12 ${inputWidth} ${inputHeight}`} // Use dynamic width
@@ -134,7 +134,7 @@ export default function YouTubeChannelSearch({
               }`}
               onClick={() => handleSelectChannel(channel)}
             >
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between">
                 <div>
                   <div className="font-semibold">{channel.name}</div>
                   <div className="text-sm text-muted-foreground">{channel.title}</div>

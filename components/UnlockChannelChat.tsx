@@ -230,7 +230,7 @@ export function UnlockChannelChat({ channelData, onFundingUpdate }: UnlockChanne
                   <TooltipProvider key={index}>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Avatar className="w-8 h-8 border-2 border-white">
+                        <Avatar className="w-8 h-8 border-2 border-white rounded-full">
                           <AvatarImage src={contributor.avatar} alt={contributor.name} />
                           <AvatarFallback>{contributor.name[0]}</AvatarFallback>
                         </Avatar>

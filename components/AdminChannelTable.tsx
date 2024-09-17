@@ -372,7 +372,7 @@ export default function AdminChannelTable() {
             <TableRow key={channel.id}>
               <TableCell>
                 <div className="flex items-center space-x-2">
-                  <Avatar className="w-8 h-8">
+                  <Avatar className="w-8 h-8 rounded-full">
                     <AvatarImage src={channel.imageUrl} alt={channel.name} />
                     <AvatarFallback>{channel.name[0]}</AvatarFallback>
                   </Avatar>

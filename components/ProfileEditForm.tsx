@@ -73,7 +73,7 @@ export function ProfileEditForm({ user }: ProfileEditFormProps) {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-6">
             <div className="flex-shrink-0">
-              <Avatar className="h-32 w-32 border-2 border-primary">
+              <Avatar className="h-32 w-32 border-2 border-primary rounded-full">
                 <AvatarImage src={image} alt={name} />
                 <AvatarFallback>{name ? name[0] : 'U'}</AvatarFallback>
               </Avatar>

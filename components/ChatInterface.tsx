@@ -3,13 +3,14 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bot, ArrowDown } from 'lucide-react';
+import { Bot, ArrowDown, Maximize2 } from 'lucide-react';
 import { default as ClientMarkdown } from '@/components/ClientMarkdown';
 import QuickPrompts from '@/components/QuickPrompts';
 import TypingIndicator from '@/components/TypingIndicator';
 import { useToast } from "@/hooks/use-toast";
 import { ChannelData } from '@/utils/channelManagement';
 import { FaRobot } from "react-icons/fa6";
+import Link from 'next/link';
 
 interface Message {
   id: number;
@@ -20,17 +21,19 @@ interface Message {
 
 interface ChatInterfaceProps {
   channelData: ChannelData;
+  showMaximize?: boolean;
 }
 
 const MAX_TOKENS = 50000;
 const WARNING_TOKENS = 40000;
 
-export const ChatInterface: React.FC<ChatInterfaceProps> = ({ channelData }) => {
+export const ChatInterface: React.FC<ChatInterfaceProps> = ({ channelData, showMaximize }) => {
+  showMaximize = showMaximize || false;
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
       sender: 'AI',
-      content: `Welcome to the ${channelData.title} chatbot!\n\nMy memory is loaded with **${channelData.totalVideos}** video transcripts so far.\n\n${channelData.interests.length > 0 ? channelData.interests + "\n\n" : ''}What would you like to discuss?`,
+      content: `My memory is loaded with **${channelData.totalVideos}** video transcripts so far.\n\n${channelData.interests.length > 0 ? channelData.interests + "\n\n" : ''}What would you like to discuss?`,
       timestamp: '12:00 PM'
     }
   ]);
@@ -161,22 +164,30 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ channelData }) => 
   };
 
   return (
-    <Card className="w-full mt-8">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span className="flex">
-            Chat with {channelData.title}
-            <FaRobot className="w-6 h-6 text-gray-500 dark:text-white ml-1" />
+            Chat with
+            <FaRobot className="w-6 h-6 text-gray-500 dark:text-white ml-2" />
+            {channelData.name}
           </span>
           {tokenCount >= WARNING_TOKENS && (
             <span className="text-sm font-normal">Tokens used: {tokenCount}/{MAX_TOKENS}</span>
+          )}
+          {showMaximize && (
+            <div>
+              <Link href={`/channel/${channelData.name}`}>
+                <Maximize2 className="w-6 h-6 text-gray-500 dark:text-white" />
+              </Link>
+            </div>
           )}
         </CardTitle>
       </CardHeader>
       <CardContent className="relative">
         <div
           ref={chatContainerRef}
-          className="h-[calc(100vh-400px)] min-h-[300px] max-h-[600px] overflow-y-auto pr-2 sm:pr-4" /* Updated pr to adjust on smaller screens */
+          className="chat-container min-h-[300px] max-h-[600px] overflow-y-auto pr-2 sm:pr-4"
           style={{ scrollBehavior: 'smooth' }}
         >
           {messages.map((message, index) => (
@@ -187,7 +198,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ channelData }) => 
             >
               {message.sender === 'AI' && (
                 <div className="relative hidden mr-2 sm:block">
-                  <Avatar className="w-8 h-8">
+                  <Avatar className="w-8 h-8 rounded-full">
                     <AvatarImage src={channelData.imageUrl} alt={channelData.title} />
                     <AvatarFallback>{channelData.title[0]}</AvatarFallback>
                   </Avatar>
@@ -200,7 +211,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ channelData }) => 
                   {message.sender === 'AI' ? (
                     <>
                       {channelData.title}
-                      <FaRobot className="w-4 h-4 text-gray-500 dark:text-white ml-1" />
+                      <FaRobot className="w-5 h-5 text-gray-500 dark:text-white ml-1" />
                     </>
                   ) : (
                     'You'
@@ -216,7 +227,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ channelData }) => 
           {isLoading && (
             <div className="flex justify-start mb-4">
               <div className="relative mr-2">
-                <Avatar className="w-8 h-8">
+                <Avatar className="w-8 h-8 rounded-full">
                   <AvatarImage src={channelData.imageUrl} alt={channelData.title} />
                   <AvatarFallback>{channelData.title[0]}</AvatarFallback>
                 </Avatar>

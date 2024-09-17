@@ -31,9 +31,9 @@ export default auth((req) => {
   if (isAdminRoute) {
     const user = req.auth?.user;
     console.log("User in admin route:", user);
-    // if (!user || user.role !== 'ADMIN') {
-    //   return NextResponse.redirect(new URL("/", nextUrl));
-    // }
+    if (!user || user.role !== 'ADMIN') {
+      return NextResponse.redirect(new URL("/", nextUrl));
+    }
   }
 
   return NextResponse.next();
