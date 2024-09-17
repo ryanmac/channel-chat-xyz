@@ -1,49 +1,46 @@
 // app/api/admin/feature/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from "@/auth";
-import ChannelController from "@/controllers/ChannelController";
+import prisma from "@/lib/prisma";
 
-export const dynamic = 'force-dynamic';
+export async function POST(request: NextRequest) {
+  const session = await auth();
 
-export async function GET(req: NextRequest) {
+  if (!session || session.user.role !== 'ADMIN') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { channelName } = await request.json();
+
+  if (!channelName) {
+    return NextResponse.json({ error: 'Missing required parameter: channelName' }, { status: 400 });
+  }
+
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-    }
-
-    if (session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: "Not authorized" }, { status: 403 });
-    }
-
-    // Extract query parameters
-    const { search, sort, direction: directionParam, page, pageSize: pageSizeParam } = Object.fromEntries(
-      req.nextUrl.searchParams.entries()
-    );
-
-    // Validate direction parameter
-    let direction: 'asc' | 'desc' | undefined;
-    if (directionParam === 'asc' || directionParam === 'desc') {
-      direction = directionParam;
-    } else {
-      direction = undefined;
-    }
-
-    // Set default page size if not provided
-    const pageSize = pageSizeParam ? parseInt(pageSizeParam, 10) : 10;
-
-    const channelController = new ChannelController();
-    const data = await channelController.getAllChannels({
-      search,
-      sort,
-      direction,
-      page: page ? parseInt(page, 10) : 1,
-      pageSize,
+    // Find the channel by name
+    let channel = await prisma.channel.findFirst({
+      where: { name: channelName },
     });
 
-    return NextResponse.json(data);
-  } catch (error: any) {
-    console.error("Error fetching channels:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!channel) {
+      return NextResponse.json({ error: 'Channel not found' }, { status: 404 });
+    }
+
+    // Toggle the featured status
+    const updatedChannel = await prisma.channel.update({
+      where: { id: channel.id },
+      data: {
+        featured: !channel.featured,
+      },
+    });
+
+    return NextResponse.json({
+      message: 'Channel featured status toggled successfully',
+      channel: updatedChannel,
+    });
+
+  } catch (error) {
+    console.error('Error toggling channel featured status:', error);
+    return NextResponse.json({ error: 'Failed to toggle channel featured status' }, { status: 500 });
   }
 }

@@ -43,7 +43,7 @@ export default function QuickPrompts({ onPromptSelect }: QuickPromptsProps) {
                   <span className="truncate">{prompt.text}</span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent className="max-w-[20rem] custom-prose bg-accent text-gray-800 dark:text-gray-200">
                 <p>{prompt.prompt}</p>
               </TooltipContent>
             </Tooltip>

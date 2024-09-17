@@ -37,6 +37,7 @@ export const authRoutes = [
 export const adminRoutes = [
     "/admin",
     "/api/admin/boost",
+    "/api/admin/feature",
 ];
 
 /**

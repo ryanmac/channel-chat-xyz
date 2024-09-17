@@ -49,12 +49,6 @@ export default function ChannelPage({ params }: ChannelPageProps) {
   const [showSignUpModal, setShowSignUpModal] = useState(false);
 
   const [earnedBadges, setEarnedBadges] = useState<BadgeType[]>([]);
-  const [currentFunding, setCurrentFunding] = useState(0);
-  const [goalFunding, setGoalFunding] = useState(10); // Consider fetching this from an API
-
-  const [sponsorshipAmount, setSponsorshipAmount] = useState(0);
-  const [totalFunding, setTotalFunding] = useState(currentFunding);
-  const [newChatCreditsAdded, setNewChatCreditsAdded] = useState(0);
 
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
@@ -130,6 +124,7 @@ export default function ChannelPage({ params }: ChannelPageProps) {
 
   const fetchChannelData = useCallback(async () => {
     if (fetchedRef.current) return;
+
     setIsLoading(true);
     setError(null);
     console.log('Fetching channel data for:', channelName);
@@ -144,25 +139,7 @@ export default function ChannelPage({ params }: ChannelPageProps) {
       if (data && data.id) {
         setIsChannelActive(data.status === 'ACTIVE');
         setIsProcessing(data.isProcessing);
-
-        const currentFundingInDollars = (data.creditBalance ?? 0) / 100;
-        setCurrentFunding(currentFundingInDollars);
-        setTotalFunding(currentFundingInDollars);
-
-        const lastSponsorshipAmount = data.activationFunding || 0; // Adjusted to match `ChannelData`
-        setSponsorshipAmount(lastSponsorshipAmount);
-
-        const creditsAdded = lastSponsorshipAmount > 9 ? (lastSponsorshipAmount - 9) * 1000 : 0;
-        setNewChatCreditsAdded(creditsAdded);
-
         fetchSessionBadges();
-
-        // console.log('Channel data:', data);
-        // console.log('Channel is active:', data.status === 'ACTIVE');
-        // console.log('Channel is processing:', data.isProcessing);
-        // console.log('Current funding:', currentFundingInDollars);
-        // console.log('New chat credits added:', creditsAdded);
-        // console.log('Sponsorship amount:', lastSponsorshipAmount);
       }
     } catch (error) {
       console.error('Error fetching channel data:', error);
@@ -182,7 +159,6 @@ export default function ChannelPage({ params }: ChannelPageProps) {
       const data = await response.json();
       setIsProcessing(data.isProcessing);
       setIsChannelActive(data.isActive);
-      setCurrentFunding(data.creditBalance / 100);
     } catch (error) {
       console.error('Error checking processing status:', error);
       toast({
@@ -193,7 +169,7 @@ export default function ChannelPage({ params }: ChannelPageProps) {
     }
   }, [channelData, toast]);
 
-  const debouncedFetchChannelData = useDebouncedCallback(fetchChannelData, 300);
+  const debouncedFetchChannelData = useDebouncedCallback(fetchChannelData, 100);
 
   useEffect(() => {
     debouncedFetchChannelData();

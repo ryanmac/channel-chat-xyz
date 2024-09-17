@@ -11,6 +11,7 @@ import { RotateCcw, Info } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { abbreviateNumber, parseAbbreviatedNumber } from '@/utils/numberUtils';
+import ReactMarkdown from 'react-markdown'
 import {
   Tooltip,
   TooltipContent,
@@ -39,12 +40,14 @@ type SortColumn = keyof Channel;
 
 export default function AdminChannelTable() {
   const [channels, setChannels] = useState<Channel[]>([]);
+  const [filteredChannels, setFilteredChannels] = useState<Channel[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortColumn, setSortColumn] = useState<SortColumn>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(20);
   const [totalPages, setTotalPages] = useState(1);
+  const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const { toast } = useToast();
 
   const [boostAmounts, setBoostAmounts] = useState<{ [key: string]: string }>({});
@@ -86,6 +89,19 @@ export default function AdminChannelTable() {
     fetchChannels();
   }, [searchTerm, sortColumn, sortDirection, page, pageSize]);  // Include pageSize in the dependency array
 
+  useEffect(() => {
+    if (filterStatus) {
+      setFilteredChannels(channels.filter(channel => channel.status === filterStatus));
+    } else {
+      setFilteredChannels(channels);
+    }
+  }, [channels, filterStatus]);
+
+  const handleFilterChange = (status: string | null) => {
+    setFilterStatus(status);
+    setPage(1); // Reset to first page whenever filter changes
+  };
+
   const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setPageSize(Number(e.target.value));
     setPage(1);  // Reset to first page whenever page size changes
@@ -110,7 +126,7 @@ export default function AdminChannelTable() {
     }
   };
   
-  const sortedChannels = [...channels].sort((a, b) => {
+  const sortedChannels = [...filteredChannels].sort((a, b) => {
     const aValue = a[sortColumn];
     const bValue = b[sortColumn];
   
@@ -278,17 +294,37 @@ export default function AdminChannelTable() {
   return (
     <div className="mb-8">
       <h2 className="text-xl font-semibold mb-4">Channels</h2>
-        <div className="flex items-center space-x-4 mb-4">
+      <div className="flex items-center space-x-4 mb-4">
+        <div className="flex items-center space-x-2">
+          <Button
+            onClick={() => handleFilterChange(null)}
+            className={`px-2 py-1 ${filterStatus === null ? 'bg-accent' : 'bg-background'} border-input border text-gray-800 dark:text-white hover:bg-accent`}
+          >
+            All
+          </Button>
+          <Button
+            onClick={() => handleFilterChange('ACTIVE')}
+            className={`px-2 py-1 ${filterStatus === 'ACTIVE' ? 'bg-accent' : 'bg-background'} border-input border text-gray-800 dark:text-white hover:bg-accent`}
+          >
+            Active
+          </Button>
+          <Button
+            onClick={() => handleFilterChange('PENDING')}
+            className={`px-2 py-1 ${filterStatus === 'PENDING' ? 'bg-accent' : 'bg-background'} border-input border text-gray-800 dark:text-white hover:bg-accent`}
+          >
+            Pending
+          </Button>
+        </div>
         <Input
           placeholder="Search channels"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="mb-4"
+          className="h-full"
         />
         <select
           value={pageSize}
           onChange={handlePageSizeChange}
-          className="p-2 border rounded"
+          className="p-2 border rounded h-full"
         >
           <option value={5}>5 per page</option>
           <option value={10}>10 per page</option>
@@ -419,8 +455,12 @@ export default function AdminChannelTable() {
                         )}
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{channel.interests || "No interests available"}</p>
+                    <TooltipContent className="max-w-[20rem] custom-prose bg-accent text-gray-800 dark:text-gray-200">
+                      <p>
+                        <ReactMarkdown>
+                          {channel.interests || "No interests available"}
+                        </ReactMarkdown>
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
