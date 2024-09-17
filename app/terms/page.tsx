@@ -63,7 +63,7 @@ If you have any questions about these Terms, please contact us at [contact email
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-gray-100">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-300">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-12">
         <motion.div
@@ -71,22 +71,22 @@ export default function TermsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Card className="w-full max-w-4xl mx-auto shadow-xl">
+          <Card className="w-full max-w-4xl mx-auto shadow-xl text-gray-800 dark:text-gray-200">
             <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-              <CardTitle className="text-3xl font-bold">Terms and Conditions</CardTitle>
+              <CardTitle className="text-3xl font-bold">Terms of Service</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
               <ScrollArea className="h-[70vh] pr-4">
                 <ReactMarkdown
+                  className="custom-prose"
                   components={{
-                    h1: ({ node, ...props }) => <h1 className="text-3xl font-bold mb-6 text-gray-800" {...props} />,
-                    h2: ({ node, ...props }) => <h2 className="text-2xl font-semibold mt-8 mb-4 text-gray-700" {...props} />,
-                    p: ({ node, ...props }) => <p className="mb-4 text-gray-600 leading-relaxed" {...props} />,
-                    ul: ({ node, ...props }) => <ul className="list-disc list-inside mb-4 text-gray-600" {...props} />,
-                    ol: ({ node, ...props }) => <ol className="list-decimal list-inside mb-4 text-gray-600" {...props} />,
+                    h1: ({ node, ...props }) => <h1 className="text-3xl font-bold mb-6" {...props} />,
+                    h2: ({ node, ...props }) => <h2 className="text-2xl font-semibold mt-8 mb-4" {...props} />,
+                    p: ({ node, ...props }) => <p className="mb-4 leading-relaxed" {...props} />,
+                    ul: ({ node, ...props }) => <ul className="list-disc list-inside mb-4" {...props} />,
+                    ol: ({ node, ...props }) => <ol className="list-decimal list-inside mb-4" {...props} />,
                     li: ({ node, ...props }) => <li className="mb-2" {...props} />,
-                    a: ({ node, ...props }) => <a className="text-blue-600 hover:underline" {...props} />,
-                  }}
+                    a: ({ node, ...props }) => <a className="text-blue-600 hover:underline" {...props} />,                  }}
                 >
                   {termsContent}
                 </ReactMarkdown>

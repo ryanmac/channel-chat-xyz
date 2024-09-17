@@ -26,13 +26,7 @@ export function Hero() {
     const channelName = 'ycombinator';
 
     setIsLoading(true);
-
-    // create a temporary sleep function to simulate loading for longer
-    // const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-    // await sleep(20000);
-
     setError(null);
-    // console.log('Fetching channel data for:', channelName);
     try {
       const response = await fetch(`/api/yes/channel-info?channel_name=${channelName}`);
       if (!response.ok) {
@@ -51,7 +45,7 @@ export function Hero() {
 
   useEffect(() => {
     fetchChannelData();
-  });
+  }, [fetchChannelData]);
 
   // JavaScript for generating dynamic keyframes
   const createWaveAnimation = (index: number) => {
@@ -141,7 +135,7 @@ export function Hero() {
           {/* Right side content */}
           <div className="relative w-full lg:w-1/2">
             {isLoading ? (
-              <div className="flex items-center justify-center h-96 bg-gray-800 rounded-xl shadow-2xl">
+              <div className="flex items-center justify-center h-96 bg-indigo-800 rounded-xl shadow-2xl">
                 <div className="flex flex-col items-center space-y-4">
                   {/* Spinning large FaRobot */}
                   <FaRobot className="w-16 h-16 text-gray-500 dark:text-white animate-spin" />
@@ -154,18 +148,11 @@ export function Hero() {
                   </div>
                 </div>
               </div>
-            ) : channelData ? (
+            ) : (
               <ChatInterface
                 channelData={channelData || defaultChannelData}
                 showMaximize={true}
               />
-            ) : (
-              <div className="flex items-center justify-center h-96 bg-gray-800 rounded-xl shadow-2xl">
-                <div className="flex flex-col items-center space-y-4">
-                  <FaRobot className="w-16 h-16 text-gray-500 dark:text-white" />
-                  <p className="text-xl text-gray-300 dark:text-gray-400">Select a YouTube channel to start chatting with its AI chatbot.</p>
-                </div>
-              </div>
             )}
           </div>
         </div>

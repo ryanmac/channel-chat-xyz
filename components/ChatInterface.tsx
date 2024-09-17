@@ -164,7 +164,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ channelData, showM
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full bg-gray-900/50">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span className="flex">

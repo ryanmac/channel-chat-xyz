@@ -1,12 +1,16 @@
 // app/privacy/page.tsx
+'use client'
+
 import { Header } from "@/components/Header"
 import { Footer } from "@/components/Footer"
 import ReactMarkdown from 'react-markdown'
+import { motion } from 'framer-motion'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 const privacyContent = `
-# ChannelChat Privacy Policy
-
-Last Updated: [Current Date]
+Last Updated: September 1, 2024
 
 At ChannelChat, we are committed to protecting your privacy and ensuring you have a positive experience on our platform. This policy outlines our data collection and use practices.
 
@@ -72,22 +76,45 @@ Your information may be transferred to — and maintained on — computers locat
 
 ## 10. Contact Us
 
-If you have any questions about this Privacy Policy, please contact us at:
+If you have any questions about this Privacy Policy, please contact us on X:
 
-ChannelChat  
-[Address]  
-[Email]  
-[Phone number]
+[@ChannelChatXYZ](https://x.com/@ChannelChatXYZ)
 `;
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-300">
       <Header />
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <div className="space-y-4">
-          <ReactMarkdown className="prose max-w-none">{privacyContent}</ReactMarkdown>
-        </div>
+      <main className="flex-grow container mx-auto px-4 py-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Card className="w-full max-w-4xl mx-auto shadow-xl text-gray-800 dark:text-gray-200">
+            <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+              <CardTitle className="text-3xl font-bold">Privacy Policy</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <ScrollArea className="h-[70vh] pr-4">
+                <ReactMarkdown
+                  className="custom-prose"
+                  components={{
+                    h1: ({ node, ...props }) => <h1 className="text-3xl font-bold mb-6" {...props} />,
+                    h2: ({ node, ...props }) => <h2 className="text-2xl font-semibold mt-8 mb-4" {...props} />,
+                    p: ({ node, ...props }) => <p className="mb-4 leading-relaxed" {...props} />,
+                    ul: ({ node, ...props }) => <ul className="list-disc list-inside mb-4" {...props} />,
+                    ol: ({ node, ...props }) => <ol className="list-decimal list-inside mb-4" {...props} />,
+                    li: ({ node, ...props }) => <li className="mb-2" {...props} />,
+                    a: ({ node, ...props }) => <a className="text-blue-600 hover:underline" {...props} />,
+                  }}
+                >
+                  {privacyContent}
+                </ReactMarkdown>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </motion.div>
       </main>
       <Footer />
     </div>

@@ -23,7 +23,7 @@ export function Header() {
   if (!mounted) return null
 
   return (
-    <header className="bg-gradient-to-b from-blue-400 to-blue-200 dark:from-blue-950 dark:to-blue-900 border-b">
+    <header className="bg-gradient-to-b from-blue-300 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-b">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-2">
           <Avatar>

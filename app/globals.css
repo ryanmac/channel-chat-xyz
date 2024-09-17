@@ -88,6 +88,31 @@
   margin-bottom: 1.5rem;
 }
 
+/* Make the headers stand out */
+.custom-prose h1,
+.custom-prose h2,
+.custom-prose h3,
+.custom-prose h4 {
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.custom-prose h1 {
+  font-size: 2.25rem;
+}
+
+.custom-prose h2 {
+  font-size: 1.75rem;
+}
+
+.custom-prose h3 {
+  font-size: 1.5rem;
+}
+
+.custom-prose h4 {
+  font-size: 1.25rem;
+}
+
 /* Ensure ordered lists display their numbers */
 .custom-prose ol,
 .custom-prose ul {
