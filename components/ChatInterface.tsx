@@ -164,12 +164,12 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ channelData, showM
   };
 
   return (
-    <Card className="w-full bg-gray-900/50">
+    <Card className="w-full bg-gray-900/50 border-none">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span className="flex">
             Chat with
-            <FaRobot className="w-6 h-6 text-gray-500 dark:text-white ml-2" />
+            <FaRobot className="w-6 h-6 pb-1 text-gray-800 dark:text-white ml-2 mr-0.5" />
             {channelData.name}
           </span>
           {tokenCount >= WARNING_TOKENS && (
@@ -178,7 +178,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ channelData, showM
           {showMaximize && (
             <div>
               <Link href={`/channel/${channelData.name}`}>
-                <Maximize2 className="w-6 h-6 text-gray-500 dark:text-white" />
+                <Maximize2 className="w-6 h-6 text-gray-800 dark:text-white" />
               </Link>
             </div>
           )}

@@ -50,6 +50,8 @@ export const publicApiRoutes = [
     "/api/chat",
     "/api/channel/funding",
     "/api/channel/leaderboard",
+    "/api/channel/random",
+    "/api/channel/search",
     "/api/bot/info",
     "/api/create-checkout-session",
     "/api/featured-channels",

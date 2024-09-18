@@ -34,6 +34,11 @@
     --ring: 0 0% 3.9%;
  
     --radius: 0.5rem;
+
+    --gradient-color-1: #a78bca;
+    --gradient-color-2: #a7d3f7;
+    --gradient-color-3: #a78bca;
+
   }
  
   .dark {
@@ -64,6 +69,10 @@
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
     --ring: 0 0% 83.1%;
+
+    --gradient-color-1: #4c1d95;
+    --gradient-color-2: #134e4a;
+    --gradient-color-3: #4c1d95;
   }
 }
  
@@ -147,4 +156,19 @@
 /* Default for other heights */
 .chat-container {
   height: calc(100vh - 400px); /* Default calculation */
+}
+
+.animate-spin-slow {
+  background: linear-gradient(120deg, var(--gradient-color-1), var(--gradient-color-2), var(--gradient-color-3));
+  background-size: 200% 200%;
+  animation: spin 10s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
 }
