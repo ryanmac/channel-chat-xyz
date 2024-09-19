@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button"
 
 export function Footer() {
   return (
-    <footer className="py-6 mt-12 bg-background text-gray-600 dark:bg-background dark:text-gray-600">
+    <footer className="py-6 mt-12">
       <div className="container mx-auto px-8 flex justify-between items-center">
         {/* <Button variant="outline">Tip the Dev</Button> */}
         <div className="space-x-4 mx-auto">

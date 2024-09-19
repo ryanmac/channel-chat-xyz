@@ -52,6 +52,7 @@ model User {
   sharedChats   SharedChat[]
   transactions  Transaction[]
   ChatSession   ChatSession[]
+  debates       Debate[]
 }
 
 enum UserRole {
@@ -138,6 +139,9 @@ model Channel {
   transactions      Transaction[]
   metrics           ChannelMetrics[]
   ChatSessions      ChatSession[]
+  debates1    Debate[]     @relation("Channel1Debates")
+  debates2    Debate[]     @relation("Channel2Debates")
+  debateTurns DebateTurn[]
 
   @@index([name])
 }
@@ -241,3 +245,39 @@ enum SettingType {
   BOOLEAN
   FLOAT
 }
+
+model Debate {
+  id            String       @id @default(cuid())
+  channelId1    String
+  channelId2    String
+  topic         String?
+  status        DebateStatus
+  summary1      String?
+  summary2      String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  createdBy     String
+  maxResponses  Int @default(3)
+  turns         DebateTurn[]
+  channel1      Channel      @relation("Channel1Debates", fields: [channelId1], references: [id])
+  channel2      Channel      @relation("Channel2Debates", fields: [channelId2], references: [id])
+  user          User         @relation(fields: [createdBy], references: [id])
+}
+
+model DebateTurn {
+  id        String   @id @default(cuid())
+  debateId  String
+  channelId String
+  content   String
+  createdAt DateTime @default(now())
+  debate    Debate   @relation(fields: [debateId], references: [id])
+  channel   Channel  @relation(fields: [channelId], references: [id])
+}
+
+enum DebateStatus {
+  TOPIC_SELECTION
+  IN_PROGRESS
+  READY_TO_CONCLUDE
+  CONCLUDED
+}
+

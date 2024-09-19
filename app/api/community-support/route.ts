@@ -20,7 +20,7 @@ export async function GET() {
         activationGoal: true,
       },
     });
-    console.log('Channels near activation:', channelsNearActivation);
+    // console.log('Channels near activation:', channelsNearActivation);
 
     return NextResponse.json(channelsNearActivation);
   } catch (error) {

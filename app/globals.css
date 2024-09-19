@@ -160,7 +160,7 @@
 
 .animate-spin-slow {
   background: linear-gradient(120deg, var(--gradient-color-1), var(--gradient-color-2), var(--gradient-color-3));
-  background-size: 200% 200%;
+  background-size: 1000% 1000%;
   animation: spin 10s linear infinite;
 }
 

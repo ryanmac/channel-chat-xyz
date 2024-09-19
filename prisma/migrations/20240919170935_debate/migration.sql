@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "DebateStatus" ADD VALUE 'READY_TO_CONCLUDE';

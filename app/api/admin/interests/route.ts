@@ -5,6 +5,8 @@ import { getRelevantChunks, getRecentChunks } from '@/utils/yesService';
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 import { error } from 'console';
+import config from '@/config';
+
 
 /**
  * Usage:
@@ -17,7 +19,7 @@ curl -X POST http://localhost:3000/api/interests \
   }'
  */
 
-const openai = new OpenAI();
+const openai = new OpenAI({ apiKey: config.openai.apiKey });
 export async function POST(request: NextRequest) {
   const { channelData } = await request.json();
 

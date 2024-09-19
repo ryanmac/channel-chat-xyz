@@ -4,29 +4,15 @@ import OpenAI from 'openai';
 import { getRelevantChunks } from '@/utils/yesService';
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
-import { error } from 'console';
+import config from '@/config';
 
-/**
- * Usage:
- * 
-curl -X POST http://localhost:3000/api/chat \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer 4Sy62iXHf-8Ss6-78a8-7Av0-YUCw-q7jahXF" \
-  -d '{
-    "channelId": "UCZf5IX90oe5gdPppMXGImwg",
-    "query": "What is the best way to cook a steak?",
-    "chatSessionId": "1"
-  }'
- */
-
-
-const openai = new OpenAI();
+const openai = new OpenAI({ apiKey: config.openai.apiKey });
 
 const MAX_TOKENS_PER_CHAT = 50000;
 const WARNING_TOKENS_THRESHOLD = 40000;
 
 export async function POST(request: NextRequest) {
-  const { channelData, query, chatSessionId } = await request.json();
+  const { channelData, query, chatSessionId, debateId } = await request.json();
 
   if (!channelData || !query) {
     return NextResponse.json({ error: 'Missing channelData or query' }, { status: 400 });
@@ -39,7 +25,6 @@ export async function POST(request: NextRequest) {
   try {
     let chatSession;
     if (chatSessionId) {
-      // Fetch existing chat session
       chatSession = await prisma.chatSession.findUnique({ where: { id: chatSessionId } });
       if (!chatSession) {
         console.log('Chat session not found:', chatSessionId);
@@ -51,8 +36,8 @@ export async function POST(request: NextRequest) {
         console.log('No credits remaining for channel:', channelData.id);
         return NextResponse.json({
           response: "Oh no, I'm out of chats. Consider supporting the bot. $1 buys 1000 chats.",
-          chatSessionId: null, // No active session
-          tokenCount: 0, // No tokens used since no response is generated
+          chatSessionId: null,
+          tokenCount: 0,
           warningMessage: "No credits remaining."
         }, { status: 200 });
       }
@@ -82,6 +67,17 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    let debate;
+    if (debateId) {
+      debate = await prisma.debate.findUnique({
+        where: { id: debateId },
+        include: { turns: { orderBy: { createdAt: 'asc' } } },
+      });
+      if (!debate) {
+        return NextResponse.json({ error: 'Debate not found' }, { status: 404 });
+      }
+    }
+
     // Fetch relevant chunks
     const chunkLimit = 5;
     const chunksResponse = await getRelevantChunks(query, channelData.id, chunkLimit);
@@ -91,8 +87,32 @@ export async function POST(request: NextRequest) {
     const { chunks } = chunksResponse;
 
     // Prepare the prompt
-    // const prompt = `You are an AI assistant representing the YouTube channel. Use the following context to answer the user's question in the style and tone of the channel's content creator:\n\n${chunks.map((chunk: any) => chunk.main_chunk).join('\n\n')}\n\nUser: ${query}\n\nAI:`;
-    const prompt = `You are a helpful and informative AI assistant representing a YouTube channel. Your goal is to answer user questions based on the provided context from the channel's transcripts. Always strive to respond in a way that is consistent with the channel's content and the creator's style and tone.
+    let prompt;
+    if (debate) {
+      const debateHistory = debate.turns.map((turn, index) => 
+        `${index % 2 === 0 ? 'Channel 1' : 'Channel 2'}: ${turn.content}`
+      ).join('\n\n');
+
+      prompt = `You are an AI assistant representing the YouTube channel "${channelData.title}" in a debate.
+Topic: ${debate.topic}
+
+Use the following context from the channel's content to inform your response:
+${chunks.map((chunk: any) => chunk.main_chunk).join('\n\n')}
+
+Debate history:
+${debateHistory}
+
+Respond to the most recent argument in the style and tone of ${channelData.title}'s content creator. 
+Make sure your response is relevant to the topic and builds upon the previous arguments.
+
+The most recent argument:
+${query}
+
+Your response:`;
+    } else {
+      prompt = `You are a helpful and informative AI assistant representing the YouTube channel "${channelData.title}". 
+Your goal is to answer user questions based on the provided context from the channel's transcripts. 
+Always strive to respond in a way that is consistent with the channel's content and the creator's style and tone.
 
 Guidelines:
 - Provide accurate and relevant information, based exclusively on the channel's content. If the content isn't relevant to the user's question, you can let the user know and suggest more relevant topics.
@@ -105,8 +125,8 @@ ${chunks.map((chunk: any) => chunk.main_chunk).join('\n\n')}
 User:
 ${query}
 
-AI:
-`;
+AI:`;
+    }
 
     // Check token count
     const promptTokens = prompt.split(' ').length; // This is a rough estimate
@@ -116,9 +136,9 @@ AI:
 
     // Generate response using OpenAI
     const completion = await openai.chat.completions.create({
-      messages: [{ role: 'user', content: 'You are a YouTube channel AI assistant.' }, { role: 'assistant', content: prompt }],
+      messages: [{ role: 'user', content: prompt }],
       model: 'gpt-4o-mini',
-      max_tokens: 200,
+      max_tokens: 300,
     });
 
     const response = completion.choices[0].message.content?.trim() || '';

@@ -23,7 +23,7 @@ export function Header() {
   if (!mounted) return null
 
   return (
-    <header className="bg-gradient-to-b animate-spin-slow">
+    <header>
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-2">
           <Avatar>

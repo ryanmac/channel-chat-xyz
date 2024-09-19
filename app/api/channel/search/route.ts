@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
         ]
       },
       select: {
+        id: true,
         name: true,
         title: true,
         imageUrl: true,

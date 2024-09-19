@@ -8,31 +8,38 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 
-type Channel = {
+type ChannelSearchResult = {
+  id: string;
   name: string;
   title: string;
-  imageUrl: string;
-  subscriberCount: number;
+  imageUrl?: string;
+  subscriberCount?: string;
 };
 
 type ChannelSearchProps = {
-  inputClassName?: string; // Optional prop to accept input-specific styles
-  buttonClassName?: string; // Optional prop to accept button-specific styles
-  containerClassName?: string; // Optional prop to accept container-specific styles
+  inputClassName?: string;
+  buttonClassName?: string;
+  containerClassName?: string;
+  onSelect?: (channel: ChannelSearchResult) => void;
 };
 
 export default function ChannelSearch({
   inputClassName = '',
   buttonClassName = '',
   containerClassName = '',
+  onSelect,
 }: ChannelSearchProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [results, setResults] = useState<Channel[]>([]);
+  const [results, setResults] = useState<ChannelSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const router = useRouter();
 
   const searchChannels = useDebouncedCallback(async (term: string) => {
+    if (!term || term.length < 3) {
+      setResults([]);
+      return;
+    }
     setIsLoading(true);
     try {
       const response = await fetch(`/api/channel/search?q=${encodeURIComponent(term)}`);
@@ -60,13 +67,13 @@ export default function ChannelSearch({
     setSelectedIndex(-1);
   }, [searchTerm, searchChannels]);
 
-  const handleSelectChannel = useCallback(async (channel: Channel) => {
-    try {
+  const handleSelectChannel = useCallback((channel: ChannelSearchResult) => {
+    if (onSelect) {
+      onSelect(channel);
+    } else {
       router.push(`/channel/@${channel.name}`);
-    } catch (error) {
-      console.error('Error in handleSelectChannel:', error);
     }
-  }, [router]);
+  }, [onSelect, router]);
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (results.length === 0 && event.key === 'Enter') {

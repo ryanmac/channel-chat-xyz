@@ -14,9 +14,9 @@ const googleClientSecret = configEnv.google.clientSecret ?? "";
 async function retryFetch(url: string, options: any, retries = 3) {
   for (let i = 0; i < retries; i++) {
     try {
-      console.log(`Attempting fetch to ${url}, attempt ${i + 1}`);
+      // console.log(`Attempting fetch to ${url}, attempt ${i + 1}`);
       const response = await fetch(url, options);
-      console.log(`Fetch successful, status: ${response.status}`);
+      // console.log(`Fetch successful, status: ${response.status}`);
       return response;
     } catch (error) {
       console.error(`Fetch attempt ${i + 1} failed:`, error);

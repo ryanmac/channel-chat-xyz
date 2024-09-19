@@ -34,16 +34,16 @@ export function Hero() {
   };
 
   return (
-    <section className="relative overflow-hidden py-8 md:py-18 lg:py-24 xl:py-32 animate-spin-slow">
+    <section className="relative overflow-hidden py-8 md:py-18 lg:py-24 xl:py-32">
       {/* Animated sin waves */}
       {mounted && (
         <div className="absolute inset-0 z-0">
           <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 1440 400">
             <defs>
               <linearGradient id="wave-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="rgba(255,255,255,0.1)" />
-                <stop offset="50%" stopColor="rgba(255,255,255,0.05)" />
-                <stop offset="100%" stopColor="rgba(255,255,255,0.1)" />
+                <stop offset="0%" stopColor="rgba(255,255,255,0.2)" />
+                <stop offset="50%" stopColor="rgba(255,255,255,0.2)" />
+                <stop offset="100%" stopColor="rgba(255,255,255,0.2)" />
               </linearGradient>
               <filter id="glow">
                 <feGaussianBlur stdDeviation="8" result="coloredBlur" />

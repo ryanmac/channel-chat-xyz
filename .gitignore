@@ -1,5 +1,6 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 zzz_read_files.py
+__pycache__
 
 # dependencies
 /node_modules

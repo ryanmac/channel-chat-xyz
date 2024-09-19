@@ -23,6 +23,9 @@ const dev: any = {
         port: process.env.PROD_DB_PORT || '',
         url: process.env.DATABASE_URL || ''
     },
+    openai: {
+        apiKey: process.env.OPENAI_API_KEY || ''
+    },
     stripe: {
         secret: process.env.DEV_STRIPE_SECRET_KEY || '',
         webhook: process.env.DEV_STRIPE_WEBHOOK_SECRET || '',
@@ -57,6 +60,9 @@ const prod: any = {
     google: {
         clientId: process.env.GOOGLE_CLIENT_ID || '',
         clientSecret: process.env.GOOGLE_CLIENT_SECRET || ''
+    },
+    openai: {
+        apiKey: process.env.OPENAI_API_KEY || ''
     },
     stripe: {
         secret: process.env.STRIPE_SECRET_KEY || '',
