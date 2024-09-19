@@ -41,7 +41,7 @@ export default function DebateInitPage() {
       }
       const channelData: Channel = await response.json();
       setChannel(channelData);
-      console.log('Channel selected:', channelData);
+      // console.log('Channel selected:', channelData);
     } catch (error) {
       console.error('Error fetching full channel data:', error);
       toast({
@@ -76,7 +76,7 @@ export default function DebateInitPage() {
       }
 
       setTopics(data);
-      console.log('Topics set:', data);
+      // console.log('Topics set:', data);
     } catch (error) {
       console.error('Error fetching topics:', error);
       toast({

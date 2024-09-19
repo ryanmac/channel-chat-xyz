@@ -4,6 +4,7 @@ import { auth } from "./auth";
 
 export default auth((req) => {
   const { nextUrl } = req;
+  const url = nextUrl.clone();
   const isLoggedIn = !!req.auth;
   const isApiRoute = nextUrl.pathname.startsWith("/api");
   const isAuthRoute = nextUrl.pathname.startsWith("/auth");
@@ -11,6 +12,11 @@ export default auth((req) => {
   const isPublicRoute = ["/", "/about", "/feedback"].includes(nextUrl.pathname) ||
     nextUrl.pathname.startsWith("/user") ||
     nextUrl.pathname.startsWith("/channel");
+
+  if (url.hostname === 'channelchat.xyz') {
+    url.hostname = 'www.channelchat.xyz';
+    return NextResponse.redirect(url, 301);
+  }
 
   // Allow API routes and public routes
   if (isApiRoute || isPublicRoute) {
