@@ -123,7 +123,7 @@ export default function DebateInitPage() {
       <Header />
       <div className="container mx-auto px-4 py-12">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-center text-primary">Collab</h1>
+          <h1 className="text-4xl font-bold text-center mx-auto">Start a new Collab</h1>
         </div>
         {error && <div className="text-red-500 mb-4">{error}</div>}
         

@@ -38,7 +38,7 @@ export const FeaturedChatInterface: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-96 bg-indigo-800 rounded-xl shadow-2xl">
+      <div className="flex items-center justify-center h-96 bg-gray-400/50 dark:bg-gray-900/50 rounded-xl shadow-2xl">
         <div className="flex flex-col items-center space-y-4">
           <FaRobot className="w-16 h-16 text-gray-500 dark:text-white animate-spin" />
           <div className="flex items-center space-x-2">

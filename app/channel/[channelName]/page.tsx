@@ -26,8 +26,11 @@ import { useToast } from '@/hooks/use-toast';
 import { useSession } from 'next-auth/react';
 import { defaultChannelData } from '@/constants/channelData';
 import { getCache, setCache } from '@/utils/cache';
+import { Merge } from 'lucide-react';
 // import { Bot } from 'lucide-react';
 import { FaRobot } from "react-icons/fa6";
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 interface ChannelPageProps {
   params: {
@@ -234,6 +237,18 @@ export default function ChannelPage({ params }: ChannelPageProps) {
                   creditBalance={channelInfo.creditBalance ?? 0}
                   maxCredits={100000} // Default or from a different source
                 />
+              </div>
+            )}
+            {isChannelActive && (
+              <div className="mb-8 justify-center text-center">
+                <Link href={`/collab`}>
+                  <Button
+                    className="bg-blue-700 hover:bg-blue-800 transition-all duration-300 ease-in-out transform hover:scale-110 text-white font-bold px-8 py-6 rounded-lg"
+                  >
+                    <Merge className="w-6 h-6 rotate-180 mr-2" />
+                    Start New Collab
+                  </Button>
+                </Link>
               </div>
             )}
             {isChannelActive && false && (

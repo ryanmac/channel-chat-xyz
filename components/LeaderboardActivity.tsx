@@ -71,10 +71,10 @@ export function LeaderboardActivity({ channelData }: LeaderboardActivityProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-1 gap-8 pt-0 bg-gradient-to-br">
+    <div className="grid grid-cols-1 lg:grid-cols-1 gap-8 pt-0">
       {/* Top Sponsors Section */}
       <div>
-        <Card className="h-full border-0 shadow-md hover:shadow-xl transition-shadow duration-300">
+        <Card className="h-full border-0 bg-inherit">
           <CardHeader className="text-gray-700 dark:text-white rounded-t-xl">
             <CardTitle className="flex items-center text-xl font-bold">
               <Trophy className="w-6 h-6 mr-2" />
@@ -93,7 +93,7 @@ export function LeaderboardActivity({ channelData }: LeaderboardActivityProps) {
 
       {/* Recent Activity Section */}
       <div>
-        <Card className="h-full border-0 shadow-md hover:shadow-xl transition-shadow duration-300">
+        <Card className="h-full border-0 bg-inherit">
           <CardHeader className="text-gray-700 dark:text-white rounded-t-xl">
             <CardTitle className="flex items-center text-xl font-bold">
               <Activity className="w-6 h-6 mr-2" />

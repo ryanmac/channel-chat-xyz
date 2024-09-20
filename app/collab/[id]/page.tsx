@@ -96,7 +96,7 @@ export default function DebatePage() {
             }}
           />
         ) : (
-          <div>Loading channel information...</div>
+          <div></div>
         )}
       </div>
       <Footer />

@@ -46,8 +46,8 @@ export function SponsorshipCTA({ channelData }: SponsorshipCTAProps) {
   const chatsSponsored = sponsorAmount * 1000; // 1 dollar sponsors 1000 chats
 
   return (
-    <Card className="w-full mb-8 mt-8">
-      <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white relative mb-4 rounded-t-xl">
+    <Card className="w-full mb-8 mt-8 bg-background/80 border-none">
+      <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white relative mb-4 rounded-t-lg">
         <CardTitle>
           <p className="font-semibold flex items-center">
             Sponsor {channelData.title} Chats
