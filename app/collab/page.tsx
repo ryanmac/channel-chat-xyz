@@ -137,6 +137,7 @@ export default function DebateInitPage() {
                 inputClassName="h-16 text-lg"
                 buttonClassName="w-16 h-16"
                 onSelect={handleChannelSelect(setChannel1)}
+                onlyActive={true}
               />
             </div>
           )}
@@ -154,6 +155,7 @@ export default function DebateInitPage() {
                 inputClassName="h-16 text-lg"
                 buttonClassName="w-16 h-16"
                 onSelect={handleChannelSelect(setChannel2)}
+                onlyActive={true}
               />
             </div>
           )}
@@ -176,7 +178,18 @@ export default function DebateInitPage() {
           />
         )}
       </div>
-      <CollabList />
+      <div className="col-span-full flex items-center justify-center">
+        <Avatar className="border-none mr-2">
+          <AvatarImage src="/logomark-play2.png" alt="ChannelChat" />
+          <AvatarFallback>
+            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-xl">C</span>
+            </div>
+          </AvatarFallback>
+        </Avatar>
+        <h2 className="text-3xl font-bold text-center text-primary">Collabs</h2>
+      </div>
+      <CollabList limit={6} />
       <Footer />
     </>
   );

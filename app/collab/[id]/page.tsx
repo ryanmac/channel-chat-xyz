@@ -11,6 +11,7 @@ import { useDebate } from '@/hooks/useDebate';
 import { Channel } from '@prisma/client';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import Link from 'next/link';
+import { FaRobot } from 'react-icons/fa6';
 
 export default function DebatePage() {
   const { id } = useParams();
@@ -57,7 +58,11 @@ export default function DebatePage() {
   // Display a message if no debate is found
   if (!debate) {
     console.log('app/debate/[id]/page.tsx: no debate');
-    return <div>Debate not found</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <FaRobot className="w-16 h-16 animate-spin" />
+      </div>
+    );
   }
 
   // console.log('app/debate/[id]/page.tsx: debate.status', debate.status);

@@ -55,14 +55,14 @@ const CollabItem: React.FC<CollabListItem> = ({ channel1, channel2, topic, id })
       </CardContent>
       <CardFooter className="flex justify-center mt-auto">
         <Link href={`/collab/${id}`} className="w-full">
-          <Button className="w-full bg-foreground/50 hov7r:bg-foreground/70">View Collab</Button>
+          <Button className="w-full bg-foreground/70 hover:bg-foreground">View Collab</Button>
         </Link>
       </CardFooter>
     </Card>
   )
 }
 
-export default function CollabList() {
+export default function CollabList({ limit = 5 }: { limit?: number }) {  // Add limit prop
   const [collabs, setCollabs] = useState<CollabListItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -75,7 +75,7 @@ export default function CollabList() {
           throw new Error('Failed to fetch concluded debates')
         }
         const data = await response.json()
-        setCollabs(data)
+        setCollabs(data.slice(0, limit))  // Limit the collabs
       } catch (err) {
         setError('Failed to load concluded debates. Please try again later.')
         console.error(err)
@@ -85,7 +85,7 @@ export default function CollabList() {
     }
 
     fetchCollabs()
-  }, [])
+  }, [limit])
 
   if (isLoading) {
     return (
@@ -100,7 +100,7 @@ export default function CollabList() {
   }
 
   if (collabs.length === 0) {
-    return <div className="text-muted-foreground text-center"></div>
+    return <div className="text-muted-foreground text-center">No collabs available</div>
   }
 
   return (

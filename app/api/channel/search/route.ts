@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getCache, setCache } from '@/utils/cache';
+import { ChannelStatus } from '@prisma/client';
 
 // Set cache time-to-live (TTL) in seconds, e.g., 10 minutes
 const CACHE_TTL = 600;
@@ -9,13 +10,14 @@ const CACHE_TTL = 600;
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('q')?.trim().replace('@', '').replace('%40', '');
+  const status = searchParams.get('status') as ChannelStatus | undefined; // Cast status to the correct type
 
   if (!query) {
     return NextResponse.json({ error: 'Query parameter "q" is required' }, { status: 400 });
   }
 
-  // Create a cache key based on the query to avoid cache collisions
-  const cacheKey = `channel_search_${query}`;
+  // Create a cache key based on the query and status to avoid cache collisions
+  const cacheKey = `channel_search_${query}_${status || 'ALL'}`;
 
   const cachedData = getCache(cacheKey);
   if (cachedData) {
@@ -26,13 +28,14 @@ export async function GET(request: NextRequest) {
   try {
     console.log(`Cache miss for query: ${query}. Fetching from the database...`);
 
-    // Query the database for matching channels (optimize for speed)
+    // Query the database for matching channels with optional status filter
     const channels = await prisma.channel.findMany({
       where: {
         OR: [
           { name: { contains: query, mode: 'insensitive' } },
           { title: { contains: query, mode: 'insensitive' } }
-        ]
+        ],
+        ...(status && { status }), // Apply status filter if provided
       },
       select: {
         id: true,
@@ -45,7 +48,6 @@ export async function GET(request: NextRequest) {
     });
 
     // Cache the search results
-    // revalidateTag(cacheKey, channels, CACHE_TTL);
     setCache(cacheKey, channels, CACHE_TTL);
 
     return NextResponse.json(channels);

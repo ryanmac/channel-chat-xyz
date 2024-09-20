@@ -261,7 +261,7 @@ export default function AdminChannelTable() {
     setInterestsLoading((prev) => ({ ...prev, [channelId]: true }));
 
     try {
-      const response = await fetch('/api/channel/interests', {
+      const response = await fetch(`/api/channel/interests`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ channelData: { id: channelId, name: channelName } }),

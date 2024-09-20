@@ -9,6 +9,8 @@ import { LeaderboardActivityFeed } from "@/components/LeaderboardActivityFeed";
 import { HighlightedChats } from "@/components/HighlightedChats";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import CollabList from "@/components/CollabList";
 
 export default function HomePage() {
   return (
@@ -28,6 +30,18 @@ export default function HomePage() {
           <FeaturedChannels />
         </div>
       </section>
+      <div className="col-span-full flex items-center justify-center">
+        <Avatar className="border-none mr-2">
+          <AvatarImage src="/logomark-play2.png" alt="ChannelChat" />
+          <AvatarFallback>
+            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-xl">C</span>
+            </div>
+          </AvatarFallback>
+        </Avatar>
+        <h2 className="text-3xl font-bold text-center text-primary">Collabs</h2>
+      </div>
+      <CollabList limit={6} />
       <CommunitySupport />
       {/* <LeaderboardActivityFeed /> */}
       {/* <HighlightedChats /> */}

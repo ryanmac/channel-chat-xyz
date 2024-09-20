@@ -32,12 +32,38 @@ export async function initializeDebate(channelId1: string, channelId2: string, u
 }
 
 export async function generateTopics(channelId1: string, channelId2: string) {
-  const [channel1, channel2] = await Promise.all([
-    prisma.channel.findUnique({ where: { id: channelId1 }, select: { interests: true } }),
-    prisma.channel.findUnique({ where: { id: channelId2 }, select: { interests: true } }),
+  let [channel1, channel2] = await Promise.all([
+    prisma.channel.findUnique({ where: { id: channelId1 }, select: { id: true, name: true, interests: true } }),
+    prisma.channel.findUnique({ where: { id: channelId2 }, select: { id: true, name: true, interests: true } }),
   ]);
 
   if (!channel1 || !channel2) throw new Error('One or both channels not found');
+
+  // If the channels have no interests, first update the channels to get interests using the api/channel/interests route
+  if (!channel1.interests || channel1.interests.length === 0) {
+    const response = await fetch(`${config.app.url}/api/channel/interests`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channelData: { id: channel1.id, name: channel1.name } }),
+    });
+    if (!response.ok) {
+      console.error('Failed to fetch interests:', await response.text());
+      throw new Error('Failed to generate topics');
+    }
+    channel1 = await prisma.channel.findUnique({ where: { id: channelId1 }, select: { id: true, name: true, interests: true } });
+  }
+  if (!channel2.interests || channel2.interests.length === 0) {
+    const response = await fetch(`${config.app.url}/api/channel/interests`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channelData: { id: channel2.id, name: channel2.name } }),
+    });
+    if (!response.ok) {
+      console.error('Failed to fetch interests:', await response.text());
+      throw new Error('Failed to generate topics');
+    }
+    channel2 = await prisma.channel.findUnique({ where: { id: channelId2 }, select: { id: true, name: true, interests: true } });
+  }
 
   const response = await fetch(`${config.app.url}/api/collab/topics`, {
     method: 'POST',
@@ -45,8 +71,8 @@ export async function generateTopics(channelId1: string, channelId2: string) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      interests1: channel1.interests,
-      interests2: channel2.interests,
+      interests1: channel1?.interests,
+      interests2: channel2?.interests,
     }),
   });
 

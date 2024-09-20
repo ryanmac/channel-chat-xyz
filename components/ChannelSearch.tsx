@@ -21,6 +21,7 @@ type ChannelSearchProps = {
   buttonClassName?: string;
   containerClassName?: string;
   onSelect?: (channel: ChannelSearchResult) => void;
+  onlyActive?: boolean; // New parameter to filter active channels
 };
 
 export default function ChannelSearch({
@@ -28,6 +29,7 @@ export default function ChannelSearch({
   buttonClassName = '',
   containerClassName = '',
   onSelect,
+  onlyActive = false, // Default to false
 }: ChannelSearchProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<ChannelSearchResult[]>([]);
@@ -42,7 +44,9 @@ export default function ChannelSearch({
     }
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/channel/search?q=${encodeURIComponent(term)}`);
+      // Add the status parameter if filtering only active channels
+      const statusParam = onlyActive ? '&status=ACTIVE' : '';
+      const response = await fetch(`/api/channel/search?q=${encodeURIComponent(term)}${statusParam}`);
       const data = await response.json();
       if (response.ok) {
         setResults(data);

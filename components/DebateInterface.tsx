@@ -45,7 +45,7 @@ export const DebateInterface: React.FC<DebateInterfaceProps> = ({
 
   // Scroll to the latest turn when a new turn is added
   useEffect(() => {
-    if (lastTurnRef.current) {
+    if (debate.status !== 'CONCLUDED' && lastTurnRef.current) {
       lastTurnRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [debate?.turns]);

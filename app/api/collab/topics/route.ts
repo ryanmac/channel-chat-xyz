@@ -21,7 +21,7 @@ ${interests1}
 Channel 2 interests:
 ${interests2}
 
-Suggest 3 interesting topics that both channels might have engaging discussions about.
+Suggest two interesting topics that both channels might have engaging discussions about, and one that they might have opposing views on.
 Format your response as a numbered list. Starting with 1., 2., 3., etc.`;
 
     const completion = await openai.chat.completions.create({
