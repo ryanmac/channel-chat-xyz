@@ -1,12 +1,16 @@
 // components/DebateInterface.tsx
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Debate, DebateTurn } from '@prisma/client';
+import { Share2, Facebook, Linkedin, Link } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { default as ClientMarkdown } from '@/components/ClientMarkdown';
 import { getTopic } from '@/utils/debateUtils';
 import TypingIndicator from '@/components/TypingIndicator';
 import { Merge } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from '@/hooks/use-toast';
 
 const MAX_TURNS = 10;
 
@@ -81,7 +85,7 @@ export const DebateInterface: React.FC<DebateInterfaceProps> = ({
         )}
         <div
           className={`inline-block p-4 rounded-lg max-w-[80%] ${
-            isChannel1 ? 'bg-blue-100 text-blue-900' : 'bg-green-100 text-green-900'
+            isChannel1 ? 'bg-blue-100/70 text-blue-950' : 'bg-green-100/70 text-green-950'
           }`}
         >
           <p className="font-semibold">{channel.name}</p>
@@ -97,6 +101,47 @@ export const DebateInterface: React.FC<DebateInterfaceProps> = ({
         )}
       </div>
     );
+  };
+
+  // Sharing
+  const [isClient, setIsClient] = useState(false);
+  const { toast } = useToast();
+  const currentUrl = `/collab/${debate.id}`; // Dynamic URL for the current debate
+  const shareMessage = `Check out this AI-powered collab between @${channel1.name} and @${channel2.name} on the topic "${topicTitle}". Dive into the conversation and see how AI can power debates!`;
+
+  const shareUrls = {
+    x: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}&url=${encodeURIComponent(currentUrl)}`,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}&quote=${encodeURIComponent(shareMessage)}`,
+    linkedin: `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(currentUrl)}&title=${encodeURIComponent(
+      'AI-Powered Debate Collaboration'
+    )}&summary=${encodeURIComponent(shareMessage)}`,
+  };
+
+  const handleShare = (platform: keyof typeof shareUrls) => {
+    if (isClient) {
+      window.open(shareUrls[platform], '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const copyToClipboard = () => {
+    if (isClient) {
+      navigator.clipboard
+        .writeText(`${shareMessage} ${currentUrl}`)
+        .then(() => {
+          toast({
+            title: 'Copied to clipboard',
+            description: 'The share message has been copied to your clipboard.',
+          });
+        })
+        .catch((err) => {
+          console.error('Failed to copy: ', err);
+          toast({
+            title: 'Failed to copy',
+            description: 'There was an error copying the message. Please try again.',
+            variant: 'destructive',
+          });
+        });
+    }
   };
 
   return (
@@ -142,7 +187,80 @@ export const DebateInterface: React.FC<DebateInterfaceProps> = ({
             </div>
           )}
         </div>
+        {(debate.status === 'CONCLUDED' || debate.turns?.length >= MAX_TURNS) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col items-center justify-center mt-12 mb-4"
+          >
+            <AnimatePresence>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3 }}
+                className="flex flex-wrap justify-center gap-4"
+              >
+                <ShareButton
+                  onClick={() => handleShare('x')}
+                  icon={<span
+                    className="mr-2 text-white text-xl font-semibold"
+                    style={{
+                      fontSize: '20px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '20px',
+                      width: '20px',
+                    }}
+                  >
+                    𝕏
+                  </span>}
+                  label="Share on X"
+                  className="bg-black hover:bg-gray-800"
+                />
+                <ShareButton
+                  onClick={() => handleShare('facebook')}
+                  icon={<Facebook className="w-5 h-5" />}
+                  label="Share on Facebook"
+                  className="bg-[#1877F2] hover:bg-[#166fe5]"
+                />
+                <ShareButton
+                  onClick={() => handleShare('linkedin')}
+                  icon={<Linkedin className="w-5 h-5" />}
+                  label="Share on LinkedIn"
+                  className="bg-[#0A66C2] hover:bg-[#094c8f]"
+                />
+                <ShareButton
+                  onClick={copyToClipboard}
+                  icon={<Link className="w-5 h-5" />}
+                  label="Copy Link"
+                  className="bg-gray-500 hover:bg-gray-600"
+                />
+              </motion.div>
+            </AnimatePresence>
+          </motion.div>
+        )}
       </CardContent>
     </Card>
   );
 };
+
+interface ShareButtonProps {
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+  className?: string;
+}
+
+function ShareButton({ onClick, icon, label, className }: ShareButtonProps) {
+  return (
+    <Button
+      onClick={onClick}
+      className={`text-white font-bold py-3 px-6 rounded-full flex items-center space-x-2 transition-all duration-300 ease-in-out transform hover:scale-105 ${className}`}
+    >
+      {icon}
+      <span>{label}</span>
+    </Button>
+  );
+}

@@ -107,14 +107,6 @@ export async function generateResponse(channelId: string, topic: string, content
   ).join('\n\n');
 
   // Make a request to the new route to get the AI-generated response
-  console.log('Sending data to /api/collab/response:', {
-    channelTitle: channel.title,
-    topic,
-    channelContext,
-    otherChannelContext,
-    debateHistory,
-    stage,
-  });
   const response = await fetch(`${config.app.url}/api/collab/response`, {
     method: 'POST',
     headers: {

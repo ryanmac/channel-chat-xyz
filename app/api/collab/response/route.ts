@@ -53,7 +53,7 @@ ${debateHistory}
         break;
       case 'conclusion':
         prompt += `Provide a conclusion to the debate from your channel's perspective. 
-        Summarize your main points, address the counterarguments, and provide a final statement on the topic.`;
+        Summarize your main points, address the counterarguments, and provide your final statement on the topic using channel context and your debate history.`;
         break;
     }
 
