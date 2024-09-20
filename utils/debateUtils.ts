@@ -73,6 +73,10 @@ export function getTopic(topic: string) {
     topicTitle = cleanedTopic;
   }
 
+  if (!topicDescription.match(/[\.\?\!]$/)) {
+    topicDescription += '...';
+  }
+
   return { topicTitle, topicDescription };
 }
 
@@ -169,7 +173,8 @@ export async function processTurn(debateId: string, content: string) {
     });
 
     // Determine updated status
-    const updatedStatus = debate.turns.length + 1 >= MAX_TURNS ? 'READY_TO_CONCLUDE' : 'IN_PROGRESS';
+    // const updatedStatus = debate.turns.length + 1 >= MAX_TURNS ? 'READY_TO_CONCLUDE' : 'IN_PROGRESS';
+    const updatedStatus = debate.turns.length + 1 >= MAX_TURNS ? 'CONCLUDED' : 'IN_PROGRESS';
 
     // Update debate status and include latest turn
     const updatedDebate = await prisma.debate.update({

@@ -77,7 +77,7 @@ export const SuccessShareModal: React.FC<SuccessShareModalProps> = ({
 
   const { activationAmount, creditPurchaseAmount, totalAmountInDollars, remainingToActivate } = transactionData;
   const wasActivated = remainingToActivate <= 0;
-  const newChatCreditsAdded = (creditPurchaseAmount * 1000) + (wasActivated ? 1000 : 0); // Adjusted for initial credits
+  const newChatCreditsAdded = (creditPurchaseAmount) + (wasActivated ? 1000 : 0); // Adjusted for initial credits
 
   const determineShareMessage = () => {
     const channelActivationGoal = 10; // Assume some goal value, should be fetched or defined elsewhere

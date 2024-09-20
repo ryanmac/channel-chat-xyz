@@ -6,9 +6,11 @@ import { useParams } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { DebateInterface } from '@/components/DebateInterface';
+import { Button } from '@/components/ui/button';
 import { useDebate } from '@/hooks/useDebate';
 import { Channel } from '@prisma/client';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import Link from 'next/link';
 
 export default function DebatePage() {
   const { id } = useParams();
@@ -65,7 +67,14 @@ export default function DebatePage() {
     <ErrorBoundary>
       <Header />
       <div className="container mx-auto px-4 py-8">
-        <p className="text-3xl font-bold mb-6">Collab</p>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold text-center text-primary">Collab</h1>
+          <Link href="/collab" className="text-lg text-blue-500 hover:underline">
+            <Button>
+              Start New Collab
+            </Button>
+          </Link>
+        </div>
         {channel1 && channel2 ? (
           <DebateInterface
             debate={debate}

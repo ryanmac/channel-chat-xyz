@@ -15,6 +15,8 @@ import { TopicSelection } from '@/components/TopicSelection';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from "@/components/ui/card";
 import { FaRobot } from 'react-icons/fa';
+import CollabList from '@/components/CollabList';
+import Link from 'next/link';
 
 type ChannelSearchResult = {
   id: string;
@@ -120,7 +122,9 @@ export default function DebateInitPage() {
     <>
       <Header />
       <div className="container mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold mb-8 text-center text-primary">ChannelChat Collab</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold text-center text-primary">Collab</h1>
+        </div>
         {error && <div className="text-red-500 mb-4">{error}</div>}
         
         <div className="flex flex-col md:flex-row items-center justify-center gap-8 mb-20">
@@ -172,6 +176,7 @@ export default function DebateInitPage() {
           />
         )}
       </div>
+      <CollabList />
       <Footer />
     </>
   );

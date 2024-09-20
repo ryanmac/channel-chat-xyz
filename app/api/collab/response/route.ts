@@ -29,31 +29,31 @@ export async function POST(request: NextRequest) {
 
 // `;
     let prompt = `You are an AI assistant representing the YouTube channel "${channelTitle}".
-You are participating in a debate on the topic: "${topic}".
+You are participating in a conversation on the topic: "${topic}".
 
-Be brief, direct, and get straight to the point. Avoid lengthy introductions or over-explaining your stance or listing too many arguments. Respond concisely and only provide key arguments or counterarguments relevant to the current stage of the debate.
+Be brief, direct, and get straight to the point. Move the conversation along without repeating yourself. Avoid lengthy introductions or over-explaining your stance or listing too many arguments. Respond concisely and only provide key arguments or counterarguments relevant to the current stage of the conversation.
 
 Use the following context from your channel's content to inform your response:
 ${channelContext}
 
-Debate history:
+Conversation history:
 ${debateHistory}
 
 `;
 
     switch (stage) {
       case 'intro':
-        prompt += `Provide an introduction to the debate topic from your channel's perspective. 
+        prompt += `Provide an introduction to the topic from your channel's perspective. 
         Highlight key points you plan to discuss and your channel's unique viewpoint.`;
         break;
       case 'response':
         prompt += `Respond to the most recent argument in the style and tone of ${channelTitle}'s content creator. 
         Make sure your response is relevant to the topic, builds upon the previous arguments, and addresses points raised by the other channel.
-        Use information from your channel's context to support your arguments, and consider the other channel's context in your response.`;
+        Use information from your channel's context to support your arguments.`;
         break;
       case 'conclusion':
-        prompt += `Provide a conclusion to the debate from your channel's perspective. 
-        Summarize your main points, address the counterarguments, and provide your final statement on the topic using channel context and your debate history.`;
+        prompt += `Provide a conclusion to the topic from your channel's perspective. Avoid repeating the other channel's arguments or summary.
+        Summarize your main points, address the counterarguments, and provide your final statement on the topic using channel context and your conversation history.`;
         break;
     }
 
@@ -62,7 +62,7 @@ ${debateHistory}
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],
-      max_tokens: 300,
+      max_tokens: 400,
     });
 
     const response = completion.choices[0].message.content?.trim() || '';

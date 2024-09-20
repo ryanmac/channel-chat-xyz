@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Debate, DebateTurn } from '@prisma/client';
 import { Share2, Facebook, Linkedin, Link } from 'lucide-react';
+import { FaRobot } from 'react-icons/fa6';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import TypingIndicator from '@/components/TypingIndicator';
 import { Merge } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
+import config from '@/config';
 
 const MAX_TURNS = 10;
 
@@ -48,24 +50,17 @@ export const DebateInterface: React.FC<DebateInterfaceProps> = ({
     }
   }, [debate?.turns]);
 
-  // Manage turn processing and conclusion of the debate
   useEffect(() => {
     if (!debate || !Array.isArray(debate.turns)) return;
 
-    // Check if the debate is concluded and call conclude if true
-    if (debate.status === 'CONCLUDED') {
-      onConclude(debate.id);
-      return;
-    }
-
-    // Trigger the next turn only if not already processing a turn
-    if (!isLoading && !isProcessingRef.current && debate.turns.length < MAX_TURNS) {
+    // Only trigger turns when the debate is not concluded
+    if (debate.status !== 'CONCLUDED' && !isLoading && !isProcessingRef.current && debate.turns.length < MAX_TURNS) {
       isProcessingRef.current = true; // Mark as processing
       onTurn(debate.id, '').finally(() => {
         isProcessingRef.current = false; // Reset processing state once turn is complete
       });
     }
-  }, [debate, onTurn, onConclude, isLoading]);
+  }, [debate, onTurn, isLoading]);
 
   // Render each turn of the debate with appropriate formatting and avatars
   const renderTurn = (turn: DebateTurn, index: number) => {
@@ -88,7 +83,10 @@ export const DebateInterface: React.FC<DebateInterfaceProps> = ({
             isChannel1 ? 'bg-blue-100/70 text-blue-950' : 'bg-green-100/70 text-green-950'
           }`}
         >
-          <p className="font-semibold">{channel.name}</p>
+          <p className="font-semibold flex items-center">
+            <FaRobot className="w-5 h-5 mr-1" />
+            {channel.name}
+          </p>
           <div className="mt-1 custom-prose">
             <ClientMarkdown content={turn.content} />
           </div>
@@ -106,8 +104,8 @@ export const DebateInterface: React.FC<DebateInterfaceProps> = ({
   // Sharing
   const [isClient, setIsClient] = useState(false);
   const { toast } = useToast();
-  const currentUrl = `/collab/${debate.id}`; // Dynamic URL for the current debate
-  const shareMessage = `Check out this AI-powered collab between @${channel1.name} and @${channel2.name} on the topic "${topicTitle}". Dive into the conversation and see how AI can power debates!`;
+  const currentUrl = `${config.app.url}/collab/${debate.id}`; // Dynamic URL for the current debate
+  const shareMessage = `Check out this AI-powered collab between @${channel1.name} and @${channel2.name} on the topic "${topicTitle}".\n\nDive into the conversation and see how AI can power collabs between YouTube Channels.\n`;
 
   const shareUrls = {
     x: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}&url=${encodeURIComponent(currentUrl)}`,
@@ -118,8 +116,10 @@ export const DebateInterface: React.FC<DebateInterfaceProps> = ({
   };
 
   const handleShare = (platform: keyof typeof shareUrls) => {
-    if (isClient) {
+    if (typeof window !== 'undefined') {
       window.open(shareUrls[platform], '_blank', 'noopener,noreferrer');
+    } else {
+      console.error('Unable to share: not running in a client environment.');
     }
   };
 
@@ -150,7 +150,7 @@ export const DebateInterface: React.FC<DebateInterfaceProps> = ({
         <CardTitle>
           <p className="text-2xl font-bold">{topicTitle}</p>
           {topicDescription && <p className="text-xl font-normal">{topicDescription}</p>}
-          <div className="flex items-center gap-4 mt-4">
+          <div className="flex items-center justify-center gap-4 mt-4">
             <Avatar className="w-10 h-10 rounded-full">
               <AvatarImage src={channel1.imageUrl || undefined} alt={channel1.name} />
               <AvatarFallback>{channel1.name[0]}</AvatarFallback>

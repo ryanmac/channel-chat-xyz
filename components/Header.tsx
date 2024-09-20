@@ -26,7 +26,7 @@ export function Header() {
     <header>
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-2">
-          <Avatar>
+          <Avatar className="border-none">
             <AvatarImage src="/logomark-play2.png" alt="ChannelChat" />
             <AvatarFallback>
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
