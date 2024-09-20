@@ -1,4 +1,4 @@
-// app/debate/[id]/page.tsx
+// app/collab/[id]/page.tsx
 'use client'
 
 import { useState, useEffect, useRef } from 'react';

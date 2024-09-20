@@ -9,7 +9,7 @@ export default auth((req) => {
   const isApiRoute = nextUrl.pathname.startsWith("/api");
   const isAuthRoute = nextUrl.pathname.startsWith("/auth");
   const isAdminRoute = nextUrl.pathname.startsWith("/admin");
-  const isPublicRoute = ["/", "/about", "/feedback"].includes(nextUrl.pathname) ||
+  const isPublicRoute = ["/", "/about", "/feedback", "/collab"].includes(nextUrl.pathname) ||
     nextUrl.pathname.startsWith("/user") ||
     nextUrl.pathname.startsWith("/channel");
 
