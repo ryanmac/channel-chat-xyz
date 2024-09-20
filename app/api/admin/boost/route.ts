@@ -87,9 +87,10 @@ export async function POST(request: NextRequest) {
       // Update Channel model
       const updatedChannelData: any = {};
 
-      if (activationAmount > 0) {
-        updatedChannelData.activationFunding = { increment: activationAmount };
-      }
+      // Don't double count
+      // if (activationAmount > 0) {
+      //   updatedChannelData.activationFunding = { increment: activationAmount };
+      // }
 
       if (creditsToAdd > 0) {
         updatedChannelData.creditBalance = { increment: creditsToAdd };

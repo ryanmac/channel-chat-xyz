@@ -247,7 +247,7 @@ export default function ChannelPage({ params }: ChannelPageProps) {
             )}
             {!isChannelActive && !channelInfo.isProcessing && !isProcessing && (
               <>
-                <h2 className="text-2xl font-bold mt-8 mb-4">Explore other chatbots...</h2>
+                <h2 className="text-2xl font-bold mt-8 mb-4">Explore active channels...</h2>
                 <FeaturedChannels showStats={false} />
               </>
             )}

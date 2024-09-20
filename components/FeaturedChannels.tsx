@@ -67,7 +67,7 @@ export function FeaturedChannels({ showStats = true }: FeaturedChannelsProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: index * 0.1 }}
         >
-          <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg dark:bg-gray-800 dark:border-gray-700">
+          <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg bg-background/50">
             <CardHeader className="p-6">
               <div className="flex items-center space-x-4">
                 <Avatar className="w-16 h-16 border-2 border-primary rounded-full">

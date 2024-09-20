@@ -475,8 +475,8 @@ export default function AdminChannelTable() {
               </TableCell>
               <TableCell>
                 {channel.activationFunding
-                  ? `$${Number(channel.activationFunding).toFixed(2)}`
-                  : '$0.00'}
+                  ? `$${Number(channel.activationFunding).toFixed(0)}`
+                  : '$0'}
               </TableCell>
               <TableCell>
                 {channel.creditBalance

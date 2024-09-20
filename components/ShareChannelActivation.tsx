@@ -96,9 +96,9 @@ export function ShareChannelActivation({ channelData }: ShareChannelActivationPr
       className="w-full mt-8 overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-700 shadow-2xl"
     >
       <div className="p-8 text-white">
-        <h2 className="text-3xl font-extrabold text-center mb-6">Can't contribute? Spread the word!</h2>
+        <h2 className="text-3xl font-extrabold text-center mb-6">Spread the word!</h2>
         <p className="text-xl mb-4 text-center font-light">
-          Your network could be the key to unlocking <strong>@{channelData?.name}</strong>'s AI chatbot!
+          Your network could be the key to unlocking <strong>@{channelData?.name}</strong> on ChannelChat!
         </p>
         <p className="text-lg mb-8 text-center font-light">
           We're so close - just <span className="font-semibold text-yellow-300">${remainingToActivate.toFixed(0)}</span> away from bringing this amazing AI experience to life.

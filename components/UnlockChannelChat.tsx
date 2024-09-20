@@ -183,7 +183,7 @@ export function UnlockChannelChat({ channelData, onFundingUpdate }: UnlockChanne
   };
 
   return (
-    <Card className="w-full mt-8 overflow-hidden">
+    <Card className="w-full mt-8 overflow-hidden border-none bg-background/50">
       <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white relative">
         <CardTitle className="text-3xl font-bold text-center">
           <motion.div
@@ -198,13 +198,13 @@ export function UnlockChannelChat({ channelData, onFundingUpdate }: UnlockChanne
           </motion.div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-6">
+      <CardContent className="p-6 bg-background/50">
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-2">Progress to Activation</h3>
           <div className="mb-2">
             <ProgressBar
               items={[
-                { value: (activationFunding / (channelData?.activationGoal || 1)) * 100, className: 'bg-white' },
+                { value: (activationFunding / (channelData?.activationGoal || 1)) * 100, className: 'bg-white/50' },
                 ...(sliderMoved ? [{ value: potentialPercentage, className: 'bg-green-300' }] : []),
               ]}
               height="h-6"

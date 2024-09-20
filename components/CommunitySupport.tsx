@@ -58,7 +58,7 @@ export function CommunitySupport() {
           <p className="text-center text-gray-600 dark:text-gray-300">
             Help keep our AI-powered chatbots running by sponsoring channels.
           </p>
-          <div className="bg-gray-100 dark:bg-gray-700 p-6 rounded-lg">
+          <div className="bg-gray-100/50 dark:bg-gray-700/50 p-6 rounded-lg">
             <h3 className="text-xl font-semibold mb-4">Channel Funding Progress</h3>
             <div className="space-y-4">
               {channels.map((channel) => (
