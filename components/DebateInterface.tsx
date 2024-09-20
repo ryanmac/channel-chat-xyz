@@ -145,7 +145,7 @@ export const DebateInterface: React.FC<DebateInterfaceProps> = ({
   };
 
   return (
-    <Card className="w-full mt-8 bg-slate-800/60 border-none">
+    <Card className="w-full bg-gray-400/50 dark:bg-gray-900/50 border-none">
       <CardHeader>
         <CardTitle>
           <p className="text-2xl font-bold">{topicTitle}</p>
