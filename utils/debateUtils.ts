@@ -17,6 +17,17 @@ export async function initializeDebate(channelId1: string, channelId2: string, u
     },
   });
 
+  await prisma.channel.update({
+    where: { id: channelId1 },
+    data: { creditBalance: { decrement: 4 } }
+  });
+
+  // Increment the chat count for the channel
+  await prisma.channel.update({
+    where: { id: channelId2 },
+    data: { chatsCreated: { increment: 4 } }
+  });
+
   return debate;
 }
 

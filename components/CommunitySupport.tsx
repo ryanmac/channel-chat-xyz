@@ -51,7 +51,7 @@ export function CommunitySupport() {
   }
 
   return (
-    <section className="py-12 bg-indigo-50 dark:bg-gray-800">
+    <section className="py-12">
       <div className="container px-4 md:px-6">
         <h2 className="text-3xl font-bold text-center mb-8">Activate a Channel</h2>
         <div className="max-w-3xl mx-auto space-y-6">

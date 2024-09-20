@@ -15,7 +15,7 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen">
       <Header />
       <Hero />
-      <section className="py-16 bg-gradient-to-b from-indigo-400 to-indigo-50 dark:from-gray-900 dark:to-gray-800">
+      <section className="py-16">
         <div className="container px-4 md:px-6">
           <motion.h2 
             className="text-4xl font-bold text-center mb-12 text-gray-800 dark:text-white"
