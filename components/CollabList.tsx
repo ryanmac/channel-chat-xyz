@@ -55,7 +55,7 @@ const CollabItem: React.FC<CollabListItem> = ({ channel1, channel2, topic, id })
       </CardContent>
       <CardFooter className="flex justify-center mt-auto">
         <Link href={`/collab/${id}`} className="w-full">
-          <Button className="w-full">View Collab</Button>
+          <Button className="w-full bg-foreground/50 hov7r:bg-foreground/70">View Collab</Button>
         </Link>
       </CardFooter>
     </Card>
@@ -100,7 +100,7 @@ export default function CollabList() {
   }
 
   if (collabs.length === 0) {
-    return <div className="text-muted-foreground text-center">No concluded debates found.</div>
+    return <div className="text-muted-foreground text-center"></div>
   }
 
   return (

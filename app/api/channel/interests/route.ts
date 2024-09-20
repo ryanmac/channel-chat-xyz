@@ -1,10 +1,8 @@
-// app/api/admin/interests/route.ts
+// app/api/channel/interests/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { getRelevantChunks, getRecentChunks } from '@/utils/yesService';
 import prisma from '@/lib/prisma';
-import { auth } from '@/auth';
-import { error } from 'console';
 import config from '@/config';
 
 
