@@ -63,7 +63,7 @@ export function FeaturedChannels({ showStats = true }: FeaturedChannelsProps) {
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-8 px-4 md:px-6 lg:px-8">
+    <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-8">
       {channels.map((channel, index) => (
         <motion.div
           key={channel.id}
@@ -71,7 +71,7 @@ export function FeaturedChannels({ showStats = true }: FeaturedChannelsProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: index * 0.1 }}
         >
-          <Card className="w-full max-w-md mx-auto flex flex-col h-full bg-background/50 shadow-lg hover:shadow-2xl">
+          <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg bg-background/50">
             <CardHeader className="p-6">
               <div className="flex items-center space-x-4">
                 <Avatar className="w-16 h-16 border-2 border-primary rounded-full">
