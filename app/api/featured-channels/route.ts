@@ -6,7 +6,10 @@ export async function GET() {
   try {
     // Fetch 10 active channels from the database
     const channels = await prisma.channel.findMany({
-      where: { status: 'ACTIVE' }, // Use the correct field for filtering
+      where: {
+        status: 'ACTIVE',
+        featured: true,
+      }, // Use the correct field for filtering
       // take: 100, // Fetch 10 records
       select: {
         id: true,
@@ -16,6 +19,7 @@ export async function GET() {
         subscriberCount: true,
         chatsCreated: true,
         creditBalance: true,
+        featured: true,
       },
     });
 

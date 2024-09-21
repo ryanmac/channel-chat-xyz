@@ -1,7 +1,7 @@
 // components/FeaturedChannels.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -29,8 +29,12 @@ export function FeaturedChannels({ showStats = true }: FeaturedChannelsProps) {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hasFetched = useRef(false);
 
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+
     async function fetchFeaturedChannels() {
       try {
         const response = await fetch('/api/featured-channels');
@@ -59,7 +63,7 @@ export function FeaturedChannels({ showStats = true }: FeaturedChannelsProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-8">
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-8 px-4 md:px-6 lg:px-8">
       {channels.map((channel, index) => (
         <motion.div
           key={channel.id}
@@ -67,7 +71,7 @@ export function FeaturedChannels({ showStats = true }: FeaturedChannelsProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: index * 0.1 }}
         >
-          <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg bg-background/50">
+          <Card className="w-full max-w-md mx-auto flex flex-col h-full bg-background/50 shadow-lg hover:shadow-2xl">
             <CardHeader className="p-6">
               <div className="flex items-center space-x-4">
                 <Avatar className="w-16 h-16 border-2 border-primary rounded-full">
