@@ -6,9 +6,9 @@ import { initializeDebate, processTurn, concludeDebate, generateTopics } from '@
 
 export async function POST(request: NextRequest) {
   const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  // if (!session?.user) {
+  //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // }
 
   const { action, channelId1, channelId2, debateId, content, topic } = await request.json();
   console.log('Debate API called with action:', action, 'and content:', content);
@@ -22,7 +22,8 @@ export async function POST(request: NextRequest) {
         if (!channelId1 || !channelId2 || !topic) {
           return NextResponse.json({ error: 'Missing parameters for initialization.' }, { status: 400 });
         }
-        result = await initializeDebate(channelId1, channelId2, session.user.id, topic);
+        const userId = session?.user.id ?? '';
+        result = await initializeDebate(channelId1, channelId2, userId, topic);
         break;
 
       case 'turn':
