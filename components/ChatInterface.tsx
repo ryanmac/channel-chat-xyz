@@ -10,6 +10,7 @@ import TypingIndicator from '@/components/TypingIndicator';
 import { useToast } from "@/hooks/use-toast";
 import { ChannelData } from '@/utils/channelManagement';
 import { FaRobot } from "react-icons/fa6";
+import { getChannelInterests } from '@/utils/debateUtils';
 import Link from 'next/link';
 
 interface Message {
@@ -29,12 +30,23 @@ const WARNING_TOKENS = 40000;
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({ channelData, showMaximize }) => {
   showMaximize = showMaximize || false;
+  console.log(channelData.interests);
+  
+  // Randomize interests and select the first three
+  const randomizedInterests = channelData.interests.sort(() => Math.random() - 0.5).slice(0, 3);
+
+  // Format the interests into the desired string format
+  const formattedInterests = randomizedInterests
+    .map(interest => `**${interest.title}**: ${interest.description}`)
+    .join('\n\n');
+
+  // Initialize the messages state with the formatted interests included
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
       sender: 'AI',
-      content: `My memory is loaded with **${channelData.totalVideos}** video transcripts so far.\n\n${channelData.interests.length > 0 ? channelData.interests + "\n\n" : ''}What would you like to discuss?`,
-      timestamp: '12:00 PM'
+      content: `My memory is loaded with **${channelData.totalVideos}** video transcripts so far.\n\n${formattedInterests}\n\nWhat would you like to discuss?`,
+      timestamp: '12:00 PM',
     }
   ]);
   const [input, setInput] = useState('');
