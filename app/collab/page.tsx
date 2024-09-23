@@ -117,9 +117,10 @@ export default function DebateInitPage() {
         });
         return;
       }
-  
-      setTopics(formattedTopics); // Set structured topics
-      console.log('Formatted Topics:', formattedTopics);
+
+      const validTopics = formattedTopics.filter((topic): topic is { title: string; description: string } => topic !== null);
+      setTopics(validTopics); // Set structured topics
+      console.log('Formatted Topics:', validTopics);  
     } catch (error) {
       console.error('Error fetching topics:', error);
       toast({
