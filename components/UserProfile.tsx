@@ -2,8 +2,8 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { BadgeComponent } from "@/components/BadgeComponent";
+import { Badge } from "@/components/ui/badge";
 import { BadgeType } from "@/utils/badgeManagement";
 import Link from "next/link";
 import { Edit, MessageCircle, Award, Users, Share2, UserX, RotateCcw } from "lucide-react";
@@ -15,8 +15,16 @@ interface UserProfileProps {
     image?: string;
     sponsoredChatsCount: number;
     participatedChatsCount: number;
-    sponsorships: Array<{ id: string; channel: { name: string, title: string, imageUrl: string } }>;
-    badges: Array<{ id: string; badge: { name: string } }>;
+    sponsorships: Array<{
+      id: string;
+      channel: {
+        name: string;
+        title: string;
+        imageUrl: string;
+      };
+      badges: Array<{ id: string; badge: { name: string }; count: number }>;
+    }>;
+    badges: Array<{ name: string; count: number }>;
     totalSponsoredAmount: number;
   } | null;
   isOwnProfile: boolean;
@@ -45,7 +53,6 @@ function UserNotFound() {
 
 export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
   if (!user) {
-    console.log("User not found:", user);
     return <UserNotFound />;
   }
 
@@ -71,6 +78,7 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Chat Statistics */}
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center space-x-2">
             <MessageCircle className="h-5 w-5 text-primary" />
@@ -86,6 +94,7 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
           </CardContent>
         </Card>
 
+        {/* Sponsored Channels */}
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center space-x-2">
             <Users className="h-5 w-5 text-primary" />
@@ -93,37 +102,39 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
           </CardHeader>
           <CardContent>
             {user.sponsorships && user.sponsorships.length > 0 ? (
-              <>
-                <ul className="flex flex-wrap gap-2">
-                  {user.sponsorships.map((sponsorship) => (
-                    <li key={sponsorship.id}>
-                      <Link href={`/channel/${sponsorship.channel.name}`} className="text-sm hover:text-primary transition-colors">
-                        <Badge
-                          variant="secondary"
-                          className="bg-purple-200 text-purple-800 hover:bg-purple-300 hover:text-purple-600 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center space-x-2 p-2"
-                        >
-                          <Avatar className="h-12 w-12 border-2 border-secondary/20 -mr-1 rounded-full">
-                            <AvatarImage src={sponsorship.channel.imageUrl || ""} alt={sponsorship.channel.title || ""} />
-                            <AvatarFallback className="text-4xl">
-                              {sponsorship.channel.title ? sponsorship.channel.title[0] : "U"}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span>{sponsorship.channel.title}</span>
-                        </Badge>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-                {/* <p className="text-sm mt-4">
-                  Total Sponsorship: <span className="font-semibold">${user.totalSponsoredAmount.toFixed(0)}</span>
-                </p> */}
-              </>
+              <ul className="flex flex-wrap gap-2">
+                {user.sponsorships.map((sponsorship) => (
+                  <li key={sponsorship.id}>
+                    <Link href={`/channel/${sponsorship.channel.name}`} className="text-sm hover:text-primary transition-colors">
+                      <Badge
+                        variant="secondary"
+                        className="bg-purple-200 text-purple-800 hover:bg-purple-300 hover:text-purple-600 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center space-x-2 p-2"
+                      >
+                        <Avatar className="h-12 w-12 border-2 border-secondary/20 -mr-1 rounded-full">
+                          <AvatarImage src={sponsorship.channel.imageUrl || ""} alt={sponsorship.channel.title || ""} />
+                          <AvatarFallback className="text-4xl">
+                            {sponsorship.channel.title ? sponsorship.channel.title[0] : "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{sponsorship.channel.title}</span>
+                      </Badge>
+                      {/* Display badges earned for this channel */}
+                      <div className="flex flex-wrap mt-2">
+                        {sponsorship.badges.map((badge) => (
+                          <BadgeComponent key={badge.id} type={badge.badge.name as BadgeType} count={badge.count} />
+                        ))}
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             ) : (
               <p className="text-sm text-muted-foreground">No sponsored channels yet</p>
             )}
           </CardContent>
         </Card>
 
+        {/* Earned Badges */}
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center space-x-2">
             <Award className="h-5 w-5 text-primary" />
@@ -132,8 +143,8 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {user.badges && user.badges.length > 0 ? (
-                user.badges.map((userBadge) => (
-                  <BadgeComponent key={userBadge.id} type={userBadge.badge.name as BadgeType} />
+                user.badges.map((badge) => (
+                  <BadgeComponent key={badge.name} type={badge.name as BadgeType} count={badge.count} />
                 ))
               ) : (
                 <p className="text-sm text-muted-foreground">No badges earned yet</p>
@@ -142,6 +153,7 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
           </CardContent>
         </Card>
 
+        {/* Shared Chats Placeholder */}
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center space-x-2">
             <Share2 className="h-5 w-5 text-primary" />

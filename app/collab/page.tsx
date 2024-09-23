@@ -26,10 +26,15 @@ type ChannelSearchResult = {
   subscriberCount?: string;
 };
 
+interface Topic {
+  title: string;
+  description: string;
+}
+
 export default function DebateInitPage() {
   const [channel1, setChannel1] = useState<Channel | null>(null);
   const [channel2, setChannel2] = useState<Channel | null>(null);
-  const [topics, setTopics] = useState<string[]>([]);
+  const [topics, setTopics] = useState<{ title: string; description: string }[]>([]);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [topicsLoading, setTopicsLoading] = useState(false); // New state for topic loading
   const { initializeDebate, isLoading, error } = useDebate();
@@ -59,32 +64,68 @@ export default function DebateInitPage() {
       return; // Prevent fetching if channels are not selected
     }
     setTopicsLoading(true); // Start loading spinner
+  
     try {
       const response = await fetch('/api/debate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'generateTopics', channelId1: channel1.id, channelId2: channel2.id }),
+        body: JSON.stringify({
+          action: 'generateTopics',
+          channelId1: channel1.id,
+          channelId2: channel2.id,
+        }),
       });
-
+  
       const data = await response.json();
-
+  
+      // Add logging here to check the response
+      console.log('handleFetchAndSelectTopic: Debate API result:', data);
+  
+      // Check if data is structured as an array and contains at least one topic
       if (!Array.isArray(data) || data.length === 0) {
+        console.log('No topics found:', data);
         toast({
-          title: "No Topics Found",
-          description: "Unable to fetch topics. Please try again.",
-          variant: "destructive",
+          title: 'No Topics Found',
+          description: 'Unable to fetch topics. Please try again.',
+          variant: 'destructive',
         });
         return;
       }
-
-      setTopics(data);
-      // console.log('Topics set:', data);
+  
+      // Ensure topics are correctly structured
+      const formattedTopics = data
+        .map((topic) => {
+          // Make sure each topic has title and description properties
+          if (topic && topic.title && topic.description) {
+            return {
+              title: topic.title,
+              description: topic.description,
+            };
+          }
+          // Log if a topic is missing required properties
+          console.error('Malformed topic:', topic);
+          return null; // Filter these out later
+        })
+        .filter(Boolean); // Remove any null values from the map
+  
+      if (formattedTopics.length === 0) {
+        console.log('No properly formatted topics found:', data);
+        toast({
+          title: 'No Topics Found',
+          description: 'Unable to fetch properly formatted topics. Please try again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+  
+      setTopics(formattedTopics); // Set structured topics
+      console.log('Formatted Topics:', formattedTopics);
     } catch (error) {
       console.error('Error fetching topics:', error);
       toast({
-        title: "Error",
-        description: "Failed to fetch topics. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to fetch topics. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setTopicsLoading(false); // Stop loading spinner

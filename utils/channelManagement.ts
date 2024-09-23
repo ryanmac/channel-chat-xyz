@@ -40,8 +40,8 @@ export interface ApiData {
 export interface ChannelData {
   id: string;
   name: string;
-  title: string; // Ensure type is string, not null
-  description: string; // Ensure type is string, not null
+  title: string;
+  description: string;
   subscriberCount: string;
   videoCount: string;
   viewCount: string;
@@ -58,7 +58,11 @@ export interface ChannelData {
   maxTokens: number;
   chatsCreated: number;
   isFineTuned: boolean;
-  interests: string;
+  botScore: number;
+  createdAt: Date;
+  updatedAt: Date;
+  featured: boolean;
+  interests: { title: string; description: string }[];
   metadata: ChannelMetadata;
 }
 
@@ -128,7 +132,7 @@ export async function fetchAndMergeChannelData(options: { channelId?: string; ch
         maxTokens: 200, // Default token count; adjust as needed
         chatsCreated: 0, // Default chats created; adjust as needed
         isFineTuned: false, // Default to false; adjust as needed
-        interests: '', // Default to empty string; adjust as needed
+        // interests are now managed in the Interest model
       },
     });
   } else {
@@ -148,7 +152,7 @@ export async function fetchAndMergeChannelData(options: { channelId?: string; ch
         model: channel.model, // Keep the model consistent
         maxTokens: channel.maxTokens, // Keep the maxTokens consistent
         isFineTuned: channel.isFineTuned, // Keep fine-tuning status consistent
-        interests: channel.interests, // Update interests as necessary
+        // interests are now managed in the Interest model
         status: channel.status, // Update status as necessary
       },
     });
@@ -176,7 +180,11 @@ export async function fetchAndMergeChannelData(options: { channelId?: string; ch
     maxTokens: channel.maxTokens || 200, // Keep maxTokens consistent
     chatsCreated: channel.chatsCreated || 0,
     isFineTuned: channel.isFineTuned, // Keep fine-tuning status consistent
-    interests: channel.interests || '', // Update interests as necessary
+    interests: [], // Update interests as necessary
+    botScore: channel.botScore || 0,
+    createdAt: channel.createdAt,
+    updatedAt: channel.updatedAt,
+    featured: channel.featured || false,
     metadata: metadata
   };
 

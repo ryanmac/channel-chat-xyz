@@ -29,7 +29,7 @@ export function SponsorshipCTA({ channelData }: SponsorshipCTAProps) {
     setIsLoading(true);
 
     try {
-      await createCheckoutSession(channelData.id, channelData.name, sponsorAmount);
+      await createCheckoutSession(channelData, sponsorAmount);
     } catch (error) {
       console.error('Error creating checkout session:', error);
       toast({

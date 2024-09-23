@@ -8,10 +8,21 @@ import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { User, UserBadge, Badge, Chat, Channel, ChatSession } from "@prisma/client";
 
-console.log("UserProfilePage loaded");
+type UserBadgeWithRelations = {
+  id: string;
+  userId: string;
+  badgeId: string;
+  createdAt: Date;
+  channelId: string | null;
+  transactionId: string | null;
+} & {
+  badge: Badge;
+  transaction?: (Transaction & { channel?: Channel }) | null;
+  channel?: Channel;
+};
 
 type UserWithRelations = User & {
-  badges: (UserBadge & { badge: Badge })[];
+  badges: UserBadgeWithRelations[];
   chats: ChatSession[];
   transactions: (Transaction & { channel: Channel })[];
 };
@@ -21,60 +32,79 @@ export default async function UserProfilePage({
 }: {
   params: { username: string };
 }) {
-  console.log("UserProfilePage params:", params);
-  console.log("UserProfilePage params.username:", params.username);
   const session = await auth();
-  console.log("Session in UserProfilePage:", session);
   const user = await getUserByUsername(params.username);
-  console.log("User fetched in UserProfilePage:", user);
 
   if (!user) {
-    console.log(`User not found for username: ${params.username}`);
     notFound();
   }
 
   const isOwnProfile = session?.user?.username === params.username;
 
-  // Get the unique sponsored channels
-  const sponsoredChannels = Array.from(
-    new Set(user.transactions.map((t) => t.channelId))
-  ).map((channelId) => {
-    const transaction = user.transactions.find((t) => t.channelId === channelId);
-    return {
-      id: channelId,
-      channel: {
-        name: transaction?.channel.name || "",
-        title: transaction?.channel.title || "",
-        imageUrl: transaction?.channel.imageUrl || "",
-      },
-    };
-  });
+  // Count badges by name
+  const badgeCounts = user.badges.reduce((acc, userBadge) => {
+    if (!userBadge.badge) return acc; // Ensure badge exists
+    const badgeName = userBadge.badge.name;
+    acc[badgeName] = (acc[badgeName] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
-  // Calculate the total sponsored amount and the total number of sponsored chats
+  // Group badges by channels using the channel and transaction relation
+  const badgesByChannel = user.badges.reduce((acc, userBadge) => {
+    const badgeChannel = userBadge.channel;
+
+    if (!badgeChannel) {
+      console.warn(`Badge ${userBadge.id} is missing channel data.`);
+      return acc;
+    }
+
+    const channelId = badgeChannel.id;
+    if (!acc[channelId]) {
+      acc[channelId] = {
+        channel: badgeChannel,
+        badges: [],
+      };
+    }
+    acc[channelId].badges.push(userBadge);
+    return acc;
+  }, {} as Record<string, { channel: Channel; badges: UserBadgeWithRelations[] }>);
+
+  // Get the unique sponsored channels with their associated badges
+  const sponsoredChannels = Object.values(badgesByChannel).map(({ channel, badges }) => ({
+    id: channel.id,
+    channel: {
+      name: channel.name,
+      title: channel.title || "",
+      imageUrl: channel.imageUrl || "",
+    },
+    badges: badges.map((b) => ({
+      id: b.id,
+      badge: b.badge,
+      count: badgeCounts[b.badge.name] || 1,
+    })),
+  }));
+
+  // Calculate total sponsored amount and chats
   let totalSponsoredAmount = 0;
   let totalSponsoredChats = 0;
 
   user.transactions.forEach((t) => {
     if (t.type === "CREDIT_PURCHASE") {
-      totalSponsoredAmount += t.amount / 1000; // Adjust based on your currency/amount division
-      totalSponsoredChats += t.amount; // Increment the count for each CREDIT_PURCHASE transaction
+      totalSponsoredAmount += t.amount / 1000;
+      totalSponsoredChats += t.amount;
     } else if (t.type === "ACTIVATION") {
-      totalSponsoredAmount += t.amount; // Include ACTIVATION amount as is
+      totalSponsoredAmount += t.amount;
     }
   });
 
-  // Transform the user data to match the expected structure
   const transformedUser = {
     name: user.name,
     username: user.username || "",
     image: user.image || undefined,
-    sponsoredChatsCount: totalSponsoredChats, // Use the totalSponsoredChats count
+    sponsoredChatsCount: totalSponsoredChats,
     participatedChatsCount: user.ChatSession.length,
     sponsorships: sponsoredChannels,
-    badges: user.badges.map((ub) => ({
-      id: ub.id,
-      badge: { name: ub.badge.name },
-    })),
+    badges: Object.entries(badgeCounts).map(([name, count]) => ({ name, count })),
     totalSponsoredAmount,
   };
 

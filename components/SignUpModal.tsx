@@ -1,14 +1,15 @@
 // components/SignUpModal.tsx
-'use client'
+'use client';
 
-import React, { useEffect, useState } from 'react';
-import { X, Award, MessageSquare, UserCheck, LogIn } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { X, Award, MessageSquare, LogIn } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { BadgeComponent } from '@/components/BadgeComponent';
 import { BadgeType } from '@/utils/badgeManagement';
-import { signIn, useSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useSession } from '@/next-auth/auth-provider'; // Use custom useSession
 
 interface SignUpModalProps {
   isOpen: boolean;
@@ -17,7 +18,7 @@ interface SignUpModalProps {
 }
 
 export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, badges }) => {
-  const { data: session, status } = useSession();
+  const { session, status } = useSession(); // Use session and status from custom useSession
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
@@ -41,18 +42,15 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, badge
           userId: session?.user?.id,
         }),
       });
-  
+
       if (!response.ok) {
         throw new Error('Failed to transfer badges');
       }
-  
+
       const result = await response.json();
       console.log('Badge transfer result:', result);
-  
-      // Optionally refresh the user data or UI here
     } catch (error) {
       console.error('Error transferring badges:', error);
-      // Implement retry logic here if needed
     }
   };
 
@@ -89,9 +87,7 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, badge
                 <X className="h-6 w-6" />
                 <span className="sr-only">Close</span>
               </Button>
-              <h2 className="text-3xl font-extrabold text-center mb-6">
-                Create your account
-              </h2>
+              <h2 className="text-3xl font-extrabold text-center mb-6">Create your account</h2>
               <div className="space-y-6">
                 <Button
                   onClick={handleGoogleSignIn}

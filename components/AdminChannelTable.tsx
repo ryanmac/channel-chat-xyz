@@ -11,7 +11,8 @@ import { RotateCcw, Info } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { abbreviateNumber, parseAbbreviatedNumber } from '@/utils/numberUtils';
-import ReactMarkdown from 'react-markdown'
+import ReactMarkdown from 'react-markdown';
+import InterestsModal from './InterestsModal';
 import {
   Tooltip,
   TooltipContent,
@@ -32,7 +33,7 @@ interface Channel {
   chatsCreated: string | null;
   isProcessing: boolean;
   status: string;
-  interests: string;
+  interests: { title: string; description: string }[];
   featured: boolean;
 }
 
@@ -53,6 +54,7 @@ export default function AdminChannelTable() {
   const [boostAmounts, setBoostAmounts] = useState<{ [key: string]: string }>({});
   const [boostLoading, setBoostLoading] = useState<{ [key: string]: boolean }>({});
   const [interestsLoading, setInterestsLoading] = useState<{ [key: string]: boolean }>({});
+  const [modalOpen, setModalOpen] = useState<{ [key: string]: boolean }>({}); // State to control modals
 
   const fetchChannels = async () => {
     try {
@@ -63,6 +65,12 @@ export default function AdminChannelTable() {
         throw new Error('Failed to fetch channels');
       }
       const data = await response.json();
+
+      const channelsWithFormattedInterests = data.channels.map((channel: Channel) => ({
+        ...channel,
+        interests: channel.interests || [], // Default to empty array if no interests
+      }));
+
       setChannels(data.channels);
       setTotalPages(data.totalPages || 1);
 
@@ -257,28 +265,37 @@ export default function AdminChannelTable() {
     }
   };
 
+  const handleModalOpen = (channelId: string) => {
+    setModalOpen((prev) => ({ ...prev, [channelId]: true }));
+  };
+
+  const handleModalClose = (channelId: string) => {
+    setModalOpen((prev) => ({ ...prev, [channelId]: false }));
+  };
+
   const handleRefreshInterests = async (channelId: string, channelName: string) => {
     setInterestsLoading((prev) => ({ ...prev, [channelId]: true }));
-
+  
     try {
       const response = await fetch(`/api/channel/interests`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ channelData: { id: channelId, name: channelName } }),
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to refresh channel interests');
       }
-
+  
       const data = await response.json();
       const { response: interestsResponse } = data;
-
+  
       toast({
         title: "Interests Updated",
-        description: `Successfully updated interests for ${channelName}: ${interestsResponse}`,
+        description: `Successfully updated interests for ${channelName}`,
       });
-
+  
+      // Re-fetch channels to get updated interests
       fetchChannels();
     } catch (error) {
       toast({
@@ -440,30 +457,30 @@ export default function AdminChannelTable() {
                 )}
               </TableCell>
               <TableCell>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        onClick={() => handleRefreshInterests(channel.id, channel.name)}
-                        disabled={interestsLoading[channel.id]}
-                        className="px-2 py-1 text-xs bg-background border-input border text-gray-800 dark:text-white hover:bg-accent"
-                      >
-                        {interestsLoading[channel.id] ? (
-                          <Spinner className="w-4 h-4" />
-                        ) : (
-                          <RotateCcw className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-[20rem] custom-prose bg-accent text-gray-800 dark:text-gray-200">
-                      <p>
-                        <ReactMarkdown>
-                          {channel.interests || "No interests available"}
-                        </ReactMarkdown>
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    onClick={() => handleRefreshInterests(channel.id, channel.name)}
+                    disabled={interestsLoading[channel.id]}
+                    className="px-2 py-1 text-xs bg-background border-input border text-gray-800 dark:text-white hover:bg-accent"
+                  >
+                    {interestsLoading[channel.id] ? (
+                      <Spinner className="w-4 h-4" />
+                    ) : (
+                      <RotateCcw className="h-4 w-4" />
+                    )}
+                  </Button>
+                  <Button
+                    onClick={() => handleModalOpen(channel.id)}
+                    className="p-1 text-xs bg-background border-input border text-gray-800 dark:text-white hover:bg-accent"
+                  >
+                    <Info className="h-4 w-4" />
+                  </Button>
+                  <InterestsModal
+                    isOpen={modalOpen[channel.id] || false}
+                    onClose={() => handleModalClose(channel.id)}
+                    interests={channel.interests}
+                  />
+                </div>
               </TableCell>
               <TableCell>
                 {channel.subscriberCount

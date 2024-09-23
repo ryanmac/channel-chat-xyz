@@ -24,7 +24,7 @@ export function BotAttributesPanel({ channelData, onActivate }: BotAttributesPan
   const handleBoost = async (type: 'memory' | 'model' | 'fineTuning') => {
     try {
       const amount = 10; // Example amount, adjust as needed
-      await createCheckoutSession(channelData.id, `Boost ${type}`, amount);
+      await createCheckoutSession(channelData, amount);
       // Fetch updated channel data after boosting (omitted for simplicity)
     } catch (err) {
       console.error(`Failed to boost ${type}:`, err);
@@ -35,7 +35,7 @@ export function BotAttributesPanel({ channelData, onActivate }: BotAttributesPan
   const handleRefuel = async () => {
     try {
       const amount = 50; // Example amount for refueling
-      await createCheckoutSession(channelData.id, 'Refuel credits', amount);
+      await createCheckoutSession(channelData, amount);
       // Fetch updated channel data after refueling (omitted for simplicity)
     } catch (err) {
       console.error('Failed to refuel:', err);

@@ -133,15 +133,16 @@ model Channel {
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
   featured          Boolean          @default(false)
-  interests         String?
+  interests         Interest[]
   chats             Chat[]
   boosts            ChannelBoost[]
   transactions      Transaction[]
   metrics           ChannelMetrics[]
   ChatSessions      ChatSession[]
-  debates1    Debate[]     @relation("Channel1Debates")
-  debates2    Debate[]     @relation("Channel2Debates")
-  debateTurns DebateTurn[]
+  userBadges        UserBadge[]      @relation("ChannelBadgeUserBadges")
+  debates1          Debate[]         @relation("Channel1Debates")
+  debates2          Debate[]         @relation("Channel2Debates")
+  debateTurns       DebateTurn[]
 
   @@index([name])
 }
@@ -179,6 +180,18 @@ enum ChannelBoostType {
   FINE_TUNING
 }
 
+model Interest {
+  id          String   @id @default(cuid()) 
+  title       String   // Short title of the interest
+  description String   // Detailed description of the interest
+  channelId   String
+  channel     Channel  @relation(fields: [channelId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([channelId])
+}
+
 model Transaction {
   id          String          @id @default(cuid())
   channelId   String
@@ -190,6 +203,7 @@ model Transaction {
   createdAt   DateTime        @default(now())
   channel     Channel         @relation(fields: [channelId], references: [id])
   user        User?           @relation(fields: [userId], references: [id])
+  userBadges  UserBadge[]     @relation("UserBadgeTransaction")
 
   @@index([channelId])
   @@index([userId])
@@ -216,12 +230,18 @@ model SessionBadge {
 }
 
 model UserBadge {
-  id        String   @id @default(cuid())
-  userId    String
-  badgeId   String
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], name: "UserBadges")
-  badge     Badge    @relation(fields: [badgeId], references: [id], name: "BadgeUserBadges")
+  id            String       @id @default(cuid())
+  userId        String
+  badgeId       String
+  createdAt     DateTime     @default(now())
+  channelId     String? // Corrected optional field definition
+  transactionId String? // Optional field to link to the transaction
+  user          User         @relation(fields: [userId], references: [id], name: "UserBadges")
+  badge         Badge        @relation(fields: [badgeId], references: [id], name: "BadgeUserBadges")
+  channel       Channel?     @relation(fields: [channelId], references: [id], name: "ChannelBadgeUserBadges")
+  transaction   Transaction? @relation(fields: [transactionId], references: [id], name: "UserBadgeTransaction")
+
+  @@unique([userId, badgeId, channelId])
 }
 
 model SharedChat {
@@ -247,21 +267,21 @@ enum SettingType {
 }
 
 model Debate {
-  id            String       @id @default(cuid())
-  channelId1    String
-  channelId2    String
-  topic         String?
-  status        DebateStatus
-  summary1      String?
-  summary2      String?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  createdBy     String
-  maxResponses  Int @default(3)
-  turns         DebateTurn[]
-  channel1      Channel      @relation("Channel1Debates", fields: [channelId1], references: [id])
-  channel2      Channel      @relation("Channel2Debates", fields: [channelId2], references: [id])
-  user          User         @relation(fields: [createdBy], references: [id])
+  id           String       @id @default(cuid())
+  channelId1   String
+  channelId2   String
+  topic        String?
+  status       DebateStatus
+  summary1     String?
+  summary2     String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  createdBy    String
+  maxResponses Int          @default(3)
+  turns        DebateTurn[]
+  channel1     Channel      @relation("Channel1Debates", fields: [channelId1], references: [id])
+  channel2     Channel      @relation("Channel2Debates", fields: [channelId2], references: [id])
+  user         User         @relation(fields: [createdBy], references: [id])
 }
 
 model DebateTurn {
@@ -280,4 +300,3 @@ enum DebateStatus {
   READY_TO_CONCLUDE
   CONCLUDED
 }
-

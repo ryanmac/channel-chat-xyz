@@ -27,24 +27,29 @@ export async function POST(request: NextRequest) {
     const badgeNames = sessionBadge.badges.split(',');
     console.log(`Found badges to transfer: ${badgeNames.join(', ')}`);
 
-    // Assign badges and transactions to the user
-    await userController.assignBadgesToUser(userId, badgeNames);
+    // Assign badges and transactions to the user with session details
     await userController.assignTransactionsToUser(userId, sessionId);
+    await userController.assignBadgesToUser(userId, badgeNames, sessionId);
 
     // Delete the SessionBadge after transfer
     try {
-      await prisma.sessionBadge.delete({
-        where: { id: sessionBadge.id },
+      const sessionBadgeUpdated = await prisma.sessionBadge.findUnique({
+        where: { sessionId },
       });
-      console.log(`Successfully deleted SessionBadge for session ${sessionId}`);
+      if (sessionBadgeUpdated) {
+        await prisma.sessionBadge.delete({
+          where: { id: sessionBadge.id },
+        });
+        console.log(`Deleted SessionBadge for session ${sessionId}`);
+      }
     } catch (deleteError) {
-      console.error(`Failed to delete SessionBadge for session ${sessionId}:`, deleteError);
+      console.error(`transfer/route: Failed to delete SessionBadge for session ${sessionId}:`, deleteError);
     }
 
     console.log(`Successfully transferred all badges for session ${sessionId}`);
     return NextResponse.json({ message: 'Badges transferred successfully' });
   } catch (error) {
     console.error('Error transferring badges:', error);
-    return NextResponse.json({ error: 'Failed to transfer badges', details: error }, { status: 500 });
+    // return NextResponse.json({ error: 'Failed to transfer badges', details: error }, { status: 500 });
   }
 }

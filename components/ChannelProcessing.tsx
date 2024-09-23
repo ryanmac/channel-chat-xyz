@@ -5,18 +5,32 @@ import { Card, CardContent } from '@/components/ui/card'
 
 export const ChannelProcessing: React.FC<{ channelData: { name: string } }> = ({ channelData }) => {
   const [progress, setProgress] = useState(0)
+  const totalDuration = 90 // total duration in seconds
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setProgress((prevProgress) => (prevProgress >= 100 ? 0 : prevProgress + 1))
+    const interval = setInterval(() => {
+      setProgress((prevProgress) => {
+        if (prevProgress >= 100) {
+          clearInterval(interval) // Stop the interval when complete
+          return 100
+        }
+        return Math.min(prevProgress + (100 / totalDuration), 100) // Increment progress
+      })
     }, 1000)
 
-    return () => clearInterval(timer)
+    const timeout = setTimeout(() => {
+      window.location.reload() // Refresh the page after 90 seconds
+    }, totalDuration * 1000)
+
+    return () => {
+      clearInterval(interval)
+      clearTimeout(timeout)
+    }
   }, [])
 
   return (
     <Card className="w-full max-w-md mx-auto mt-8 overflow-hidden bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg">
-      <div className="absolute inset-0 bg-white opacity-10 animate-pulse"></div>
+      <div className="absolute inset-0 bg-white opacity-10 animate-pulse/5"></div>
       <CardContent className="p-8 relative z-10">
         <div className="flex flex-col items-center">
           <div className="w-24 h-24 mb-6 relative">
@@ -28,7 +42,10 @@ export const ChannelProcessing: React.FC<{ channelData: { name: string } }> = ({
             Activating {channelData.name}
           </h2>
           <p className="text-lg text-center mb-6">
-            We're processing your channel activation. This may take a few minutes.
+            We're processing your channel activation, extracting transcripts, and training the AI on the tone, style, and content of this channel.
+          </p>
+          <p className="text-lg text-center mb-6">
+            This may take a few minutes.
           </p>
           <div className="w-full bg-white bg-opacity-20 rounded-full h-2 mb-4">
             <div
@@ -37,7 +54,7 @@ export const ChannelProcessing: React.FC<{ channelData: { name: string } }> = ({
             ></div>
           </div>
           <p className="text-sm text-center text-white text-opacity-80">
-            Please don't close this page. We'll update you once the process is complete.
+            We'll update you once the process is complete, or you can come back in a couple minutes. It's safe to refresh.
           </p>
         </div>
       </CardContent>

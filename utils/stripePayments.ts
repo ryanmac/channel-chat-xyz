@@ -1,10 +1,11 @@
 // utils/stripePayments.ts
 import { loadStripe } from '@stripe/stripe-js';
+import { ChannelData } from '@/utils/channelManagement'; // Ensure this import matches your data structure
 import config from '@/config';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
-export async function createCheckoutSession(channelId: string, channelName: string, amount: number) {
+export async function createCheckoutSession(channelData: ChannelData, amount: number) {
   const stripe = await stripePromise;
 
   if (!stripe) {
@@ -17,20 +18,14 @@ export async function createCheckoutSession(channelId: string, channelName: stri
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ channelId, channelName, amount }),
+      body: JSON.stringify({
+        channelData,
+        amount,
+      }),
     });
 
-    console.log('Response status:', response.status);
     const responseText = await response.text();
-    console.log('Response text:', responseText);
-
-    let session;
-    try {
-      session = JSON.parse(responseText);
-    } catch (error) {
-      console.error('Failed to parse JSON:', error);
-      throw new Error('Invalid response from server');
-    }
+    const session = JSON.parse(responseText);
 
     if (session.sessionId) {
       const result = await stripe.redirectToCheckout({

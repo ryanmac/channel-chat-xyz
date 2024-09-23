@@ -13,7 +13,6 @@ import { FeaturedChannels } from '@/components/FeaturedChannels';
 import { DisclaimerSection } from '@/components/DisclaimerSection';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { Spinner } from '@/components/ui/spinner';
 import { BotAttributesPanel } from '@/components/BotAttributesPanel';
 import { FuelGauge } from '@/components/FuelGauge';
 import { ShareChannelActivation } from '@/components/ShareChannelActivation';
@@ -23,14 +22,14 @@ import { SignUpModal } from '@/components/SignUpModal';
 import { BadgeType } from '@/utils/badgeManagement';
 import { ChannelData } from '@/utils/channelManagement';
 import { useToast } from '@/hooks/use-toast';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/next-auth/auth-provider'; // Ensure correct import
 import { defaultChannelData } from '@/constants/channelData';
 import { getCache, setCache } from '@/utils/cache';
 import { Merge } from 'lucide-react';
-// import { Bot } from 'lucide-react';
 import { FaRobot } from "react-icons/fa6";
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { useBadgeTransfer } from '@/hooks/useBadgeTransfer';
 
 interface ChannelPageProps {
   params: {
@@ -39,7 +38,7 @@ interface ChannelPageProps {
 }
 
 export default function ChannelPage({ params }: ChannelPageProps) {
-  const { data: session, status } = useSession();
+  const { session, status } = useSession(); // Correct usage of useSession
   const { channelName: rawChannelName } = params;
   const channelName = rawChannelName.startsWith('%40') ? rawChannelName.slice(3) : rawChannelName;
   const [channelData, setChannelData] = useState<ChannelData | null>(null);
@@ -58,62 +57,43 @@ export default function ChannelPage({ params }: ChannelPageProps) {
   const fetchedRef = useRef(false);
   const { toast } = useToast();
 
-  const transferBadges = async () => {
-    // console.log(`Attempting to transfer badges for session ${sessionId} and user ${session?.user?.id}`);
-    try {
-      const response = await fetch('/api/badges/transfer', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          sessionId,
-          userId: session?.user?.id,
-        }),
-      });
-  
-      if (!response.ok) {
-        throw new Error('Failed to transfer badges');
-      }
-  
-      const result = await response.json();
-      console.log('Badge transfer result:', result);
-  
-    } catch (error) {
-      console.error('Error transferring badges:', error);
-    }
-  };
-
-  useEffect(() => {
-    if (status === 'authenticated' && sessionId) {
-      transferBadges();
-    }
-  }, [status, sessionId]);
+  useBadgeTransfer(sessionId, session?.user?.id);
 
   const fetchSessionBadges = useCallback(async () => {
-    if (!sessionId) return;
+    if (!sessionId || !channelData?.id) return;
 
-    // console.log('Channel Page: Fetching session badges for:', sessionId);
-    const cacheKey = `session_badges_${sessionId}`;
+    const userId = session?.user?.id;
+    const channelId = channelData.id;
+
+    const cacheKey = `session_badges:${sessionId}_${channelId}_${userId || 'guest'}`;
     const cachedData = getCache(cacheKey);
     let badgesArray: BadgeType[] = [];
+
     try {
       if (cachedData) {
-        // console.log('Using cached session badges:', cachedData);
         setEarnedBadges(cachedData);
         badgesArray = cachedData;
       } else {
-        const response = await fetch(`/api/badges/session?sessionId=${sessionId}`);
+        const queryParams = new URLSearchParams({
+          sessionId,
+          channelId,
+        });
+
+        if (userId) {
+          queryParams.append('userId', userId);
+        }
+
+        const response = await fetch(`/api/badges/session?${queryParams.toString()}`);
         if (!response.ok) {
-          throw new Error(`Failed to fetch session badges: ${response.status} ${response.statusText}`);
+          console.log('Failed to fetch session badges:', response.status, response.statusText);
+          // throw new Error(`Failed to fetch session badges: ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
-        badgesArray = data.badges ? data.badges.split(',') : [];
+        badgesArray = data.badges ? data.badges : [];
         setEarnedBadges(badgesArray as BadgeType[]);
         setCache(cacheKey, badgesArray, 30); // Cache for 30 seconds
       }
-      console.log('Session badges:',
-        badgesArray.length > 0 ? badgesArray.join(', ') : 'No badges earned');
+      console.log('Session badges:', badgesArray.length > 0 ? badgesArray.join(', ') : 'No badges earned');
       setShowSuccessModal(true);
     } catch (error) {
       console.error('Error fetching session badges:', error);
@@ -123,14 +103,13 @@ export default function ChannelPage({ params }: ChannelPageProps) {
         variant: 'destructive',
       });
     }
-  }, [sessionId, toast]);
+  }, [sessionId, channelData, session?.user?.id, toast]);
 
   const fetchChannelData = useCallback(async () => {
     if (fetchedRef.current) return;
 
     setIsLoading(true);
     setError(null);
-    // console.log('Fetching channel data for:', channelName);
     try {
       const response = await fetch(`/api/yes/channel-info?channel_name=${channelName}`);
       if (!response.ok) {
@@ -153,15 +132,21 @@ export default function ChannelPage({ params }: ChannelPageProps) {
     }
   }, [channelName, fetchSessionBadges]);
 
+  useEffect(() => {
+    if (sessionId && channelData?.id) {
+      fetchSessionBadges();
+    }
+  }, [sessionId, channelData, fetchSessionBadges]);
+
   const checkProcessingStatus = useCallback(async () => {
     if (!channelData?.id) return;
     try {
-      const response = await fetch(`/api/bot/info?channelId=${channelData.id}`);
+      const response = await fetch(`/api/channel/info?channelId=${channelData.id}`);
       console.log('Checking processing status for channel:', channelData.id);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
       setIsProcessing(data.isProcessing);
-      setIsChannelActive(data.isActive);
+      setIsChannelActive(data.status === 'ACTIVE');
     } catch (error) {
       console.error('Error checking processing status:', error);
       toast({
@@ -235,7 +220,7 @@ export default function ChannelPage({ params }: ChannelPageProps) {
               <div className="mb-8">
                 <FuelGauge 
                   creditBalance={channelInfo.creditBalance ?? 0}
-                  maxCredits={100000} // Default or from a different source
+                  maxCredits={100000}
                 />
               </div>
             )}
@@ -250,12 +235,6 @@ export default function ChannelPage({ params }: ChannelPageProps) {
                   </Button>
                 </Link>
               </div>
-            )}
-            {isChannelActive && false && (
-              <BotAttributesPanel
-                channelData={channelInfo}
-                onActivate={fetchChannelData}
-              />
             )}
             {isChannelActive && (
               <LeaderboardActivity channelData={channelInfo} />
@@ -280,6 +259,7 @@ export default function ChannelPage({ params }: ChannelPageProps) {
         sessionId={sessionId || ''}
         channelData={channelInfo}
         badges={earnedBadges}
+        userImageUrl={session?.user?.image || ''}
       />
       <SignUpModal
         isOpen={showSignUpModal}

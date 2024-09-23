@@ -2,27 +2,42 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import config from '@/config';
+import { getTopic } from '@/utils/debateUtils';
 
 const openai = new OpenAI({ apiKey: config.openai.apiKey });
 
 export async function POST(request: NextRequest) {
   try {
-    const { interests1, interests2 } = await request.json();
+    const { channel1, channel2 } = await request.json();
 
-    if (!interests1 || !interests2) {
-      return NextResponse.json({ error: 'Both interests1 and interests2 are required.' }, { status: 400 });
+    if (!channel1 || !channel2) {
+      return NextResponse.json({ error: 'Both channel1 and channel2 are required.' }, { status: 400 });
     }
+
+    const { name: name1, interests: interests1 } = channel1;
+    const { name: name2, interests: interests2 } = channel2;
+
+    // Format the interests for the prompt
+    const formatInterests = (name: string, interests: { title: string; description: string }[]) =>
+      `**${name}**'s interests:\n` +
+      interests.map((interest, index) => `${index + 1}. **${interest.title}**: ${interest.description}`).join('\n');
+
+    const formattedInterests1 = formatInterests(name1, interests1);
+    const formattedInterests2 = formatInterests(name2, interests2);
 
     const prompt = `Given the interests of two YouTube channels:
 
-Channel 1 interests:
-${interests1}
+${formattedInterests1}
 
-Channel 2 interests:
-${interests2}
+${formattedInterests2}
 
-Suggest two interesting topics that both channels might have engaging discussions about, and one that they might have opposing views on. Do not mention "Channel" or "Channel 1" or "Channel 2", instead describe the topic without reference to the channels themselves.
-Format your response as a numbered list. Starting with 1., 2., 3., etc.`;
+Suggest two interesting topics that both ${name1} and ${name2} might have engaging discussions about, and one that they might have opposing views on. Do not mention the channels directly by name in your suggestions, but describe the topics clearly and thoughtfully.
+Format your response as a list of topics, each starting with a title followed by a description:
+
+1. **Title 1**: Description of the topic...
+2. **Title 2**: Description of the topic...
+3. **Title 3**: Description of the topic...
+`;
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
@@ -30,14 +45,19 @@ Format your response as a numbered list. Starting with 1., 2., 3., etc.`;
       max_tokens: 200,
     });
 
-    let topics = completion.choices[0]?.message?.content?.trim().split('\n') || [];
+    // Parse the response using getTopic
+    const topics = completion.choices[0]?.message?.content?.trim().split('\n')
+      .map(line => getTopic(line))
+      .filter(topic => topic.topicTitle && topic.topicDescription)
+      .map(({ topicTitle, topicDescription }) => ({
+        title: topicTitle,
+        description: topicDescription,
+      }));
 
-    // Clean up topics to ensure correct format and limit to 3
-    topics = topics
-      .filter((topic: string) => topic.trim()) // Remove empty topics
-      .filter((topic: string) => /^\d+\.\s*/.test(topic)) // Keep only numbered topics
-      .map((topic: string) => topic.replace(/^\d+\.\s*/, '').trim()) // Clean numbering and trim whitespace
-      .slice(0, 3); // Limit to 3 topics
+    if (!topics || topics.length === 0) {
+      console.error('No topics generated from the response:', completion.choices[0]?.message?.content);
+      return NextResponse.json({ error: 'Failed to generate topics.' }, { status: 500 });
+    }
 
     return NextResponse.json({ topics });
   } catch (error) {

@@ -2,12 +2,11 @@
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from "stripe";
-import { getTotalChannelFunding, createTransaction } from '@/utils/transactionManagement';
+import { getChannelFundingImpact, createTransaction } from '@/utils/transactionManagement';
 import { processChannelAsync } from '@/utils/yesService';
 import prisma from "@/lib/prisma";
 import configEnv from "@/config";
 import { determineBadges } from '@/utils/badgeManagement';
-import { create } from "domain";
 import config from "@/config";
 
 const stripe = new Stripe(config.stripe.secret!, {
@@ -20,6 +19,7 @@ export async function POST(request: NextRequest) {
 
   let event: Stripe.Event;
 
+  // Step 1: Verify the Stripe Signature
   try {
     event = stripe.webhooks.constructEvent(
       body,
@@ -28,21 +28,29 @@ export async function POST(request: NextRequest) {
     );
   } catch (err) {
     console.error('Webhook signature verification failed:', err);
-    return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Webhook signature verification failed' },
+      { status: 401 }
+    );
   }
 
   const session = event.data.object as Stripe.Checkout.Session;
 
+  // Step 2: Process the Stripe Event
   try {
     if (event.type === "checkout.session.completed") {
       const { channelId, channelName, amount, userId } = session.metadata || {};
 
+      // Step 3: Validate Metadata
       if (!channelId || !channelName || isNaN(Number(amount))) {
         console.error('Invalid metadata in the session:', session.metadata);
-        return NextResponse.json({ error: 'Invalid metadata in the session' }, { status: 400 });
+        return NextResponse.json(
+          { error: 'Invalid metadata in the session' },
+          { status: 402 }
+        );
       }
 
-      // Check if this session has already been processed
+      // Step 4: Check if Session is Already Processed
       const existingTransaction = await prisma.transaction.findFirst({
         where: { sessionId: session.id },
       });
@@ -54,80 +62,74 @@ export async function POST(request: NextRequest) {
 
       const amountInDollars = Number(amount);
 
-      // Ensure the channel exists
+      // Step 5: Verify Channel Exists
       const channel = await prisma.channel.findUnique({ where: { id: channelId } });
       if (!channel) {
-        throw new Error(`Channel not found: ${channelId}`);
+        console.log(`Channel not found: ${channelId}`);
+        return NextResponse.json(
+          { error: `Channel not found: ${channelId}` },
+          { status: 403 }
+        );
       }
 
-      // Get current (previous) activation funding
-      const {
-        activation: prevActivationFunding,
-        credits: prevCreditBalance,
-        total: prevTotalFunding,
-      } = await getTotalChannelFunding(channelId);
-      const remainingToActivate = Math.max(channel.activationGoal - prevActivationFunding, 0);
+      // Step 6: Calculate Funding Impact
+      const impact = await getChannelFundingImpact(channel, amountInDollars);
+      const { before, contribution, after } = impact;
 
-      const activationAmount = Math.min(amountInDollars, remainingToActivate);
-      const creditAmount = Math.max(amountInDollars - activationAmount, 0);
-
-      let creditsToAdd = 0;
       let wasActivated = false;
 
-      // Handle activation
-      if (activationAmount > 0) {
-        await createTransaction(channelId, userId || null, session.id, activationAmount, 'ACTIVATION');
-        
+      // Step 7: Handle Activation Transaction
+      if (contribution.activation > 0) {
+        await createTransaction(channelId, userId || null, session.id, contribution.activation, 'ACTIVATION');
+
         // Check if this transaction activates the channel
-        if (prevActivationFunding + activationAmount >= channel.activationGoal) {
-          creditsToAdd += 1000; // Initial 1000 credits for activation
-          await createTransaction(channelId, userId || null, session.id, 1000, 'CREDIT_PURCHASE');
+        if (before.activation < channel.activationGoal && after.activation >= channel.activationGoal) {
+          console.log(`Channel ${channelName} (${channelId}) activated!`);
+          await createTransaction(channelId, userId || null, session.id, 1000, 'CREDIT_PURCHASE'); // Initial 1000 credits for activation
           wasActivated = true;
         }
       }
 
-      // Handle credit purchase
-      if (creditAmount > 0) {
-        await createTransaction(channelId, userId || null, session.id, creditAmount * 1000, 'CREDIT_PURCHASE');
-        creditsToAdd += creditAmount * 1000; // 1000 credits per $1
+      // Step 8: Handle Credit Purchase Transaction
+      if (contribution.credits > 0) {
+        await createTransaction(channelId, userId || null, session.id, contribution.credits, 'CREDIT_PURCHASE');
       }
 
-      const {
-        activation: afterActivationFunding,
-        credits: afterCreditBalance,
-        total: afterTotalFunding,
-      } = await getTotalChannelFunding(channelId);
-
-      // Update the channel model based on the aggregated transaction data
+      // Step 9: Update Channel Information
       const updatedChannel = await prisma.channel.update({
         where: { id: channelId },
         data: {
-          activationFunding: afterActivationFunding, // Update with the total activation funding
-          creditBalance: afterCreditBalance,         // Update with the total credit balance
-          status: afterActivationFunding >= channel.activationGoal && channel.status === 'PENDING' ? 'ACTIVE' : undefined,
-          isProcessing: afterActivationFunding >= channel.activationGoal ? true : undefined,
+          activationFunding: after.activation, // Update with the total activation funding
+          creditBalance: after.credits,        // Update with the total credit balance
+          status: after.activation >= channel.activationGoal && channel.status === 'PENDING' ? 'ACTIVE' : undefined,
         },
       });
 
-      console.log(`Updated channel ${channelId}: +$${activationAmount} activation, +$${creditAmount} credits, +${creditsToAdd} credit balance`);
-      console.log(`Updated channel ${channelId}: Activation funding: $${afterTotalFunding}, Credit balance: ${afterCreditBalance}`);
+      console.log(`Updated channel ${channelId}: +$${contribution.activation} activation, +${contribution.credits} credits.`);
+      console.log(`Updated channel ${channelId}: Activation funding: $${after.total}, Credit balance: ${after.credits}`);
 
-      // Calculate and store badges
-      const badgeTypes = determineBadges(amountInDollars, afterActivationFunding, remainingToActivate, wasActivated, {
-        totalChats: 0,
-        shares: 0,
-        daysActive: 0,
-        earlyMorningChats: 0,
-        lateNightChats: 0,
-        uniqueChannels: 0,
-        uniqueQueries: 0,
-        longConversations: 0,
-        conversationsStarted: 0,
-        factChecks: 0,
-        trendingConversations: 0,
-        complexQueries: 0,
-      });
-
+      // Step 10: Calculate and Store Badges
+      const badgeTypes = determineBadges(
+        amountInDollars,
+        after.activation,
+        Math.max(channel.activationGoal - before.activation, 0),
+        wasActivated,
+        {
+          totalChats: 0,
+          shares: 0,
+          daysActive: 0,
+          earlyMorningChats: 0,
+          lateNightChats: 0,
+          uniqueChannels: 0,
+          uniqueQueries: 0,
+          longConversations: 0,
+          conversationsStarted: 0,
+          factChecks: 0,
+          trendingConversations: 0,
+          complexQueries: 0,
+        }
+      );
+      
       await prisma.sessionBadge.create({
         data: {
           sessionId: session.id,
@@ -137,8 +139,7 @@ export async function POST(request: NextRequest) {
 
       console.log(`Earned badges stored for session ${session.id}: ${badgeTypes.join(',')}`);
 
-      // Trigger async processing if channel was activated
-      console.log(`Activating channel ${channelName} (${channelId})`);
+      // Step 11: Trigger Async Processing if Channel was Activated
       if (channel.status === 'PENDING' && updatedChannel.status === 'ACTIVE') {
         const totalFundingInDollars = updatedChannel.activationFunding + updatedChannel.creditBalance / 1000;
         processChannelAsync(channelId, channelName, totalFundingInDollars).catch((error) => {

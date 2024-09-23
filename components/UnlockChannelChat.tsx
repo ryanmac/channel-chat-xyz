@@ -1,5 +1,4 @@
-// components/UnlockChannelChat.tsx
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { motion, useAnimation } from 'framer-motion';
@@ -15,7 +14,8 @@ import { createCheckoutSession } from '@/utils/stripePayments';
 import { BadgeComponent } from '@/components/BadgeComponent';
 import { determineBadges, BadgeType } from '@/utils/badgeManagement';
 import { ChannelData } from '@/utils/channelManagement';
-import { FaRobot } from "react-icons/fa6";
+import { FaRobot } from 'react-icons/fa6';
+import { useTransactionImpact } from '@/hooks/useTransactionImpact';
 
 interface UnlockChannelChatProps {
   channelData: ChannelData | null;
@@ -28,20 +28,21 @@ interface Contributor {
 }
 
 export function UnlockChannelChat({ channelData, onFundingUpdate }: UnlockChannelChatProps) {
-  const [activationFunding, setActivationFunding] = useState(channelData?.activationFunding || 0);
   const [amount, setAmount] = useState<number>(5);
-  const [customAmount, setCustomAmount] = useState('');
-  const [earnedBadges, setEarnedBadges] = useState<BadgeType[]>([]);
   const [contributors, setContributors] = useState<Contributor[]>([]);
   const [sliderMoved, setSliderMoved] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [potentialPercentage, setPotentialPercentage] = useState(0);
-  const [potentialExcessFunding, setPotentialExcessFunding] = useState(0);
   const { toast } = useToast();
-  const searchParams = useSearchParams();
-  const sessionId = searchParams.get('session_id');
   const botAnimation = useAnimation();
 
+  if (!channelData) {
+    return null;
+  }
+
+  // Calculate the impact using the custom hook
+  const impactData = useTransactionImpact(channelData, amount);
+
+  // Fetch latest channel data when the component mounts or channel data changes
   const fetchLatestChannelData = useCallback(async () => {
     if (!channelData) return;
     setIsLoading(true);
@@ -51,7 +52,6 @@ export function UnlockChannelChat({ channelData, onFundingUpdate }: UnlockChanne
         throw new Error('Failed to fetch latest channel data');
       }
       const data = await response.json();
-      setActivationFunding(data.activationFunding);
       onFundingUpdate();
     } catch (error) {
       console.error('Error fetching channel data:', error);
@@ -65,27 +65,7 @@ export function UnlockChannelChat({ channelData, onFundingUpdate }: UnlockChanne
     }
   }, [channelData, onFundingUpdate, toast]);
 
-  useEffect(() => {
-    if (channelData) {
-      fetchLatestChannelData();
-    }
-  }, [channelData, fetchLatestChannelData]);
-
-  useEffect(() => {
-    const calculateFundingImpact = () => {
-      const numericAmount = Number(amount);
-      const remainingToActivate = Math.max(0, (channelData?.activationGoal || 0) - activationFunding);
-      const activationContribution = Math.min(numericAmount, remainingToActivate);
-      const potentialPercentage = (activationContribution / (channelData?.activationGoal || 1)) * 100;
-      const potentialExcessFunding = Math.max(0, numericAmount - activationContribution);
-
-      setPotentialPercentage(potentialPercentage);
-      setPotentialExcessFunding(potentialExcessFunding);
-    };
-
-    calculateFundingImpact();
-  }, [amount, channelData, activationFunding]);
-
+  // Animate the robot icon based on mouse movements
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       const { clientX, clientY } = e;
@@ -98,7 +78,17 @@ export function UnlockChannelChat({ channelData, onFundingUpdate }: UnlockChanne
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [botAnimation]);
 
+  // Handle the contribution process
   const handleSponsor = async (selectedAmount: number) => {
+    if (!channelData) {
+      toast({
+        title: 'Error',
+        description: 'Channel data is not available.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (isNaN(selectedAmount) || selectedAmount <= 0) {
       toast({
         title: 'Error',
@@ -109,7 +99,7 @@ export function UnlockChannelChat({ channelData, onFundingUpdate }: UnlockChanne
     }
     setIsLoading(true);
     try {
-      await createCheckoutSession(channelData?.id || '', channelData?.name || '', selectedAmount);
+      await createCheckoutSession(channelData, selectedAmount);
       onFundingUpdate();
     } catch (error) {
       console.error('Error creating checkout session:', error);
@@ -123,15 +113,15 @@ export function UnlockChannelChat({ channelData, onFundingUpdate }: UnlockChanne
     }
   };
 
+  // Calculate contribution impact to display to the user
   const calculateContributionImpact = () => {
-    const numericAmount = Number(amount);
-    const remainingToActivate = Math.max(0, (channelData?.activationGoal || 0) - activationFunding);
-    const activationContribution = Math.min(numericAmount, remainingToActivate);
-    const extraContribution = Math.max(0, numericAmount - activationContribution);
+    if (!impactData || !channelData) return null;
+
+    const { contribution } = impactData;
     const badgeTypes = determineBadges(
-      numericAmount,
-      (channelData?.activationGoal || 0) - activationFunding,
-      remainingToActivate,
+      contribution.total,
+      (channelData.activationGoal || 0) - channelData.activationFunding,
+      Math.max(0, (channelData.activationGoal || 0) - channelData.activationFunding),
       contributors.length === 0,
       {
         totalChats: 0,
@@ -151,20 +141,20 @@ export function UnlockChannelChat({ channelData, onFundingUpdate }: UnlockChanne
 
     return (
       <ul className="list-disc list-inside text-sm">
-        {activationContribution > 0 && remainingToActivate - numericAmount > 0 && (
+        {contribution.activation > 0 && contribution.activation < (channelData.activationGoal || 0) && (
           <li>
-            Contribute {((activationContribution / (channelData?.activationGoal || 1)) * 100).toFixed(0)}% toward
+            Contribute {((contribution.activation / (channelData.activationGoal || 1)) * 100).toFixed(0)}% toward
             activating the channel for the community
           </li>
         )}
-        {activationContribution > 0 && remainingToActivate - numericAmount <= 0 && (
+        {contribution.activation > 0 && contribution.activation >= (channelData.activationGoal || 0) && (
           <li>
             <strong>Activate the channel for the community!</strong>
           </li>
         )}
-        {extraContribution >= 0 && (
+        {contribution.credits >= 1000 && (
           <li>
-            Add <strong>{(Math.floor(extraContribution * 1000) / 1000).toLocaleString()}k</strong> chats for the
+            Add <strong>{(Math.floor(contribution.credits / 1000)).toLocaleString()}k</strong> chats for the
             community
           </li>
         )}
@@ -191,10 +181,11 @@ export function UnlockChannelChat({ channelData, onFundingUpdate }: UnlockChanne
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            Activate {channelData?.title}'s Chatbot
-            <motion.div animate={botAnimation} className="absolute top-4 right-4">
-              <FaRobot className="w-12 h-12 text-white" />
-            </motion.div>
+            <div className="flex items-center">
+              Activate
+              <FaRobot className="w-10 h-10 pb-1 text-white ml-4 mr-1" />
+              {channelData?.title}
+            </div>
           </motion.div>
         </CardTitle>
       </CardHeader>
@@ -204,14 +195,16 @@ export function UnlockChannelChat({ channelData, onFundingUpdate }: UnlockChanne
           <div className="mb-2">
             <ProgressBar
               items={[
-                { value: (activationFunding / (channelData?.activationGoal || 1)) * 100, className: 'bg-white/50' },
-                ...(sliderMoved ? [{ value: potentialPercentage, className: 'bg-green-300' }] : []),
+                { value: (channelData.activationFunding / (channelData?.activationGoal || 1)) * 100, className: 'bg-white/50' },
+                ...(sliderMoved
+                  ? [{ value: (impactData?.contribution?.activation ?? 0) / (channelData?.activationGoal || 1) * 100, className: 'bg-green-300' }]
+                  : []),
               ]}
               height="h-6"
             />
           </div>
           <p className="text-sm text-gray-600">
-            ${activationFunding.toFixed(0)} raised so far toward ${(channelData?.activationGoal || 0).toFixed(0)}{' '}
+            ${channelData.activationFunding.toFixed(0)} raised so far toward ${(channelData?.activationGoal || 0).toFixed(0)}{' '}
             activation goal
           </p>
         </div>
@@ -220,7 +213,9 @@ export function UnlockChannelChat({ channelData, onFundingUpdate }: UnlockChanne
           <div className="flex items-center">
             <Users className="w-6 h-6 mr-2 text-blue-500" />
             <span className="mr-2">
-              {contributors.length > 0
+              {contributors.length === 1
+                ? `Join 1 other who has already contributed!`
+                : contributors.length > 1
                 ? `Join ${contributors.length} others who've already contributed!`
                 : 'Be the first to contribute!'}
             </span>
@@ -266,7 +261,7 @@ export function UnlockChannelChat({ channelData, onFundingUpdate }: UnlockChanne
             >
               {isLoading
                 ? 'Processing...'
-                : activationFunding + Number(amount) >= (channelData?.activationGoal || 0)
+                : channelData.activationFunding + Number(amount) >= (channelData?.activationGoal || 0)
                 ? 'Activate Now!'
                 : 'Contribute'}
             </Button>
@@ -283,10 +278,6 @@ export function UnlockChannelChat({ channelData, onFundingUpdate }: UnlockChanne
               <li>Activate the chatbot for {channelData?.title}'s channel</li>
               <li>
                 <strong>5x</strong> chat response limits for <strong>ALL</strong> channels
-              </li>
-              <li>
-                Help advance AI technology and research
-                <Heart className="w-4 h-4 inline-block ml-1" />
               </li>
             </ul>
           </div>

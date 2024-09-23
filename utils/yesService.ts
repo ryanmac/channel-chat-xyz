@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import config from "@/config";
 import { setCache, getCache, deleteCache } from '@/utils/cache';
 import { fetchAndMergeChannelData } from '@/utils/channelManagement';
+import { getChannelInterests } from "@/utils/debateUtils";
 
 const YES_URL = config.yes.url;
 const YES_API_KEY = config.yes.apiKey;
@@ -72,6 +73,14 @@ export async function getChannelInfo(options: { channelId?: string; channelName?
 
   try {
     const mergedChannelData = await fetchAndMergeChannelData(options);
+    const interests = await getChannelInterests(mergedChannelData.id, 3);
+
+    // Attach the interests to the merged data as an array of objects
+    mergedChannelData.interests = interests.map(({ title, description }) => ({
+      title,
+      description,
+    })) as { title: string; description: string; }[];
+
     setCache(cacheKey, mergedChannelData, 600000); // Cache for 10 minutes
     return mergedChannelData;
   } catch (error) {

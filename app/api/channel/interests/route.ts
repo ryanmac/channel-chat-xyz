@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 import { getRelevantChunks, getRecentChunks } from '@/utils/yesService';
 import prisma from '@/lib/prisma';
 import config from '@/config';
-
+import { getTopic } from '@/utils/debateUtils';
 
 /**
  * Usage:
@@ -18,6 +18,7 @@ curl -X POST http://localhost:3000/api/interests \
  */
 
 const openai = new OpenAI({ apiKey: config.openai.apiKey });
+
 export async function POST(request: NextRequest) {
   const { channelData } = await request.json();
 
@@ -26,9 +27,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Fetch relevant chunks
     const chunkLimit = 50;
-    // const chunksResponse = await getRecentChunks(channelData.id, 50);
     const query = 'interesting conversations and topics';
     const chunksResponse = await getRelevantChunks(query, channelData.id, chunkLimit);
 
@@ -37,21 +36,19 @@ export async function POST(request: NextRequest) {
     }
     const { chunks } = chunksResponse;
 
-    // Prepare the prompt
     const prompt = `You are an AI assistant representing the YouTube channel.
-Use the following recent transcripts to briefly list the top 3 interesting topics in the style and tone of the channel's content creator, written from the creator's perspective:
+Use the following recent transcripts to briefly list the top 10 interesting topics in the style and tone of the channel's content creator, written from the creator's perspective:
 
 ${chunks.map((chunk: any) => chunk.main_chunk).join('\n\n')}
 
-Format your response as a list of 3 topics, starting with "1." and continuing with each new topic on a new line until 3.
+Format your response as a list of topics, each starting with a title followed by a description:
 
-Start your response with:
-"""
-Here's a list of topics we could discuss:
-1. """
+1. **Title 1**: Description of the topic...
+2. **Title 2**: Description of the topic...
+...
+10. **Title 10**: Description of the topic...
 `;
 
-    // Generate response using OpenAI
     const completion = await openai.chat.completions.create({
       messages: [{ role: 'user', content: 'You are a YouTube channel AI assistant.' }, { role: 'assistant', content: prompt }],
       model: 'gpt-4o-mini',
@@ -60,11 +57,39 @@ Here's a list of topics we could discuss:
 
     const response = completion.choices[0].message.content?.trim() || '';
 
-    // save the text of the response in the channel.interests field as text.
-    await prisma.channel.update({
-      where: { id: channelData.id },
-      data: { interests: response },
+    // Parse the response into individual interests
+    // To preprocess the topics to remove empty lines or lines shorter than a certain length
+    const topics = response
+      .split('\n')
+      .map(getTopic)
+      .filter(topic => topic.topicTitle && topic.topicDescription);
+
+    // Delete the current interests, if they exist
+    const currentInterests = await prisma.interest.findMany({
+      where: {
+        channelId: channelData.id,
+      },
     });
+    if (currentInterests.length > 0) {
+      await prisma.interest.deleteMany({
+        where: {
+          channelId: channelData.id,
+        },
+      });
+    }
+
+    // Save each interest as a separate record in the database
+    await Promise.all(
+      topics.map(async (topic) => {
+        await prisma.interest.create({
+          data: {
+            title: topic.topicTitle,
+            description: topic.topicDescription,
+            channelId: channelData.id,
+          },
+        });
+      })
+    );
 
     return NextResponse.json({ response });
 

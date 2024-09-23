@@ -29,7 +29,7 @@ function isSession(obj: any): obj is Session {
 }
 
 type UserWithRelations = User & {
-  badges: (UserBadge & { badge: Badge })[];
+  badges: (UserBadge & { badge: Badge; channel?: Channel | undefined; transaction?: Transaction | null })[];
   ChatSession: ChatSession[];
   sharedChats: SharedChat[];
   transactions: (Transaction & { channel: Channel })[];
@@ -40,20 +40,24 @@ export async function getUserByUsername(username: string): Promise<UserWithRelat
     console.log('getUserByUsername: Username is null or undefined');
     return null;
   }
-  
+
   const user = await prisma.user.findUnique({
     where: { username },
     include: {
       badges: {
-        include: { badge: true }
+        include: {
+          badge: true,
+          transaction: { include: { channel: true } }, // Ensure transaction and channel are included
+          channel: true, // Include channel in the badges
+        },
       },
       chats: true,
       ChatSession: true,
       sharedChats: true,
       transactions: {
-        include: { channel: true }
-      }
-    }
+        include: { channel: true },
+      },
+    },
   });
 
   if (!user) {
@@ -61,7 +65,7 @@ export async function getUserByUsername(username: string): Promise<UserWithRelat
     return null;
   }
 
-  return user;
+  return user as UserWithRelations;
 }
 
 export async function getUserById(id: string): Promise<UserWithRelations | null> {
@@ -69,20 +73,20 @@ export async function getUserById(id: string): Promise<UserWithRelations | null>
     console.log('User ID is required');
     return null;
   }
-  
+
   const user = await prisma.user.findUnique({
     where: { id },
     include: {
       badges: {
-        include: { badge: true }
+        include: { badge: true, channel: true },
       },
       chats: true,
       ChatSession: true,
       sharedChats: true,
       transactions: {
-        include: { channel: true }
-      }
-    }
+        include: { channel: true },
+      },
+    },
   });
 
   if (!user) {
@@ -90,7 +94,7 @@ export async function getUserById(id: string): Promise<UserWithRelations | null>
     return null;
   }
 
-  return user;
+  return user as UserWithRelations;
 }
 
 export async function updateUser(id: string, data: { username?: string, name?: string, image?: string }): Promise<User | null> {

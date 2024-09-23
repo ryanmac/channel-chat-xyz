@@ -1,13 +1,32 @@
 // next-auth/auth-provider.tsx
 "use client";
 
-import { SessionProvider } from "next-auth/react";
-import React from "react";
+import React, { createContext, useContext } from "react";
+import { useSession as useNextAuthSession } from "next-auth/react";
+import { Session } from "next-auth";
 
-type Props = {
-  children?: React.ReactNode;
+type SessionContextType = {
+  session: Session | null;
+  status: "authenticated" | "loading" | "unauthenticated";
 };
 
-export const AuthProvider = ({ children }: Props) => {
-  return <SessionProvider>{children}</SessionProvider>;
+const SessionContext = createContext<SessionContextType | null>(null);
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const { data: session, status } = useNextAuthSession();
+
+  return (
+    <SessionContext.Provider value={{ session, status }}>
+      {children}
+    </SessionContext.Provider>
+  );
+};
+
+// Export useSession from the custom context, not directly from next-auth
+export const useSession = () => {
+  const context = useContext(SessionContext);
+  if (!context) {
+    throw new Error("useSession must be used within an AuthProvider");
+  }
+  return context;
 };

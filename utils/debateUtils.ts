@@ -32,15 +32,22 @@ export async function initializeDebate(channelId1: string, channelId2: string, u
 }
 
 export async function generateTopics(channelId1: string, channelId2: string) {
-  let [channel1, channel2] = await Promise.all([
-    prisma.channel.findUnique({ where: { id: channelId1 }, select: { id: true, name: true, interests: true } }),
-    prisma.channel.findUnique({ where: { id: channelId2 }, select: { id: true, name: true, interests: true } }),
+  // Fetch channel details
+  const [channel1, channel2] = await Promise.all([
+    prisma.channel.findUnique({ where: { id: channelId1 }, select: { id: true, name: true } }),
+    prisma.channel.findUnique({ where: { id: channelId2 }, select: { id: true, name: true } }),
   ]);
 
   if (!channel1 || !channel2) throw new Error('One or both channels not found');
 
-  // If the channels have no interests, first update the channels to get interests using the api/channel/interests route
-  if (!channel1.interests || channel1.interests.length === 0) {
+  // Fetch interests using getChannelInterests with a limit of 5
+  let [interests1, interests2] = await Promise.all([
+    getChannelInterests(channelId1, 5),
+    getChannelInterests(channelId2, 5),
+  ]);
+
+  // If the channels have no interests, first update the channels to get interests using the API
+  if (interests1.length === 0) {
     const response = await fetch(`${config.app.url}/api/channel/interests`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -50,9 +57,11 @@ export async function generateTopics(channelId1: string, channelId2: string) {
       console.error('Failed to fetch interests:', await response.text());
       throw new Error('Failed to generate topics');
     }
-    channel1 = await prisma.channel.findUnique({ where: { id: channelId1 }, select: { id: true, name: true, interests: true } });
+    // Re-fetch interests after updating
+    interests1 = await getChannelInterests(channelId1, 5);
   }
-  if (!channel2.interests || channel2.interests.length === 0) {
+
+  if (interests2.length === 0) {
     const response = await fetch(`${config.app.url}/api/channel/interests`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -62,17 +71,19 @@ export async function generateTopics(channelId1: string, channelId2: string) {
       console.error('Failed to fetch interests:', await response.text());
       throw new Error('Failed to generate topics');
     }
-    channel2 = await prisma.channel.findUnique({ where: { id: channelId2 }, select: { id: true, name: true, interests: true } });
+    // Re-fetch interests after updating
+    interests2 = await getChannelInterests(channelId2, 5);
   }
 
+  // Combine interests and send to collab topics API with channel names
   const response = await fetch(`${config.app.url}/api/collab/topics`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      interests1: channel1?.interests,
-      interests2: channel2?.interests,
+      channel1: { name: channel1.name, interests: interests1.map(i => ({ title: i.title, description: i.description })) },
+      channel2: { name: channel2.name, interests: interests2.map(i => ({ title: i.title, description: i.description })) },
     }),
   });
 
@@ -92,6 +103,15 @@ export async function generateTopics(channelId1: string, channelId2: string) {
 
 export function getTopic(topic: string) {
   const cleanedTopic = topic.replace(/\*\*/g, '').trim(); // Remove '**' and trim spaces
+
+  // Check if the line matches the expected numbered format (e.g., "1. Title: Description")
+  const match = cleanedTopic.match(/^\d+\.\s*(.+?):\s*(.+)$/);
+
+  // If the format doesn't match, return empty values
+  if (!match) {
+    return { topicTitle: '', topicDescription: '' };
+  }
+
   const parts = cleanedTopic.split(':');
 
   let topicTitle = '';
@@ -112,6 +132,13 @@ export function getTopic(topic: string) {
 
   if (!topicDescription.match(/[\.\?\!]$/)) {
     topicDescription += '...';
+  }
+
+  // Remove leading numbers and spaces from the title
+  topicTitle = topicTitle.replace(/^\d+\.\s*/, '');
+
+  if (topicTitle.length < 10 || topicDescription.length < 20) {
+    return { topicTitle: '', topicDescription: '' };
   }
 
   return { topicTitle, topicDescription };
@@ -267,4 +294,24 @@ export async function concludeDebate(debateId: string) {
     console.error('Error concluding debate:', error);
     throw error;
   }
+}
+
+export async function getChannelInterests(channelId: string, limit: number = 3) {
+  // Get all of the interests for the channel
+  const interests = await prisma.interest.findMany({
+    where: { channelId },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  // Shuffle the interests
+  for (let i = interests.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [interests[i], interests[j]] = [interests[j], interests[i]];
+  }
+
+  // Return a formatted list of interests
+  return interests.slice(0, limit).map(({ title, description }) => ({
+    title,
+    description,
+  }));
 }

@@ -22,7 +22,11 @@ export const defaultChannelData: ChannelData = {
   maxTokens: 200,
   chatsCreated: 0,
   isFineTuned: false,
-  interests: '',
+  botScore: 0,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  featured: false,
+  interests: [],
   metadata: {
     snippet: {
       title: '404 Title',

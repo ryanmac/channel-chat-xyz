@@ -61,7 +61,7 @@ export default class UserController {
     }
   }
 
-  async assignBadgesToUser(userId: string, badgeNames: string[]): Promise<void> {
+  async assignBadgesToUser(userId: string, badgeNames: string[], sessionId: string): Promise<void> {
     try {
       // Fetch the user
       const user = await this.getUserById(userId);
@@ -77,30 +77,57 @@ export default class UserController {
       });
   
       // Create a set of existing badge names to easily filter out duplicates
-      const existingBadgeNames = new Set(existingBadges.map(ub => ub.badge.name));
-      
+      const existingBadgeNames = new Set(existingBadges.map((ub) => ub.badge.name));
+      console.log(`Existing badges for user ${user.id}: ${Array.from(existingBadgeNames).join(', ')}`);
+  
       // Filter out the new badge names that need to be assigned
-      const newBadgeNames = badgeNames.filter(name => !existingBadgeNames.has(name));
+      const newBadgeNames = badgeNames.filter((name) => !existingBadgeNames.has(name));
+      console.log(`New badges to assign to user ${user.id}: ${newBadgeNames.join(', ')}`);
   
       if (newBadgeNames.length > 0) {
         // Fetch the badge IDs for the new badge names
         const newBadges = await prisma.badge.findMany({
           where: {
-            name: { in: newBadgeNames }
+            name: { in: newBadgeNames },
+          },
+        });
+  
+        // Fetch all transactions related to the session
+        const transactions = await prisma.transaction.findMany({
+          where: {
+            sessionId,
+          },
+          include: {
+            channel: true, // include channel data to link it with user badges
+          },
+        });
+  
+        // Ensure that transactions exist
+        if (!transactions.length) {
+          console.error(`No transactions available for badge assignment.`);
+          throw new Error('No available transactions for badge assignment');
+        }
+  
+        // Map badges to transactions based on shared sessionId
+        for (const badge of newBadges) {
+          // Attempt to assign the badge using an available transaction
+          const transaction = transactions.shift(); // Take one transaction for each badge assignment
+  
+          if (transaction) {
+            await prisma.userBadge.create({
+              data: {
+                userId: user.id,
+                badgeId: badge.id,
+                transactionId: transaction.id,
+                channelId: transaction.channelId, // link to the channel via transaction
+              },
+            });
+            console.log(`Assigned badge ${badge.name} to user ${user.id} with transaction ${transaction.id} and channel ${transaction.channelId}`);
+          } else {
+            // If no transaction is left, log the issue and continue to try others
+            console.error(`No transaction found for badge ${badge.name}. Retrying assignment may be needed.`);
           }
-        });
-  
-        // Get the badge IDs from the fetched badges
-        const newBadgeIds = newBadges.map(badge => badge.id);
-  
-        // Create the user-badge associations
-        await prisma.userBadge.createMany({
-          data: newBadgeIds.map(badgeId => ({
-            userId: user.id,
-            badgeId,
-          })),
-          skipDuplicates: true,
-        });
+        }
       }
     } catch (e) {
       console.error('Error assigning badges to user:', e);
@@ -122,6 +149,7 @@ export default class UserController {
       },
     });
     if (!transactions) {
+      console.log(`No transactions found for session ${sessionId}`);
       return;
     }
     try {
@@ -134,6 +162,7 @@ export default class UserController {
           userId,
         },
       });
+      console.log(`Assigned ${transactions.length} transactions to user ${userId}`);
     } catch (e) {
       console.error('Error assigning transactions to user:', e);
       console.error('User ID:', userId);
@@ -167,15 +196,20 @@ export default class UserController {
         if (sessionBadge) {
           const badges = sessionBadge.badges.split(',') as BadgeType[];
           if (badges.length > 0) {
-            await this.assignBadgesToUser(user.id, badges);
+            await this.assignBadgesToUser(user.id, badges, sessionId);
             // Refresh user data to include new badges
             user = await this.getUserById(user.id);
           }
 
           // Delete the SessionBadge after transfer
-          await prisma.sessionBadge.delete({
-            where: { id: sessionBadge.id },
+          const sessionBadgeUpdated = await prisma.sessionBadge.findUnique({
+            where: { sessionId },
           });
+          if (sessionBadgeUpdated) {
+            await prisma.sessionBadge.delete({
+              where: { id: sessionBadge.id },
+            });
+          }
         }
       }
 

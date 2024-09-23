@@ -1,26 +1,27 @@
 // components/Header.tsx
-'use client'
+'use client';
 
-import React, { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { useTheme } from 'next-themes'
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Moon, Sun } from 'lucide-react'
-import ChannelSearch from '@/components/ChannelSearch'
-import { signIn, signOut, useSession } from 'next-auth/react'
-import { UserMenu } from '@/components/UserMenu'
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useTheme } from 'next-themes';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Moon, Sun } from 'lucide-react';
+import ChannelSearch from '@/components/ChannelSearch';
+import { signIn } from 'next-auth/react';
+import { UserMenu } from '@/components/UserMenu';
+import { useSession } from '@/next-auth/auth-provider';
 
 export function Header() {
-  const { theme, setTheme } = useTheme()
-  const { data: session, status } = useSession()
-  const [mounted, setMounted] = useState(false)
+  const { theme, setTheme } = useTheme();
+  const { session, status } = useSession();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
-  if (!mounted) return null
+  if (!mounted) return null;
 
   return (
     <header>
@@ -38,13 +39,9 @@ export function Header() {
         </Link>
         <div className="flex items-center space-x-4">
           <div className="hidden sm:block sm:w-full">
-            <ChannelSearch
-              containerClassName="w-full sm:w-[20rem]"
-              inputClassName="h-10"
-              buttonClassName="w-10"
-            />
+            <ChannelSearch containerClassName="w-full sm:w-[20rem]" inputClassName="h-10" buttonClassName="w-10" />
           </div>
-          {mounted && ( // Only render after client-side hydration
+          {mounted && (
             <Button
               variant="ghost"
               size="icon"
@@ -54,11 +51,11 @@ export function Header() {
               {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
           )}
-          {status === "authenticated" ? (
+          {status === 'authenticated' && session?.user ? (
             <UserMenu user={session.user} session={session} />
           ) : (
             <Button
-              onClick={() => signIn("google")}
+              onClick={() => signIn('google')}
               className="text-gray-500 dark:text-gray-200 border border-input bg-background hover:bg-accent hover:text-accent-foreground hover:scale-110 font-bold py-2 px-4 rounded w-full"
             >
               Sign In
@@ -67,5 +64,5 @@ export function Header() {
         </div>
       </div>
     </header>
-  )
+  );
 }
