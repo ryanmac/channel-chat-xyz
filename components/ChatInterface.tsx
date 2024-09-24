@@ -30,7 +30,6 @@ const WARNING_TOKENS = 40000;
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({ channelData, showMaximize }) => {
   showMaximize = showMaximize || false;
-  console.log(channelData.interests);
   
   // Randomize interests and select the first three
   const randomizedInterests = channelData.interests.sort(() => Math.random() - 0.5).slice(0, 3);

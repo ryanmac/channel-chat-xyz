@@ -35,7 +35,7 @@ export const determineBadges = (
     badges.add('founding');
   }
 
-  if (numericAmount > 0 && remainingToActivate > 0 && (remainingToActivate - numericAmount) <= 5) {
+  if (numericAmount > 0 && (remainingToActivate - numericAmount) > 0 && (remainingToActivate - numericAmount) <= 5) {
     badges.add('close');
   }
 

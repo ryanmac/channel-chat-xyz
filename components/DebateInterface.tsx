@@ -145,9 +145,9 @@ export const DebateInterface: React.FC<DebateInterfaceProps> = ({
     <Card className="w-full bg-gray-400/50 dark:bg-gray-900/50 border-none">
       <CardHeader>
         <CardTitle>
-          <p className="text-2xl font-bold text-center mt-8 mb-8">{debate.topicTitle}</p>
+          <p className="text-5xl font-bold text-center mt-8 mb-8">{debate.topicTitle}</p>
           <div className="flex items-center justify-center gap-4 mt-12 mb-12">
-            <Avatar className="w-10 h-10 rounded-full">
+            <Avatar className="w-18 h-18 rounded-full">
               <AvatarImage src={channel1.imageUrl || undefined} alt={channel1.name} />
               <AvatarFallback>{channel1.name[0]}</AvatarFallback>
             </Avatar>
@@ -162,7 +162,7 @@ export const DebateInterface: React.FC<DebateInterfaceProps> = ({
                 <FaRobot className="inline h-6 w-6 pb-1 align-middle mr-0.5 ml-2" />{channel2.name}
               </span>
             </span>
-            <Avatar className="w-10 h-10 rounded-full">
+            <Avatar className="w-18 h-18 rounded-full">
               <AvatarImage src={channel2.imageUrl || undefined} alt={channel2.name} />
               <AvatarFallback>{channel2.name[0]}</AvatarFallback>
             </Avatar>

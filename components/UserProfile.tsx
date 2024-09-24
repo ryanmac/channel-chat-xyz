@@ -106,10 +106,11 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
                 {user.sponsorships.map((sponsorship) => (
                   <li key={sponsorship.id}>
                     <Link href={`/channel/${sponsorship.channel.name}`} className="text-sm hover:text-primary transition-colors">
-                      <Badge
+                      {/* <Badge
                         variant="secondary"
                         className="bg-purple-200 text-purple-800 hover:bg-purple-300 hover:text-purple-600 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center space-x-2 p-2"
-                      >
+                      > */}
+                      <div className="flex items-center space-x-2">
                         <Avatar className="h-12 w-12 border-2 border-secondary/20 -mr-1 rounded-full">
                           <AvatarImage src={sponsorship.channel.imageUrl || ""} alt={sponsorship.channel.title || ""} />
                           <AvatarFallback className="text-4xl">
@@ -117,7 +118,8 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
                           </AvatarFallback>
                         </Avatar>
                         <span>{sponsorship.channel.title}</span>
-                      </Badge>
+                      </div>
+                      {/* </Badge> */}
                       {/* Display badges earned for this channel */}
                       <div className="flex flex-wrap mt-2">
                         {sponsorship.badges.map((badge) => (

@@ -70,63 +70,76 @@ export default class UserController {
         throw new Error('User not found');
       }
   
-      // Fetch the existing badges for the user
-      const existingBadges = await prisma.userBadge.findMany({
-        where: { userId: user.id },
-        include: { badge: true },
+      // Fetch all transactions related to the session, including channel data
+      const transactions = await prisma.transaction.findMany({
+        where: { sessionId },
+        include: { channel: true },
       });
   
-      // Create a set of existing badge names to easily filter out duplicates
-      const existingBadgeNames = new Set(existingBadges.map((ub) => ub.badge.name));
-      console.log(`Existing badges for user ${user.id}: ${Array.from(existingBadgeNames).join(', ')}`);
+      // Ensure that transactions exist
+      if (!transactions.length) {
+        console.error(`No transactions available for badge assignment.`);
+        throw new Error('No available transactions for badge assignment');
+      }
   
-      // Filter out the new badge names that need to be assigned
-      const newBadgeNames = badgeNames.filter((name) => !existingBadgeNames.has(name));
-      console.log(`New badges to assign to user ${user.id}: ${newBadgeNames.join(', ')}`);
+      // Fetch the existing badges for the user, including channel information
+      const existingBadges = await prisma.userBadge.findMany({
+        where: { userId: user.id },
+        include: { badge: true, channel: true },
+      });
   
-      if (newBadgeNames.length > 0) {
-        // Fetch the badge IDs for the new badge names
-        const newBadges = await prisma.badge.findMany({
-          where: {
-            name: { in: newBadgeNames },
-          },
+      // Create a set of existing badge names with their associated channels to filter out duplicates
+      const existingBadgeKeySet = new Set(
+        existingBadges.map((ub) => `${ub.badge.name}:${ub.channelId || 'no_channel'}`)
+      );
+  
+      console.log(`Existing badges for user ${user.id}: ${Array.from(existingBadgeKeySet).join(', ')}`);
+  
+      // Iterate through each badge name that needs to be assigned
+      for (const badgeName of badgeNames) {
+        // Fetch the badge by name
+        const badge = await prisma.badge.findFirst({
+          where: { name: badgeName },
         });
   
-        // Fetch all transactions related to the session
-        const transactions = await prisma.transaction.findMany({
-          where: {
-            sessionId,
-          },
-          include: {
-            channel: true, // include channel data to link it with user badges
-          },
-        });
-  
-        // Ensure that transactions exist
-        if (!transactions.length) {
-          console.error(`No transactions available for badge assignment.`);
-          throw new Error('No available transactions for badge assignment');
+        if (!badge) {
+          console.error(`Badge ${badgeName} does not exist.`);
+          continue;
         }
   
-        // Map badges to transactions based on shared sessionId
-        for (const badge of newBadges) {
-          // Attempt to assign the badge using an available transaction
-          const transaction = transactions.shift(); // Take one transaction for each badge assignment
+        // Attempt to assign the badge using available transactions
+        let badgeAssigned = false;
   
-          if (transaction) {
-            await prisma.userBadge.create({
-              data: {
-                userId: user.id,
-                badgeId: badge.id,
-                transactionId: transaction.id,
-                channelId: transaction.channelId, // link to the channel via transaction
-              },
-            });
-            console.log(`Assigned badge ${badge.name} to user ${user.id} with transaction ${transaction.id} and channel ${transaction.channelId}`);
-          } else {
-            // If no transaction is left, log the issue and continue to try others
-            console.error(`No transaction found for badge ${badge.name}. Retrying assignment may be needed.`);
+        for (const transaction of transactions) {
+          // Create a unique key for the current badge and channel
+          const badgeKey = `${badge.name}:${transaction.channelId || 'no_channel'}`;
+  
+          // Check if the badge already exists for this user on this channel
+          if (existingBadgeKeySet.has(badgeKey)) {
+            console.log(`Badge ${badgeName} already assigned to user ${user.id} for channel ${transaction.channelId}.`);
+            continue;
           }
+  
+          // Assign the badge to the user, linking it to the transaction and channel
+          await prisma.userBadge.create({
+            data: {
+              userId: user.id,
+              badgeId: badge.id,
+              transactionId: transaction.id,
+              channelId: transaction.channelId,
+            },
+          });
+  
+          console.log(`Assigned badge ${badge.name} to user ${user.id} with transaction ${transaction.id} and channel ${transaction.channelId}`);
+  
+          // Add the newly assigned badge to the set to avoid re-assigning within this run
+          existingBadgeKeySet.add(badgeKey);
+          badgeAssigned = true;
+          break; // Stop once the badge is assigned to avoid multiple assignments for the same badge and channel
+        }
+  
+        if (!badgeAssigned) {
+          console.error(`No available transaction found for badge ${badgeName} for user ${user.id}.`);
         }
       }
     } catch (e) {
@@ -137,7 +150,7 @@ export default class UserController {
     }
   }
 
-  async assignTransactionsToUser(userId: string, sessionId: string): Promise<void> {
+  async assignTransactionsToUser(userId: string, sessionId: string): Promise<Transaction[] | null> {
     // Assign transactions to the authenticated user based on the sessionId
     // Records to update userId are those with null for userId and the same sessionId
     // If they exist, update the userId to the authenticated user
@@ -150,7 +163,7 @@ export default class UserController {
     });
     if (!transactions) {
       console.log(`No transactions found for session ${sessionId}`);
-      return;
+      return null;
     }
     try {
       await prisma.transaction.updateMany({
@@ -169,6 +182,7 @@ export default class UserController {
       console.error('Session ID:', sessionId);
       throw e;
     }
+    return transactions;
   }
 
   async findOrCreateUser(email: string, name: string, image?: string, sessionId?: string): Promise<UserWithBadges | null> {

@@ -28,7 +28,8 @@ export async function POST(request: NextRequest) {
     console.log(`Found badges to transfer: ${badgeNames.join(', ')}`);
 
     // Assign badges and transactions to the user with session details
-    await userController.assignTransactionsToUser(userId, sessionId);
+    const transactions = await userController.assignTransactionsToUser(userId, sessionId);
+    // console.log(`Transactions assigned to user ${userId}:`, transactions);
     await userController.assignBadgesToUser(userId, badgeNames, sessionId);
 
     // Delete the SessionBadge after transfer
