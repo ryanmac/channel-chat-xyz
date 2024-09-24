@@ -190,7 +190,8 @@ export async function generateResponse(channelId: string, topicTitle: string, to
     },
     body: JSON.stringify({
       channelTitle: channel.title,
-      topic: {title: topicTitle, description: topicDescription},
+      topicTitle,
+      topicDescription,
       channelContext,
       otherChannelContext,
       debateHistory,

@@ -7,9 +7,17 @@ const openai = new OpenAI({ apiKey: config.openai.apiKey });
 
 export async function POST(request: NextRequest) {
   try {
-    const { channelTitle, topic, channelContext, otherChannelContext, debateHistory, stage } = await request.json();
+    const {
+      channelTitle,
+      topicTitle,
+      topicDescription,
+      channelContext,
+      otherChannelContext,
+      debateHistory,
+      stage,
+    } = await request.json();
 
-    if (!channelTitle || !topic || !channelContext || !otherChannelContext || !stage) {
+    if (!channelTitle || !topicTitle || !topicDescription || !channelContext || !otherChannelContext || !stage) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -28,33 +36,36 @@ export async function POST(request: NextRequest) {
 // ${debateHistory}
 
 // `;
-    let prompt = `You are an AI assistant representing the YouTube channel "${channelTitle}".
-You are participating in a conversation on the topic: "${topic}".
+  let prompt = `You are an AI assistant speaking in the voice of the YouTube channel "${channelTitle}".
+You are engaging in a conversation centered on "${topicTitle}". The context of this discussion is: ${topicDescription}
 
-Be brief, direct, and get straight to the point. Move the conversation forward by addressing disagreements when they arise. It's perfectly fine to disagree if your channel's context diverges from the other channel's perspective. Avoid lengthy introductions or over-explaining your stance or listing too many arguments. Respond concisely, highlighting key arguments or counterarguments relevant to the current stage of the conversation.
+Instructions:
+- Respond with the concise, direct style typical of your channel.
+- Focus on advancing the conversation by addressing points of disagreement or adding new insights when necessary.
+- You are encouraged to diverge from the opposing channel's perspective if it aligns with your channel's ethos.
+- Keep your responses short and impactful, avoiding long-winded explanations or excessive detail.
+- Prioritize the strongest arguments and counterarguments that are directly relevant to the current stage of the conversation.
+- Avoid mentioning "channel" in your responses and instead refer to your channel in the first person.
 
-Use the following context from your channel's content to inform your response:
+Draw upon the following excerpts from your channel's transcripts to maintain consistency in tone and content:
 ${channelContext}
 
-Conversation history:
+Review of the ongoing conversation:
 ${debateHistory}
 
 `;
 
-    switch (stage) {
-      case 'intro':
-        prompt += `Provide an introduction to the topic from your channel's perspective. 
-        Highlight key points you plan to discuss and your channel's unique viewpoint.`;
-        break;
-      case 'response':
-        prompt += `Respond to the most recent argument in the style and tone of ${channelTitle}'s content creator.
-        Address points raised by the other channel, especially where there are differences in perspective or opinion. Use information from your channel's context to support your arguments and do not shy away from expressing disagreement when justified.`;
-        break;
-      case 'conclusion':
-        prompt += `Provide a conclusion to the topic from your channel's perspective. Avoid repeating the other channel's arguments or summary.
-        Summarize your main points, address the counterarguments, and provide your final statement on the topic using channel context and your conversation history. Clearly outline any disagreements and why your channel holds its stance.`;
-        break;
-    }
+  switch (stage) {
+    case 'intro':
+      prompt += `Kick off the conversation by introducing the topic from your channel's unique perspective. Highlight the main points you'll explore and emphasize your channel's distinct viewpoint.`;
+      break;
+    case 'response':
+      prompt += `Respond to the latest points raised, maintaining the style and tone of ${channelTitle}'s creator. Tackle the other channel's arguments head-on, especially where perspectives differ, using your channel's content for support. Feel free to express disagreement when warranted.`;
+      break;
+    case 'conclusion':
+      prompt += `Conclude the discussion by summarizing your channel's stance. Avoid echoing the other channel's views. Clearly state your key points, address counterarguments, and deliver a final statement reflecting your channel's context and history in the conversation.`;
+      break;
+  }
 
     prompt += `\n\nYour ${stage}:`;
 

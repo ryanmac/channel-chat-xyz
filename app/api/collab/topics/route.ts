@@ -31,12 +31,16 @@ ${formattedInterests1}
 
 ${formattedInterests2}
 
-Suggest two interesting or controversial topics that both ${name1} and ${name2} might have engaging and passionate discussions. Do not mention the channels directly by name in your suggestions, but describe the topics clearly and thoughtfully.
-Format your response as a list of topics, each starting with a title followed by a brief description:
+Suggest three engaging or controversial topics that would lead to a passionate discussion between the two channels. Describe each topic concisely without using phrases like "this topic would address" or "a conversation could include." Focus directly on the core of the topic and the key elements that would make the discussion compelling.
 
-1. **Title 1**: Description of the topic...
-2. **Title 2**: Description of the topic...
-3. **Title 3**: Description of the topic...
+Format your response as a list of topics, each starting with a title followed by a brief, direct description:
+
+1. **Title 1**: Directly state the discussion points, themes, or questions this topic would involve.
+2. **Title 2**: Provide a straightforward description that outlines the main arguments or perspectives without introductory wording.
+3. **Title 3**: Clearly define the topic, emphasizing the points of tension or interest that would be discussed.
+
+Example format:
+1. **Bridging Social Divides**: Examine the challenges of fostering unity among diverse groups with differing experiences and needs. Include strategies for bridging gaps between communities, the role of dialogue in overcoming political differences, and the importance of listening to marginalized voices.
 `;
 
     const completion = await openai.chat.completions.create({
