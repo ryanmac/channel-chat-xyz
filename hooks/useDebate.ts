@@ -18,7 +18,7 @@ export function useDebate() {
   const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null); // Ref to manage request cancellation
 
-  const initializeDebate = useCallback(async (channelId1: string, channelId2: string, topic: string) => {
+  const initializeDebate = useCallback(async (channelId1: string, channelId2: string, userId: string, topic: { title: string; description: string }) => {
     setIsLoading(true);
     setError(null);
     try {

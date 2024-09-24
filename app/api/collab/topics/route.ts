@@ -31,8 +31,8 @@ ${formattedInterests1}
 
 ${formattedInterests2}
 
-Suggest two interesting topics that both ${name1} and ${name2} might have engaging discussions about, and one that they might have opposing views on. Do not mention the channels directly by name in your suggestions, but describe the topics clearly and thoughtfully.
-Format your response as a list of topics, each starting with a title followed by a description:
+Suggest two interesting or controversial topics that both ${name1} and ${name2} might have engaging and passionate discussions. Do not mention the channels directly by name in your suggestions, but describe the topics clearly and thoughtfully.
+Format your response as a list of topics, each starting with a title followed by a brief description:
 
 1. **Title 1**: Description of the topic...
 2. **Title 2**: Description of the topic...
@@ -42,7 +42,7 @@ Format your response as a list of topics, each starting with a title followed by
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],
-      max_tokens: 200,
+      max_tokens: 400,
     });
 
     // Parse the response using getTopic

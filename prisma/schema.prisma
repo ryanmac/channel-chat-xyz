@@ -267,21 +267,22 @@ enum SettingType {
 }
 
 model Debate {
-  id           String       @id @default(cuid())
-  channelId1   String
-  channelId2   String
-  topic        String?
-  status       DebateStatus
-  summary1     String?
-  summary2     String?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  createdBy    String
-  maxResponses Int          @default(3)
-  turns        DebateTurn[]
-  channel1     Channel      @relation("Channel1Debates", fields: [channelId1], references: [id])
-  channel2     Channel      @relation("Channel2Debates", fields: [channelId2], references: [id])
-  user         User         @relation(fields: [createdBy], references: [id])
+  id               String       @id @default(cuid())
+  channelId1       String
+  channelId2       String
+  topicTitle       String?
+  topicDescription String?
+  status           DebateStatus
+  summary1         String?
+  summary2         String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  createdBy        String
+  maxResponses     Int          @default(3)
+  turns            DebateTurn[]
+  channel1         Channel      @relation("Channel1Debates", fields: [channelId1], references: [id])
+  channel2         Channel      @relation("Channel2Debates", fields: [channelId2], references: [id])
+  user             User         @relation(fields: [createdBy], references: [id])
 }
 
 model DebateTurn {

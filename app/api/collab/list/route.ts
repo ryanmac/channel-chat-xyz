@@ -1,5 +1,5 @@
 // api/collab/list/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
 export async function GET() {
@@ -17,7 +17,8 @@ export async function GET() {
       id: debate.id,
       channel1: debate.channel1,
       channel2: debate.channel2,
-      topic: debate.topic,
+      topicTitle: debate.topicTitle || 'Unknown Topic',
+      topicDescription: debate.topicDescription || 'No description available.',
     }));
 
     return NextResponse.json(formattedDebates);

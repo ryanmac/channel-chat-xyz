@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
       ).join('\n\n');
 
       prompt = `You are an AI assistant representing the YouTube channel "${channelData.title}" in a debate.
-Topic: ${debate.topic}
+Topic: ${debate.topicTitle || ''} - ${debate.topicDescription || ''}
 
 Use the following context from the channel's content to inform your response:
 ${chunks.map((chunk: any) => chunk.main_chunk).join('\n\n')}

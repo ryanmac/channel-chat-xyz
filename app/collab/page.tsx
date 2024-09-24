@@ -17,6 +17,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { FaRobot } from 'react-icons/fa';
 import CollabList from '@/components/CollabList';
 import Link from 'next/link';
+import { useSession } from "@/next-auth/auth-provider";
 
 type ChannelSearchResult = {
   id: string;
@@ -38,6 +39,7 @@ export default function DebateInitPage() {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [topicsLoading, setTopicsLoading] = useState(false); // New state for topic loading
   const { initializeDebate, isLoading, error } = useDebate();
+  const { session, status } = useSession();
   const router = useRouter();
 
   const handleChannelSelect = (setChannel: React.Dispatch<React.SetStateAction<Channel | null>>) => async (searchResult: ChannelSearchResult) => {
@@ -139,11 +141,11 @@ export default function DebateInitPage() {
     }
   }, [channel1, channel2]);
 
-  const handleTopicSelect = async (topic: string) => {
-    setSelectedTopic(topic);
+  const handleTopicSelect = async (topic: { title: string; description: string }) => {
+    setSelectedTopic(topic.title);
     if (channel1 && channel2) {
       try {
-        const debate = await initializeDebate(channel1.id, channel2.id, topic); // Start debate immediately
+        const debate = await initializeDebate(channel1.id, channel2.id, session?.user?.id || '', { title: topic.title, description: topic.description });
         if (debate && debate.id) {
           router.push(`/collab/${debate.id}`);
         } else {

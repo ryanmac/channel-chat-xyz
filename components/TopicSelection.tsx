@@ -6,7 +6,7 @@ import { FaRobot } from 'react-icons/fa';
 
 interface TopicSelectionProps {
   topics: { title: string; description: string }[];
-  onSelect: (topic: string) => void;
+  onSelect: (topic: { title: string; description: string }) => void;
   isLoading: boolean;
 }
 
@@ -29,7 +29,7 @@ export const TopicSelection: React.FC<TopicSelectionProps> = ({ topics, onSelect
             <CardContent className="p-4 mt-auto">
               <Button
                 className="w-full bg-primary hover:bg-primary/90"
-                onClick={() => onSelect(topic.title)}
+                onClick={() => onSelect(topic)} // Pass the whole topic object
                 disabled={isLoading}
               >
                 {isLoading ? (

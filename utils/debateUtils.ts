@@ -6,14 +6,15 @@ import config from '@/config';
 
 const MAX_TURNS = 10
 
-export async function initializeDebate(channelId1: string, channelId2: string, userId: string, topic: string) {
+export async function initializeDebate(channelId1: string, channelId2: string, userId: string, topicTitle: string, topicDescription: string) {
   const debate = await prisma.debate.create({
     data: {
       channelId1,
       channelId2,
-      status: 'IN_PROGRESS', // Adjust status if needed
+      status: 'IN_PROGRESS',
       createdBy: userId,
-      topic, // Include the selected topic
+      topicTitle, // Include the topic title
+      topicDescription, // Include the topic description
     },
   });
 
@@ -98,10 +99,17 @@ export async function generateTopics(channelId1: string, channelId2: string) {
     throw new Error('No topics generated');
   }
 
-  return topics;
+  // Ensure topics are returned as objects with title and description
+  return topics.map((topic: { title: string; description: string }) => ({
+    title: topic.title,
+    description: topic.description,
+  }));
 }
 
-export function getTopic(topic: string) {
+export function getTopic(topic: string | undefined) {
+  if (!topic) {
+    return { topicTitle: '', topicDescription: '' };
+  }
   const cleanedTopic = topic.replace(/\*\*/g, '').trim(); // Remove '**' and trim spaces
 
   // Check if the line matches the expected numbered format (e.g., "1. Title: Description")
@@ -144,9 +152,9 @@ export function getTopic(topic: string) {
   return { topicTitle, topicDescription };
 }
 
-async function getDebateContext(channelId: string, topic: string, content: string) {
+async function getDebateContext(channelId: string, topic: { title: string; description: string }, content: string) {
   try {
-    const chunks = await getRelevantChunks(`${topic} ${content}`, channelId, 5, 1);
+    const chunks = await getRelevantChunks(`${topic.title} ${topic.description} ${content}`, channelId, 5, 1);
     if (!chunks || !Array.isArray(chunks.chunks)) {
       console.error('Invalid response from getRelevantChunks:', chunks);
       return ''; // Return an empty string if there are no relevant chunks
@@ -158,7 +166,7 @@ async function getDebateContext(channelId: string, topic: string, content: strin
   }
 }
 
-export async function generateResponse(channelId: string, topic: string, content: string, debate: any, stage: 'intro' | 'response' | 'conclusion') {
+export async function generateResponse(channelId: string, topicTitle: string, topicDescription: string, content: string, debate: any, stage: 'intro' | 'response' | 'conclusion') {
   const channel = await prisma.channel.findUnique({ where: { id: channelId } });
   if (!channel) throw new Error('Channel not found');
 
@@ -166,8 +174,8 @@ export async function generateResponse(channelId: string, topic: string, content
 
   // Get context for both channels
   const [channelContext, otherChannelContext] = await Promise.all([
-    getDebateContext(channelId, topic, content),
-    getDebateContext(otherChannelId, topic, content),
+    getDebateContext(channelId, { title: topicTitle, description: topicDescription }, content),
+    getDebateContext(otherChannelId, { title: topicTitle, description: topicDescription }, content),
   ]);
 
   const debateHistory = debate.turns.map((turn: any) => 
@@ -182,7 +190,7 @@ export async function generateResponse(channelId: string, topic: string, content
     },
     body: JSON.stringify({
       channelTitle: channel.title,
-      topic,
+      topic: {title: topicTitle, description: topicDescription},
       channelContext,
       otherChannelContext,
       debateHistory,
@@ -225,7 +233,7 @@ export async function processTurn(debateId: string, content: string) {
     }
 
     // Generate response for the current turn
-    const response = await generateResponse(channelId, debate.topic || content, content, debate, stage);
+    const response = await generateResponse(channelId, debate.topicTitle || '', debate.topicDescription || '', content, debate, stage);
 
     // Add new turn to the debate
     await prisma.debateTurn.create({
@@ -276,8 +284,8 @@ export async function concludeDebate(debateId: string) {
     }
 
     // Generate conclusions for both channels
-    const summary1 = await generateResponse(debate.channelId1, debate.topic!, '', debate, 'conclusion');
-    const summary2 = await generateResponse(debate.channelId2, debate.topic!, '', debate, 'conclusion');
+    const summary1 = await generateResponse(debate.channelId1, debate.topicTitle || '', debate.topicDescription || '', '', debate, 'conclusion');
+    const summary2 = await generateResponse(debate.channelId2, debate.topicTitle || '', debate.topicDescription || '', '', debate, 'conclusion');
 
     // Update debate status to concluded with summaries
     const concludedDebate = await prisma.debate.update({

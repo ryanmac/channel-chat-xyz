@@ -40,9 +40,6 @@ export const DebateInterface: React.FC<DebateInterfaceProps> = ({
   const lastTurnRef = useRef<HTMLDivElement>(null);
   const isProcessingRef = useRef(false); // Ref to track if a turn is being processed
 
-  // Extract the topic parts
-  const { topicTitle, topicDescription } = getTopic(debate.topic || '');
-
   // Scroll to the latest turn when a new turn is added
   useEffect(() => {
     if (debate.status !== 'CONCLUDED' && lastTurnRef.current) {
@@ -105,7 +102,7 @@ export const DebateInterface: React.FC<DebateInterfaceProps> = ({
   const [isClient, setIsClient] = useState(false);
   const { toast } = useToast();
   const currentUrl = `${config.app.url}/collab/${debate.id}`; // Dynamic URL for the current debate
-  const shareMessage = `Check out this AI-powered collab between @${channel1.name} and @${channel2.name} on the topic "${topicTitle}".\n\nDive into the conversation and see how AI can power collabs between YouTube Channels.\n`;
+  const shareMessage = `Check out this AI-powered collab between @${channel1.name} and @${channel2.name} on the topic "${debate.topicTitle}".\n\nDive into the conversation and see how AI can power collabs between YouTube Channels.\n`;
 
   const shareUrls = {
     x: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}&url=${encodeURIComponent(currentUrl)}`,
@@ -148,21 +145,29 @@ export const DebateInterface: React.FC<DebateInterfaceProps> = ({
     <Card className="w-full bg-gray-400/50 dark:bg-gray-900/50 border-none">
       <CardHeader>
         <CardTitle>
-          <p className="text-2xl font-bold">{topicTitle}</p>
-          {topicDescription && <p className="text-xl font-normal">{topicDescription}</p>}
-          <div className="flex items-center justify-center gap-4 mt-4">
+          <p className="text-2xl font-bold text-center mt-8 mb-8">{debate.topicTitle}</p>
+          <div className="flex items-center justify-center gap-4 mt-12 mb-12">
             <Avatar className="w-10 h-10 rounded-full">
               <AvatarImage src={channel1.imageUrl || undefined} alt={channel1.name} />
               <AvatarFallback>{channel1.name[0]}</AvatarFallback>
             </Avatar>
-            <span className="font-semibold">{channel1.name}</span>
+            <span className="font-semibold">
+              <span className="inline whitespace-nowrap">
+                <FaRobot className="inline h-6 w-6 pb-1 align-middle mr-0.5 ml-2" />{channel1.name}
+              </span>
+            </span>
             <span className="text-muted-foreground"><Merge className="w-8 h-8 text-primary animate-pulse transform rotate-180" /></span>
-            <span className="font-semibold">{channel2.name}</span>
+            <span className="font-semibold">
+              <span className="inline whitespace-nowrap">
+                <FaRobot className="inline h-6 w-6 pb-1 align-middle mr-0.5 ml-2" />{channel2.name}
+              </span>
+            </span>
             <Avatar className="w-10 h-10 rounded-full">
               <AvatarImage src={channel2.imageUrl || undefined} alt={channel2.name} />
               <AvatarFallback>{channel2.name[0]}</AvatarFallback>
             </Avatar>
           </div>
+          {debate.topicDescription && <p className="text-xl font-normal text-center mb-8">{debate.topicDescription}</p>}
         </CardTitle>
       </CardHeader>
       <CardContent>

@@ -19,11 +19,11 @@ export async function POST(request: NextRequest) {
     // Validate action types and required parameters
     switch (action) {
       case 'initialize':
-        if (!channelId1 || !channelId2 || !topic) {
+        if (!channelId1 || !channelId2 || !topic || !topic.title || !topic.description) {
           return NextResponse.json({ error: 'Missing parameters for initialization.' }, { status: 400 });
         }
         const userId = session?.user.id ?? '';
-        result = await initializeDebate(channelId1, channelId2, userId, topic);
+        result = await initializeDebate(channelId1, channelId2, userId, topic.title, topic.description);
         break;
 
       case 'turn':
