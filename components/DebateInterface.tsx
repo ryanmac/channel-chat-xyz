@@ -146,7 +146,7 @@ export const DebateInterface: React.FC<DebateInterfaceProps> = ({
       <CardHeader>
         <CardTitle>
           <p className="text-5xl font-bold text-center mt-8 mb-8">{debate.topicTitle}</p>
-          <div className="flex items-center justify-center gap-4 mt-12 mb-12">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-12 mb-12">
             <Avatar className="w-18 h-18 rounded-full">
               <AvatarImage src={channel1.imageUrl || undefined} alt={channel1.name} />
               <AvatarFallback>{channel1.name[0]}</AvatarFallback>
