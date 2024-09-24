@@ -6,6 +6,8 @@ import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import Link from 'next/link'
+import ChannelSearch from '@/components/ChannelSearch';
+import { FaRobot } from 'react-icons/fa6';
 
 interface Channel {
   id: string;
@@ -56,7 +58,7 @@ export function CommunitySupport() {
         <h2 className="text-3xl font-bold text-center mb-8">Activate a Channel</h2>
         <div className="max-w-3xl mx-auto space-y-6">
           <p className="text-center text-gray-600 dark:text-gray-300">
-            Help keep our AI-powered chatbots running by sponsoring channels.
+            Train a new AI model in seconds. No account or coding required.
           </p>
           <div className="bg-gray-100/50 dark:bg-gray-700/50 p-6 rounded-lg">
             <h3 className="text-xl font-semibold mb-4">Channel Funding Progress</h3>
@@ -76,7 +78,9 @@ export function CommunitySupport() {
                     <div className="flex-1">
                       <div className="flex justify-between items-center mb-1">
                         {/* Channel Name */}
-                        <span className="text-sm font-medium">{channel.name}</span>
+                        <span className="inline whitespace-nowrap">
+                          <FaRobot className="inline h-4 w-4 pb-1 align-middle mr-0.5" />{channel.name}
+                        </span>
 
                         {/* Percentage on the right */}
                         <span className="text-sm font-medium">
@@ -93,6 +97,10 @@ export function CommunitySupport() {
                   </div>
                 </Link>
               ))}
+            </div>
+            <div className="text-center mt-8">
+              <p>Don't see your favorite? Add their YouTube handle.</p>
+              <ChannelSearch />
             </div>
           </div>
         </div>

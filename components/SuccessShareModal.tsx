@@ -151,12 +151,6 @@ export const SuccessShareModal: React.FC<SuccessShareModalProps> = ({
         </p>
       ) : (
         <></>
-        // <p className="text-lg text-center mb-8 font-light">
-        //   Your contribution of ${totalAmountInDollars.toFixed(0)} has been added towards
-        //   <span className="inline whitespace-nowrap">
-        //     <FaRobot className="inline h-5 w-5 pb-1 align-middle mr-1" />{channelData.name}'s
-        //   </span> activation!
-        // </p>
       )}
       {newChatCreditsAdded > 0 && (
         <p className="text-2xl text-center mb-8 font-bold">      

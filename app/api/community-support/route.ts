@@ -10,7 +10,7 @@ export async function GET() {
         { activationFunding: 'desc' },
         { updatedAt: 'desc' }
       ],
-      take: 10,
+      take: 20,
       select: {
         id: true,
         name: true,

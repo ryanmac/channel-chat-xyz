@@ -113,7 +113,7 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
               <CardTitle>Collabs</CardTitle>
             </div>
             <Button variant="outline" className="flex items-center space-x-2">
-              Create New Collab
+              Start New Collab
             </Button>
           </CardHeader>
           <CardContent>

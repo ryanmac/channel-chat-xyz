@@ -11,6 +11,9 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import CollabList from "@/components/CollabList";
+import { Button } from "@/components/ui/button";
+import { Merge } from "lucide-react";
+import Link from "next/link";
 
 export default function HomePage() {
   return (
@@ -40,6 +43,15 @@ export default function HomePage() {
           </AvatarFallback>
         </Avatar>
         <h2 className="text-3xl font-bold text-center text-primary">Collabs</h2>
+      </div>
+      <div className="col-span-full flex items-center justify-center my-4">
+      <div className="col-span-full flex items-center justify-center my-4">
+        <Link href="/collab"> {/* Wrap Button with Link */}
+          <Button variant="outline" className="bg-primary text-primary-foreground p-4">
+            <Merge className="h-4 w-4 mr-2 rotate-180" /> Start New Collab
+          </Button>
+        </Link>
+      </div>
       </div>
       <CollabList limit={6} />
       <CommunitySupport />
