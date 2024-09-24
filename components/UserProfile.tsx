@@ -1,12 +1,13 @@
 // components/UserProfile.tsx
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { PseudoRandomAvatar } from "@/components/PseudoRandomAvatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BadgeComponent } from "@/components/BadgeComponent";
 import { Badge } from "@/components/ui/badge";
 import { BadgeType } from "@/utils/badgeManagement";
 import Link from "next/link";
-import { Edit, MessageCircle, Award, Users, Share2, UserX, RotateCcw } from "lucide-react";
+import { Edit, MessageCircle, Merge, Users, Share2, UserX, RotateCcw } from "lucide-react";
 
 interface UserProfileProps {
   user: {
@@ -57,12 +58,13 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
   }
 
   return (
-    <div className="space-y-8 p-6 bg-gradient-to-b from-primary/5 to-background rounded-lg shadow-lg">
+    <div className="space-y-8 p-6">
       <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
         <Avatar className="h-32 w-32 border-4 border-primary/20 rounded-full">
           <AvatarImage src={user.image || ""} alt={user.name || ""} />
           <AvatarFallback className="text-4xl">{user.name ? user.name[0] : "U"}</AvatarFallback>
         </Avatar>
+        {/* <PseudoRandomAvatar seed={user.username} size={120} className="h-32 w-32 border-4 border-primary/20" /> */}
         <div className="text-center md:text-left space-y-2">
           <h1 className="text-3xl font-bold">{user.name}</h1>
           <p className="text-muted-foreground">@{user.username}</p>
@@ -79,7 +81,7 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Chat Statistics */}
-        <Card className="hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-md transition-shadow bg-background/80">
           <CardHeader className="flex flex-row items-center space-x-2">
             <MessageCircle className="h-5 w-5 text-primary" />
             <CardTitle>Chat Statistics</CardTitle>
@@ -91,11 +93,36 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
             <p className="text-sm">
               Participated Chats: <span className="font-semibold">{user.participatedChatsCount}</span>
             </p>
+            <div className="flex flex-wrap gap-2">
+              {user.badges && user.badges.length > 0 ? (
+                user.badges.map((badge) => (
+                  <BadgeComponent key={badge.name} type={badge.name as BadgeType} count={badge.count} />
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">No badges earned yet</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Earned Badges */}
+        <Card className="hover:shadow-md transition-shadow bg-background/80">
+          <CardHeader className="flex flex-row items-center justify-between space-x-2">
+            <div className="flex items-center space-x-2">
+              <Merge className="h-5 w-5 text-primary rotate-180" />
+              <CardTitle>Collabs</CardTitle>
+            </div>
+            <Button variant="outline" className="flex items-center space-x-2">
+              Create New Collab
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">Coming soon...</p>
           </CardContent>
         </Card>
 
         {/* Sponsored Channels */}
-        <Card className="hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-md transition-shadow bg-background/80">
           <CardHeader className="flex flex-row items-center space-x-2">
             <Users className="h-5 w-5 text-primary" />
             <CardTitle>Sponsored Channels</CardTitle>
@@ -118,13 +145,13 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
                           </AvatarFallback>
                         </Avatar>
                         <span>{sponsorship.channel.title}</span>
-                      </div>
-                      {/* </Badge> */}
-                      {/* Display badges earned for this channel */}
-                      <div className="flex flex-wrap mt-2">
-                        {sponsorship.badges.map((badge) => (
-                          <BadgeComponent key={badge.id} type={badge.badge.name as BadgeType} count={badge.count} />
-                        ))}
+                        {/* </Badge> */}
+                        {/* Display badges earned for this channel */}
+                        <div className="flex flex-wrap mt-2">
+                          {sponsorship.badges.map((badge) => (
+                            <BadgeComponent key={badge.id} type={badge.badge.name as BadgeType} />
+                          ))}
+                        </div>
                       </div>
                     </Link>
                   </li>
@@ -136,27 +163,8 @@ export function UserProfile({ user, isOwnProfile }: UserProfileProps) {
           </CardContent>
         </Card>
 
-        {/* Earned Badges */}
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center space-x-2">
-            <Award className="h-5 w-5 text-primary" />
-            <CardTitle>Earned Badges</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {user.badges && user.badges.length > 0 ? (
-                user.badges.map((badge) => (
-                  <BadgeComponent key={badge.name} type={badge.name as BadgeType} count={badge.count} />
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">No badges earned yet</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Shared Chats Placeholder */}
-        <Card className="hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-md transition-shadow bg-background/80">
           <CardHeader className="flex flex-row items-center space-x-2">
             <Share2 className="h-5 w-5 text-primary" />
             <CardTitle>Shared Chats</CardTitle>
