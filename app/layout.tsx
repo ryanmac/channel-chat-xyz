@@ -11,8 +11,8 @@ import { Toaster } from "sonner";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ChannelChat - AI chat for every YouTube channel",
-  description: "Empower YouTube creators and their communities with AI-powered chatbots",
+  title: "ChannelChat - AI for every YouTube channel",
+  description: "AI-powered conversations beyond the play button",
 };
 
 export default function RootLayout({
