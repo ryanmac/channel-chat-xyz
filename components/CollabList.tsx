@@ -50,7 +50,7 @@ const CollabItem: React.FC<CollabListItem> = ({ channel1, channel2, topicTitle, 
             </p>
           </div>
         </div>
-        <CardDescription className="text-sm mt-4">{topicDescription}</CardDescription>
+        {/* <CardDescription className="text-sm mt-4">{topicDescription}</CardDescription> */}
       </CardContent>
       <CardFooter className="flex justify-center mt-auto">
         <Link href={`/collab/${id}`} className="w-full">
