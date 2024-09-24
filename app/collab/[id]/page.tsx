@@ -12,6 +12,7 @@ import { Channel } from '@prisma/client';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import Link from 'next/link';
 import { FaRobot } from 'react-icons/fa6';
+import { DisclaimerSection } from '@/components/DisclaimerSection';
 
 export default function DebatePage() {
   const { id } = useParams();
@@ -98,6 +99,7 @@ export default function DebatePage() {
         ) : (
           <div></div>
         )}
+        <DisclaimerSection />
       </div>
       <Footer />
     </ErrorBoundary>

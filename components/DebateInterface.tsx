@@ -146,26 +146,30 @@ export const DebateInterface: React.FC<DebateInterfaceProps> = ({
       <CardHeader>
         <CardTitle>
           <p className="text-5xl font-bold text-center mt-8 mb-8">{debate.topicTitle}</p>
-          <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-12 mb-12">
-            <Avatar className="w-18 h-18 rounded-full">
-              <AvatarImage src={channel1.imageUrl || undefined} alt={channel1.name} />
-              <AvatarFallback>{channel1.name[0]}</AvatarFallback>
-            </Avatar>
-            <span className="font-semibold">
-              <span className="inline whitespace-nowrap">
-                <FaRobot className="inline h-6 w-6 pb-1 align-middle mr-0.5 ml-2" />{channel1.name}
-              </span>
-            </span>
-            <span className="text-muted-foreground"><Merge className="w-8 h-8 text-primary animate-pulse transform rotate-180" /></span>
-            <span className="font-semibold">
-              <span className="inline whitespace-nowrap">
-                <FaRobot className="inline h-6 w-6 pb-1 align-middle mr-0.5 ml-2" />{channel2.name}
-              </span>
-            </span>
-            <Avatar className="w-18 h-18 rounded-full">
-              <AvatarImage src={channel2.imageUrl || undefined} alt={channel2.name} />
-              <AvatarFallback>{channel2.name[0]}</AvatarFallback>
-            </Avatar>
+          <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col items-center flex-1">
+              <Avatar className="h-18 w-18 mb-2 rounded-full">
+                <AvatarImage src={channel1.imageUrl || undefined} alt={channel1.name || 'Channel'} />
+                <AvatarFallback>{(channel1.name || '?')[0]}</AvatarFallback>
+              </Avatar>
+              <p className="text-md text-center flex items-center">
+                <FaRobot className="w-6 h-6 mr-1" />
+                <span>{channel1.name || 'Unknown Channel'}</span>
+              </p>
+            </div>
+            <div className="flex-shrink-0 mx-4">
+              <Merge className="h-8 w-8 rotate-180 text-muted-foreground" />
+            </div>
+            <div className="flex flex-col items-center flex-1">
+              <Avatar className="h-18 w-18 mb-2 rounded-full">
+                <AvatarImage src={channel2.imageUrl || undefined} alt={channel2.name || 'Channel'} />
+                <AvatarFallback>{(channel2.name || '?')[0]}</AvatarFallback>
+              </Avatar>
+              <p className="text-md text-center flex items-center">
+                <FaRobot className="w-6 h-6 mr-1" />
+                <span>{channel2.name || 'Unknown Channel'}</span>
+              </p>
+            </div>
           </div>
           {debate.topicDescription && <p className="text-xl font-normal text-center mb-8">{debate.topicDescription}</p>}
         </CardTitle>
