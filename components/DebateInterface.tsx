@@ -101,6 +101,10 @@ export const DebateInterface: React.FC<DebateInterfaceProps> = ({
   // Sharing
   const [isClient, setIsClient] = useState(false);
   const { toast } = useToast();
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const currentUrl = `${config.app.url}/collab/${debate.id}`; // Dynamic URL for the current debate
   const shareMessage = `Check out this AI-powered collab between @${channel1.name} and @${channel2.name} on the topic "${debate.topicTitle}".\n\nDive into the conversation and see how AI can power collabs between YouTube Channels.\n`;
 
