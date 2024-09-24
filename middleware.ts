@@ -10,6 +10,7 @@ export default auth((req) => {
   const isAuthRoute = nextUrl.pathname.startsWith("/auth");
   const isAdminRoute = nextUrl.pathname.startsWith("/admin");
   const isPublicRoute = ["/", "/about", "/feedback", "/collab"].includes(nextUrl.pathname) ||
+    nextUrl.pathname.startsWith("/collab/") ||
     nextUrl.pathname.startsWith("/user") ||
     nextUrl.pathname.startsWith("/channel");
 
