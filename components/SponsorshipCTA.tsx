@@ -9,7 +9,9 @@ import { Bot, MessageSquare } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { createCheckoutSession } from "@/utils/stripePayments";
 import { ChannelData } from '@/utils/channelManagement';
-import { FaR, FaRobot } from "react-icons/fa6";
+import { FaRobot } from "react-icons/fa6";
+import { BadgeComponent } from '@/components/BadgeComponent';
+import { determineBadges, BadgeType } from '@/utils/badgeManagement';
 
 interface SponsorshipCTAProps {
   channelData: ChannelData;
@@ -44,6 +46,22 @@ export function SponsorshipCTA({ channelData }: SponsorshipCTAProps) {
 
   const sponsorAmount = sliderValue[0];
   const chatsSponsored = sponsorAmount * 1000; // 1 dollar sponsors 1000 chats
+
+  // Determine the badges to be earned based on the sponsorship amount
+  const earnedBadges = determineBadges(sponsorAmount, 0, 0, false, {
+    totalChats: chatsSponsored,
+    shares: 0,
+    daysActive: 0,
+    earlyMorningChats: 0,
+    lateNightChats: 0,
+    uniqueChannels: 0,
+    uniqueQueries: 0,
+    longConversations: 0,
+    conversationsStarted: 0,
+    factChecks: 0,
+    trendingConversations: 0,
+    complexQueries: 0,
+  });
 
   return (
     <Card className="w-full mb-8 mt-8 bg-background/80 border-none">
@@ -84,6 +102,15 @@ export function SponsorshipCTA({ channelData }: SponsorshipCTAProps) {
         <p className="mt-4 text-sm text-gray-600 text-center">
           Every dollar sponsors 1,000 AI-powered chats for the community!
         </p>
+        {earnedBadges.length > 0 && (
+          <div className="mt-4">
+            <div className="flex flex-wrap justify-center">
+              {earnedBadges.map((badgeType: BadgeType) => (
+                <BadgeComponent key={badgeType} type={badgeType} />
+              ))}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

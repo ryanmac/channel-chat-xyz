@@ -149,6 +149,7 @@ export async function getChannelFundingImpact(
     creditsInDollars: creditContribution / creditsPerDollar, // Convert credits back to dollar equivalent
   };
 
+  // Calculate the funding state after the contribution
   const after = {
     activation: before.activation + activationContribution,
     credits: before.credits + creditContribution,
@@ -156,6 +157,16 @@ export async function getChannelFundingImpact(
     activationInDollars: before.activationInDollars + activationContribution,
     creditsInDollars: before.creditsInDollars + creditContribution / creditsPerDollar,
   };
+
+  // Check if the before state was not fully funded but the after state is fully funded
+  const wasNotFullyFunded = before.activation < channelData.activationGoal;
+  const isNowFullyFunded = after.activation >= channelData.activationGoal;
+
+  // If the activation funding goal is met after the contribution, add 1000 initial credits
+  if (wasNotFullyFunded && isNowFullyFunded) {
+    after.credits += 1000; // Add the 1000 initial credits
+    after.creditsInDollars = after.credits / creditsPerDollar; // Update the dollar equivalent
+  }
 
   console.log('Funding impact:', { before, contribution, after });
 

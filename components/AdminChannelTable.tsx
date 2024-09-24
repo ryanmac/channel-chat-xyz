@@ -458,15 +458,18 @@ export default function AdminChannelTable() {
               </TableCell>
               <TableCell>
                 <div className="flex items-center space-x-2">
+                  <div className="mx-2">
+                    {channel.interests.length}
+                  </div>
                   <Button
                     onClick={() => handleRefreshInterests(channel.id, channel.name)}
                     disabled={interestsLoading[channel.id]}
                     className="px-2 py-1 text-xs bg-background border-input border text-gray-800 dark:text-white hover:bg-accent"
                   >
                     {interestsLoading[channel.id] ? (
-                      <Spinner className="w-4 h-4" />
+                      <Spinner className="w-4 h-4 animate-spin" />
                     ) : (
-                      <RotateCcw className="h-4 w-4" />
+                      <RotateCcw className="h-3 w-3" />
                     )}
                   </Button>
                   <Button

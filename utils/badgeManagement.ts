@@ -31,7 +31,7 @@ export const determineBadges = (
   const badges = new Set<BadgeType>();
 
   // Refined badge logic
-  if (isFirstSponsor || remainingToActivate <= 10) {
+  if (isFirstSponsor || (remainingToActivate <= 10 && fundingToGoal != 0)) {
     badges.add('founding');
   }
 
@@ -47,16 +47,16 @@ export const determineBadges = (
     badges.add('activator');
   }
 
-  if (numericAmount >= remainingToActivate + 40 && remainingToActivate > 0) {
+  if ((numericAmount >= remainingToActivate + 40 && remainingToActivate > 0) || numericAmount >= 40) {
     badges.add('chad');
   }
 
-  if (numericAmount >= remainingToActivate + 80 && remainingToActivate > 0) {
+  if ((numericAmount >= remainingToActivate + 80 && remainingToActivate > 0) || numericAmount >= 80) {
     badges.add('giga-chad');
   }
 
   // New badge logic based on user stats
-  if (userStats.totalChats >= 100) badges.add('chatterbox');
+  if (userStats.totalChats >= 10000) badges.add('chatterbox');
   if (userStats.shares >= 50) badges.add('viral');
   if (userStats.daysActive >= 30) badges.add('loyal-fan');
   if (userStats.earlyMorningChats >= 20) badges.add('early-bird');

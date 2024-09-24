@@ -259,7 +259,9 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ channelData, showM
         )}
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">
-        <QuickPrompts onPromptSelect={handleQuickPrompt} />
+        <QuickPrompts
+          onPromptSelect={handleQuickPrompt}
+        />
         <div className="flex w-full space-x-2">
           <textarea
             ref={inputRef}

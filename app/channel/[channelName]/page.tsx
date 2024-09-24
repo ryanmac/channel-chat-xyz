@@ -30,6 +30,7 @@ import { FaRobot } from "react-icons/fa6";
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useBadgeTransfer } from '@/hooks/useBadgeTransfer';
+import Image from 'next/image'
 
 interface ChannelPageProps {
   params: {
@@ -121,6 +122,16 @@ export default function ChannelPage({ params }: ChannelPageProps) {
       if (data && data.id) {
         setIsChannelActive(data.status === 'ACTIVE');
         setIsProcessing(data.isProcessing);
+        if (!isProcessing) {
+          if (data.interests.length === 0) {
+            console.log('No interests found for channel:', data.name);
+            const response = fetch(`/api/channel/interests`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ channelData: { id: data.id, name: data.name } }),
+            });
+          }
+        }
         fetchSessionBadges();
       }
     } catch (error) {
@@ -175,7 +186,14 @@ export default function ChannelPage({ params }: ChannelPageProps) {
   if (isLoading) {
     return (
       <div className="flex flex-col justify-center items-center h-screen space-y-4">
-        <FaRobot className="w-16 h-16 text-gray-500 dark:text-white animate-spin" />
+        {/* <FaRobot className="w-16 h-16 text-gray-500 dark:text-white animate-spin" /> */}
+        <Image
+          src="/logomark-play2.png"
+          alt="ChannelChat Logo"
+          width={200}
+          height={200}
+          className="mr-2 h-[200px] w-auto"
+        />
         <div className="flex items-center space-x-2">
           <span className="text-2xl mr-2">Loading</span>
           <FaRobot className="w-8 h-8 text-gray-500 dark:text-white -mr-1 p-0" />

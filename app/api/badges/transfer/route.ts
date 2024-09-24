@@ -52,5 +52,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error transferring badges:', error);
     // return NextResponse.json({ error: 'Failed to transfer badges', details: error }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to transfer badges' });
   }
 }

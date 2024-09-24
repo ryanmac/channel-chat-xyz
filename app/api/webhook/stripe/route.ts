@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
       // Step 6: Calculate Funding Impact
       const impact = await getChannelFundingImpact(channel, amountInDollars);
       const { before, contribution, after } = impact;
+      console.log(`Impact for channel ${channelId}:`, impact);
 
       let wasActivated = false;
 

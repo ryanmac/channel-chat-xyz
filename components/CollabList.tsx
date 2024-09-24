@@ -113,7 +113,7 @@ export default function CollabList({ limit = 5 }: { limit?: number }) {
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 mt-8 px-4 md:px-6 lg:px-8">
+    <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3 mt-8 px-4 md:px-6 lg:px-8">
       {collabs.map((collab) => (
         <CollabItem key={collab.id} {...collab} />
       ))}
